@@ -1,0 +1,721 @@
+{
+  "updated_at": "2025-12-13T17:20:38.666766",
+  "equity_curve": [
+    {
+      "index": 1,
+      "equity": 1.0086
+    },
+    {
+      "index": 2,
+      "equity": 0.9964
+    },
+    {
+      "index": 3,
+      "equity": 1.0059
+    },
+    {
+      "index": 4,
+      "equity": 1.0176
+    },
+    {
+      "index": 5,
+      "equity": 1.0361
+    },
+    {
+      "index": 6,
+      "equity": 1.042
+    },
+    {
+      "index": 7,
+      "equity": 1.0293
+    },
+    {
+      "index": 8,
+      "equity": 1.0343
+    },
+    {
+      "index": 9,
+      "equity": 1.0542
+    },
+    {
+      "index": 10,
+      "equity": 1.0614
+    },
+    {
+      "index": 11,
+      "equity": 1.0708
+    },
+    {
+      "index": 12,
+      "equity": 1.0812
+    },
+    {
+      "index": 13,
+      "equity": 1.0903
+    },
+    {
+      "index": 14,
+      "equity": 1.0826
+    },
+    {
+      "index": 15,
+      "equity": 1.1002
+    },
+    {
+      "index": 16,
+      "equity": 1.0984
+    },
+    {
+      "index": 17,
+      "equity": 1.1097
+    },
+    {
+      "index": 18,
+      "equity": 1.1083
+    },
+    {
+      "index": 19,
+      "equity": 1.1196
+    },
+    {
+      "index": 20,
+      "equity": 1.1191
+    },
+    {
+      "index": 21,
+      "equity": 1.1124
+    },
+    {
+      "index": 22,
+      "equity": 1.1214
+    },
+    {
+      "index": 23,
+      "equity": 1.116
+    },
+    {
+      "index": 24,
+      "equity": 1.1354
+    },
+    {
+      "index": 25,
+      "equity": 1.1304
+    },
+    {
+      "index": 26,
+      "equity": 1.134
+    },
+    {
+      "index": 27,
+      "equity": 1.1358
+    },
+    {
+      "index": 28,
+      "equity": 1.1286
+    },
+    {
+      "index": 29,
+      "equity": 1.1421
+    },
+    {
+      "index": 30,
+      "equity": 1.1435
+    },
+    {
+      "index": 31,
+      "equity": 1.1629
+    },
+    {
+      "index": 32,
+      "equity": 1.1584
+    },
+    {
+      "index": 33,
+      "equity": 1.1588
+    },
+    {
+      "index": 34,
+      "equity": 1.1512
+    },
+    {
+      "index": 35,
+      "equity": 1.1376
+    },
+    {
+      "index": 36,
+      "equity": 1.1462
+    },
+    {
+      "index": 37,
+      "equity": 1.1512
+    },
+    {
+      "index": 38,
+      "equity": 1.139
+    },
+    {
+      "index": 39,
+      "equity": 1.1476
+    },
+    {
+      "index": 40,
+      "equity": 1.1606
+    },
+    {
+      "index": 41,
+      "equity": 1.1597
+    },
+    {
+      "index": 42,
+      "equity": 1.1733
+    },
+    {
+      "index": 43,
+      "equity": 1.1877
+    },
+    {
+      "index": 44,
+      "equity": 1.1868
+    },
+    {
+      "index": 45,
+      "equity": 1.1846
+    },
+    {
+      "index": 46,
+      "equity": 1.1792
+    },
+    {
+      "index": 47,
+      "equity": 1.1891
+    },
+    {
+      "index": 48,
+      "equity": 1.1999
+    },
+    {
+      "index": 49,
+      "equity": 1.2022
+    },
+    {
+      "index": 50,
+      "equity": 1.2171
+    },
+    {
+      "index": 51,
+      "equity": 1.2058
+    },
+    {
+      "index": 52,
+      "equity": 1.1927
+    },
+    {
+      "index": 53,
+      "equity": 1.1846
+    },
+    {
+      "index": 54,
+      "equity": 1.1918
+    },
+    {
+      "index": 55,
+      "equity": 1.1927
+    },
+    {
+      "index": 56,
+      "equity": 1.1954
+    },
+    {
+      "index": 57,
+      "equity": 1.1927
+    },
+    {
+      "index": 58,
+      "equity": 1.2125
+    },
+    {
+      "index": 59,
+      "equity": 1.2076
+    },
+    {
+      "index": 60,
+      "equity": 1.2238
+    },
+    {
+      "index": 61,
+      "equity": 1.2338
+    },
+    {
+      "index": 62,
+      "equity": 1.227
+    },
+    {
+      "index": 63,
+      "equity": 1.213
+    },
+    {
+      "index": 64,
+      "equity": 1.2238
+    },
+    {
+      "index": 65,
+      "equity": 1.2423
+    },
+    {
+      "index": 66,
+      "equity": 1.2477
+    },
+    {
+      "index": 67,
+      "equity": 1.264
+    },
+    {
+      "index": 68,
+      "equity": 1.2802
+    },
+    {
+      "index": 69,
+      "equity": 1.2956
+    },
+    {
+      "index": 70,
+      "equity": 1.2866
+    },
+    {
+      "index": 71,
+      "equity": 1.3019
+    },
+    {
+      "index": 72,
+      "equity": 1.2996
+    },
+    {
+      "index": 73,
+      "equity": 1.2965
+    },
+    {
+      "index": 74,
+      "equity": 1.2879
+    },
+    {
+      "index": 75,
+      "equity": 1.2847
+    },
+    {
+      "index": 76,
+      "equity": 1.3028
+    },
+    {
+      "index": 77,
+      "equity": 1.2884
+    },
+    {
+      "index": 78,
+      "equity": 1.2947
+    },
+    {
+      "index": 79,
+      "equity": 1.2802
+    },
+    {
+      "index": 80,
+      "equity": 1.2906
+    },
+    {
+      "index": 81,
+      "equity": 1.3091
+    },
+    {
+      "index": 82,
+      "equity": 1.319
+    },
+    {
+      "index": 83,
+      "equity": 1.3285
+    },
+    {
+      "index": 84,
+      "equity": 1.3371
+    },
+    {
+      "index": 85,
+      "equity": 1.3515
+    },
+    {
+      "index": 86,
+      "equity": 1.3592
+    },
+    {
+      "index": 87,
+      "equity": 1.3723
+    },
+    {
+      "index": 88,
+      "equity": 1.375
+    },
+    {
+      "index": 89,
+      "equity": 1.3836
+    },
+    {
+      "index": 90,
+      "equity": 1.4034
+    },
+    {
+      "index": 91,
+      "equity": 1.4084
+    },
+    {
+      "index": 92,
+      "equity": 1.4161
+    },
+    {
+      "index": 93,
+      "equity": 1.4282
+    },
+    {
+      "index": 94,
+      "equity": 1.4143
+    },
+    {
+      "index": 95,
+      "equity": 1.4228
+    },
+    {
+      "index": 96,
+      "equity": 1.4292
+    },
+    {
+      "index": 97,
+      "equity": 1.4292
+    },
+    {
+      "index": 98,
+      "equity": 1.444
+    },
+    {
+      "index": 99,
+      "equity": 1.4382
+    },
+    {
+      "index": 100,
+      "equity": 1.4544
+    },
+    {
+      "index": 101,
+      "equity": 1.4644
+    },
+    {
+      "index": 102,
+      "equity": 1.4508
+    },
+    {
+      "index": 103,
+      "equity": 1.4355
+    },
+    {
+      "index": 104,
+      "equity": 1.4305
+    },
+    {
+      "index": 105,
+      "equity": 1.4418
+    },
+    {
+      "index": 106,
+      "equity": 1.4359
+    },
+    {
+      "index": 107,
+      "equity": 1.4463
+    },
+    {
+      "index": 108,
+      "equity": 1.4314
+    },
+    {
+      "index": 109,
+      "equity": 1.431
+    },
+    {
+      "index": 110,
+      "equity": 1.4228
+    },
+    {
+      "index": 111,
+      "equity": 1.4161
+    },
+    {
+      "index": 112,
+      "equity": 1.4084
+    },
+    {
+      "index": 113,
+      "equity": 1.4269
+    },
+    {
+      "index": 114,
+      "equity": 1.4282
+    },
+    {
+      "index": 115,
+      "equity": 1.44
+    },
+    {
+      "index": 116,
+      "equity": 1.4522
+    },
+    {
+      "index": 117,
+      "equity": 1.4576
+    },
+    {
+      "index": 118,
+      "equity": 1.4445
+    },
+    {
+      "index": 119,
+      "equity": 1.4594
+    },
+    {
+      "index": 120,
+      "equity": 1.4558
+    },
+    {
+      "index": 121,
+      "equity": 1.4404
+    },
+    {
+      "index": 122,
+      "equity": 1.4477
+    },
+    {
+      "index": 123,
+      "equity": 1.4671
+    },
+    {
+      "index": 124,
+      "equity": 1.468
+    },
+    {
+      "index": 125,
+      "equity": 1.4819
+    },
+    {
+      "index": 126,
+      "equity": 1.4869
+    },
+    {
+      "index": 127,
+      "equity": 1.4774
+    },
+    {
+      "index": 128,
+      "equity": 1.4869
+    },
+    {
+      "index": 129,
+      "equity": 1.4801
+    },
+    {
+      "index": 130,
+      "equity": 1.4874
+    },
+    {
+      "index": 131,
+      "equity": 1.4865
+    },
+    {
+      "index": 132,
+      "equity": 1.4896
+    },
+    {
+      "index": 133,
+      "equity": 1.4905
+    },
+    {
+      "index": 134,
+      "equity": 1.4788
+    },
+    {
+      "index": 135,
+      "equity": 1.4896
+    },
+    {
+      "index": 136,
+      "equity": 1.4842
+    },
+    {
+      "index": 137,
+      "equity": 1.4792
+    },
+    {
+      "index": 138,
+      "equity": 1.4833
+    },
+    {
+      "index": 139,
+      "equity": 1.4711
+    },
+    {
+      "index": 140,
+      "equity": 1.4621
+    },
+    {
+      "index": 141,
+      "equity": 1.4607
+    },
+    {
+      "index": 142,
+      "equity": 1.4743
+    },
+    {
+      "index": 143,
+      "equity": 1.486
+    },
+    {
+      "index": 144,
+      "equity": 1.4842
+    },
+    {
+      "index": 145,
+      "equity": 1.4792
+    },
+    {
+      "index": 146,
+      "equity": 1.486
+    },
+    {
+      "index": 147,
+      "equity": 1.4729
+    },
+    {
+      "index": 148,
+      "equity": 1.4585
+    },
+    {
+      "index": 149,
+      "equity": 1.4675
+    },
+    {
+      "index": 150,
+      "equity": 1.4806
+    },
+    {
+      "index": 151,
+      "equity": 1.4977
+    },
+    {
+      "index": 152,
+      "equity": 1.5032
+    },
+    {
+      "index": 153,
+      "equity": 1.5122
+    },
+    {
+      "index": 154,
+      "equity": 1.5126
+    },
+    {
+      "index": 155,
+      "equity": 1.5059
+    },
+    {
+      "index": 156,
+      "equity": 1.5113
+    },
+    {
+      "index": 157,
+      "equity": 1.4968
+    },
+    {
+      "index": 158,
+      "equity": 1.4874
+    },
+    {
+      "index": 159,
+      "equity": 1.4887
+    },
+    {
+      "index": 160,
+      "equity": 1.4847
+    },
+    {
+      "index": 161,
+      "equity": 1.4702
+    },
+    {
+      "index": 162,
+      "equity": 1.4856
+    },
+    {
+      "index": 163,
+      "equity": 1.4847
+    },
+    {
+      "index": 164,
+      "equity": 1.4851
+    },
+    {
+      "index": 165,
+      "equity": 1.4851
+    },
+    {
+      "index": 166,
+      "equity": 1.4982
+    },
+    {
+      "index": 167,
+      "equity": 1.4856
+    },
+    {
+      "index": 168,
+      "equity": 1.4932
+    },
+    {
+      "index": 169,
+      "equity": 1.4874
+    },
+    {
+      "index": 170,
+      "equity": 1.477
+    },
+    {
+      "index": 171,
+      "equity": 1.4923
+    },
+    {
+      "index": 172,
+      "equity": 1.486
+    },
+    {
+      "index": 173,
+      "equity": 1.5063
+    },
+    {
+      "index": 174,
+      "equity": 1.5027
+    },
+    {
+      "index": 175,
+      "equity": 1.5221
+    },
+    {
+      "index": 176,
+      "equity": 1.5077
+    },
+    {
+      "index": 177,
+      "equity": 1.528
+    },
+    {
+      "index": 178,
+      "equity": 1.5167
+    },
+    {
+      "index": 179,
+      "equity": 1.5045
+    }
+  ]
+}

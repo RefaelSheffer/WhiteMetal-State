@@ -2,23 +2,122 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>WhiteMetal State</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #0c1116; color: #e9f1f7; margin: 0; padding: 24px; }
+    h1 { margin-top: 0; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    .card { background: #131a22; border: 1px solid #1f2a36; border-radius: 8px; padding: 16px; box-shadow: 0 6px 12px rgba(0,0,0,0.25); }
+    .muted { color: #9db0c2; font-size: 0.9rem; }
+    pre { white-space: pre-wrap; word-break: break-word; }
+    ul { padding-left: 18px; }
+    .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
+    .BUY { background: #17412f; color: #63f5b6; }
+    .ADD { background: #1e3b6f; color: #8ac5ff; }
+    .HOLD { background: #3a3222; color: #f3d083; }
+    .REDUCE { background: #4f1f2f; color: #f697a3; }
+    .WAIT { background: #37404a; color: #ced9e5; }
+    .events li { margin-bottom: 6px; }
+    .table { width: 100%; border-collapse: collapse; }
+    .table th, .table td { border: 1px solid #1f2a36; padding: 6px 8px; text-align: left; }
+  </style>
 </head>
 <body>
   <h1>WhiteMetal State</h1>
-  <pre id="output">Loading...</pre>
+  <p class="muted">Event-driven SLV market monitor. Not financial advice.</p>
+
+  <div class="grid">
+    <section class="card" id="signal-card">
+      <h2>Latest Signal</h2>
+      <div id="signal-body">Loading signal...</div>
+    </section>
+
+    <section class="card" id="event-card">
+      <h2>Active Events</h2>
+      <ul id="events" class="events"></ul>
+    </section>
+
+    <section class="card" id="performance-card">
+      <h2>Performance Snapshot</h2>
+      <div id="performance-body">Loading performance...</div>
+    </section>
+  </div>
+
+  <section class="card" style="margin-top: 16px;">
+    <h2>Equity Curve (sample)</h2>
+    <table class="table" id="equity-table">
+      <thead><tr><th>Step</th><th>Equity</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
 
   <script>
-    fetch("../public/data/latest_signal.json")
-      .then(res => res.json())
-      .then(data => {
-        document.getElementById("output").textContent =
-          JSON.stringify(data, null, 2);
-      })
-      .catch(err => {
-        document.getElementById("output").textContent =
-          "Failed to load signal: " + err;
-      });
+    async function loadJson(path) {
+      const response = await fetch(path);
+      if (!response.ok) throw new Error(`Failed to fetch ${path}: ${response.status}`);
+      return response.json();
+    }
+
+    function renderSignal(data) {
+      const container = document.getElementById("signal-body");
+      const badge = `<span class="badge ${data.action}">${data.action}</span>`;
+      container.innerHTML = `
+        <div>${badge} <strong>${data.market_state}</strong></div>
+        <p class="muted">Confidence: ${(data.confidence * 100).toFixed(0)}%</p>
+        <p>${data.rationale}</p>
+        <p class="muted">Updated: ${new Date(data.timestamp).toLocaleString()}</p>
+      `;
+    }
+
+    function renderEvents(events) {
+      const list = document.getElementById("events");
+      list.innerHTML = events.map(evt => `
+        <li>
+          <strong>${evt.name}</strong> – ${(evt.confidence * 100).toFixed(0)}%<br />
+          <span class="muted">${evt.rationale}</span>
+        </li>
+      `).join("");
+    }
+
+    function renderPerformance(summary) {
+      const container = document.getElementById("performance-body");
+      container.innerHTML = `
+        <p>Hit rate: ${(summary.hit_rate * 100).toFixed(1)}%</p>
+        <p>Avg return 5d: ${(summary.avg_return_5d * 100).toFixed(2)}%</p>
+        <p>Avg return 10d: ${(summary.avg_return_10d * 100).toFixed(2)}%</p>
+        <p>Max drawdown (10d): ${(summary.max_drawdown * 100).toFixed(2)}%</p>
+        <p class="muted">Updated: ${new Date(summary.updated_at).toLocaleString()}</p>
+      `;
+    }
+
+    function renderEquity(curve) {
+      const tbody = document.querySelector("#equity-table tbody");
+      const sample = curve.slice(-20); // last 20 points for brevity
+      tbody.innerHTML = sample.map(point => `
+        <tr><td>${point.index}</td><td>${point.equity}</td></tr>
+      `).join("");
+    }
+
+    async function bootstrap() {
+      try {
+        const [signal, events, perf, curve] = await Promise.all([
+          loadJson("public/data/signals/latest_signal.json"),
+          loadJson("public/data/events/latest.json"),
+          loadJson("public/data/perf/summary.json"),
+          loadJson("public/data/perf/equity_curve.json"),
+        ]);
+
+        renderSignal(signal);
+        renderEvents(events.events);
+        renderPerformance(perf);
+        renderEquity(curve.equity_curve);
+      } catch (err) {
+        document.getElementById("signal-body").textContent = err.message;
+      }
+    }
+
+    bootstrap();
   </script>
 </body>
 </html>
