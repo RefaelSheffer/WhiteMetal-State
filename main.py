@@ -1,17 +1,12 @@
-import json
-from datetime import datetime
+"""Pipeline entrypoint for GitHub Actions.
 
-signal = {
-    "timestamp": datetime.utcnow().isoformat(),
-    "market_state": "NEUTRAL",
-    "action": "HOLD",
-    "confidence": 0.50,
-    "explanation": "Initial placeholder signal. No live data yet."
-}
+This script generates synthetic SLV data, detects events, produces a
+signal, and emits lightweight backtest metrics to `public/data`. It is
+intentionally dependency-light so it can run on GitHub's hosted runners
+without extra setup.
+"""
+from engine.main import run_pipeline
 
-output_path = "public/data/latest_signal.json"
 
-with open(output_path, "w") as f:
-    json.dump(signal, f, indent=2)
-
-print(f"Signal written to {output_path}")
+if __name__ == "__main__":
+    run_pipeline()
