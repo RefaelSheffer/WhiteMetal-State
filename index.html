@@ -4,116 +4,793 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>WhiteMetal State</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: Arial, sans-serif; background: #0c1116; color: #e9f1f7; margin: 0; padding: 24px; }
-    h1 { margin-top: 0; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
-    .card { background: #131a22; border: 1px solid #1f2a36; border-radius: 8px; padding: 16px; box-shadow: 0 6px 12px rgba(0,0,0,0.25); }
-    .muted { color: #9db0c2; font-size: 0.9rem; }
-    pre { white-space: pre-wrap; word-break: break-word; }
-    ul { padding-left: 18px; }
-    .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
-    .BUY { background: #17412f; color: #63f5b6; }
-    .ADD { background: #1e3b6f; color: #8ac5ff; }
-    .HOLD { background: #3a3222; color: #f3d083; }
-    .REDUCE { background: #4f1f2f; color: #f697a3; }
-    .WAIT { background: #37404a; color: #ced9e5; }
-    .events li { margin-bottom: 6px; }
-    .table { width: 100%; border-collapse: collapse; }
-    .table th, .table td { border: 1px solid #1f2a36; padding: 6px 8px; text-align: left; }
+    :root {
+      --bg: #f5f7fa;
+      --card: #ffffff;
+      --text: #1b2733;
+      --muted: #5b6b7b;
+      --border: #e3e7ed;
+      --accent: #2d6cdf;
+      --buy: #1c9c68;
+      --sell: #d64545;
+      --hold: #4b5563;
+      --shadow: 0 10px 30px rgba(27, 39, 51, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    header.top-bar {
+      background: #fff;
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: 0.02em;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .nav-tabs button {
+      border: 1px solid var(--border);
+      background: #f3f5f9;
+      color: var(--text);
+      border-radius: 10px;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+
+    .nav-tabs button.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      box-shadow: 0 10px 24px rgba(45, 108, 223, 0.2);
+    }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: var(--muted);
+      font-size: 0.95rem;
+      flex-wrap: wrap;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 6px;
+    }
+
+    main { padding: 18px 24px 32px; }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    h2 { margin: 0 0 6px; font-size: 1.05rem; }
+    h3 { margin: 0 0 8px; font-size: 1rem; }
+    p { margin: 4px 0; }
+    .muted { color: var(--muted); }
+
+    .stat-value { font-size: 1.6rem; font-weight: 700; }
+    .subline { color: var(--muted); font-size: 0.95rem; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.01em;
+    }
+    .badge.BUY { background: rgba(28, 156, 104, 0.14); color: #0f6847; }
+    .badge.SELL { background: rgba(214, 69, 69, 0.16); color: #8b1f1f; }
+    .badge.ADD { background: rgba(45, 108, 223, 0.12); color: #1c4ba3; }
+    .badge.HOLD, .badge.WAIT { background: rgba(75, 85, 99, 0.12); color: #2d3340; }
+    .badge.REDUCE { background: rgba(214, 69, 69, 0.1); color: #8b1f1f; }
+
+    .progress {
+      position: relative;
+      height: 10px;
+      background: #eef2f7;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 10px 0 4px;
+    }
+    .progress span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), #33c38e);
+    }
+
+    .chart-card { margin-top: 18px; }
+    .range-toggle { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
+    .range-toggle button { padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border); background: #f1f4f8; cursor: pointer; }
+    .range-toggle button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    .panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 18px; }
+
+    .explain-list { list-style: none; padding: 0; margin: 0; }
+    .explain-list li { padding: 6px 0; border-bottom: 1px solid var(--border); }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+    .table th, .table td {
+      border: 1px solid var(--border);
+      padding: 10px 8px;
+      text-align: left;
+      font-size: 0.95rem;
+    }
+    .table th { background: #f7f9fc; }
+
+    .drawer { background: #f8fafc; border-radius: 10px; padding: 12px; margin-top: 8px; border: 1px solid var(--border); }
+
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+
+    .pill { padding: 6px 10px; border-radius: 8px; background: #eef2f7; display: inline-block; font-weight: 600; }
+
+    .timeline { list-style: none; padding: 0; margin: 0; }
+    .timeline li { padding: 10px 0; border-bottom: 1px solid var(--border); }
+
+    .heatmap { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; max-width: 240px; }
+    .heatmap div { padding: 10px 0; text-align: center; border-radius: 6px; background: #eef2f7; color: var(--muted); font-weight: 600; }
+
+    @media (max-width: 720px) {
+      header.top-bar { flex-direction: column; align-items: flex-start; }
+      .status-bar { width: 100%; justify-content: space-between; }
+    }
   </style>
 </head>
 <body>
-  <h1>WhiteMetal State</h1>
-  <p class="muted">Event-driven SLV market monitor. Not financial advice.</p>
+  <header class="top-bar">
+    <div class="brand">WhiteMetal State</div>
+    <div class="nav-tabs">
+      <button class="active" data-target="dashboard">Dashboard</button>
+      <button data-target="signals">Signals</button>
+      <button data-target="performance">Performance</button>
+      <button data-target="events">Events</button>
+      <button data-target="settings" disabled>Settings</button>
+    </div>
+    <div class="status-bar">
+      <span id="last-update">Last update: —</span>
+      <span id="data-status"><span class="status-dot" style="background:#d0d4da"></span>Loading</span>
+    </div>
+  </header>
 
-  <div class="grid">
-    <section class="card" id="signal-card">
-      <h2>Latest Signal</h2>
-      <div id="signal-body">Loading signal...</div>
+  <main>
+    <section id="dashboard" class="view active">
+      <div class="card-grid" id="status-cards"></div>
+
+      <section class="card chart-card">
+        <div style="display:flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <div>
+            <h2>SLV Price with Signals</h2>
+            <p class="muted">Default range: 3M (interactive)</p>
+          </div>
+          <div class="range-toggle" id="price-range"></div>
+        </div>
+        <canvas id="price-chart" height="120"></canvas>
+      </section>
+
+      <section class="panel">
+        <div class="card">
+          <h2>Why this action?</h2>
+          <ul class="explain-list" id="explain-triggers"></ul>
+        </div>
+        <div class="card">
+          <h2>Historical outcome</h2>
+          <div id="historical-outcome" class="muted"></div>
+        </div>
+      </section>
     </section>
 
-    <section class="card" id="event-card">
-      <h2>Active Events</h2>
-      <ul id="events" class="events"></ul>
+    <section id="signals" class="view">
+      <div style="display:flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <div>
+          <h2>Signal History</h2>
+          <p class="muted">What the algorithm did (1W/1M/1Y)</p>
+        </div>
+        <div class="range-toggle" id="signal-range"></div>
+      </div>
+      <table class="table" id="signal-table"></table>
+      <div id="signal-drawer"></div>
     </section>
 
-    <section class="card" id="performance-card">
-      <h2>Performance Snapshot</h2>
-      <div id="performance-body">Loading performance...</div>
+    <section id="performance" class="view">
+      <div style="display:flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <div>
+          <h2>Performance</h2>
+          <p class="muted">Strategy vs Buy & Hold</p>
+        </div>
+        <div class="range-toggle" id="perf-range"></div>
+      </div>
+
+      <div class="card kpi-grid" id="kpi-cards"></div>
+
+      <section class="card chart-card">
+        <div style="display:flex; justify-content: space-between; align-items:center; gap: 10px; flex-wrap: wrap;">
+          <h3>Equity Curve</h3>
+          <span class="pill">Strategy vs SLV</span>
+        </div>
+        <canvas id="equity-chart" height="110"></canvas>
+      </section>
+
+      <section class="card">
+        <h3>Breakdown by Event</h3>
+        <table class="table" id="breakdown-table"></table>
+      </section>
     </section>
-  </div>
 
-  <section class="card" style="margin-top: 16px;">
-    <h2>Equity Curve (sample)</h2>
-    <table class="table" id="equity-table">
-      <thead><tr><th>Step</th><th>Equity</th></tr></thead>
-      <tbody></tbody>
-    </table>
-  </section>
+    <section id="events" class="view">
+      <div style="display:flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <div>
+          <h2>Event Timeline</h2>
+          <p class="muted">Detected states even without signals</p>
+        </div>
+        <div id="event-filter" class="range-toggle"></div>
+      </div>
 
+      <div class="card">
+        <h3>Recent events</h3>
+        <ul class="timeline" id="event-list"></ul>
+      </div>
+
+      <div class="card">
+        <h3>Weekly heatmap</h3>
+        <div class="heatmap" id="heatmap"></div>
+      </div>
+    </section>
+
+    <section id="settings" class="view">
+      <div class="card">
+        <h2>Settings</h2>
+        <p class="muted">Coming soon.</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
   <script>
+    const state = {
+      data: {},
+      charts: {},
+    };
+
+    const ranges = [
+      { label: '1W', days: 7 },
+      { label: '1M', days: 30 },
+      { label: '3M', days: 90 },
+      { label: '1Y', days: 365 },
+      { label: 'YTD', days: 'ytd' },
+      { label: 'ALL', days: null },
+    ];
+
+    const defaultRange = '3M';
+
+    function setActiveTab(target) {
+      document.querySelectorAll('.nav-tabs button').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.target === target);
+      });
+      document.querySelectorAll('.view').forEach(view => {
+        view.classList.toggle('active', view.id === target);
+      });
+    }
+
+    document.querySelectorAll('.nav-tabs button').forEach(btn => {
+      btn.addEventListener('click', () => setActiveTab(btn.dataset.target));
+    });
+
     async function loadJson(path) {
-      const response = await fetch(path);
-      if (!response.ok) throw new Error(`Failed to fetch ${path}: ${response.status}`);
-      return response.json();
+      const resp = await fetch(path);
+      if (!resp.ok) throw new Error(`Failed to load ${path}`);
+      return resp.json();
     }
 
-    function renderSignal(data) {
-      const container = document.getElementById("signal-body");
-      const badge = `<span class="badge ${data.action}">${data.action}</span>`;
-      container.innerHTML = `
-        <div>${badge} <strong>${data.market_state}</strong></div>
-        <p class="muted">Confidence: ${(data.confidence * 100).toFixed(0)}%</p>
-        <p>${data.rationale}</p>
-        <p class="muted">Updated: ${new Date(data.timestamp).toLocaleString()}</p>
+    async function loadJsonl(path) {
+      const resp = await fetch(path);
+      if (!resp.ok) throw new Error(`Failed to load ${path}`);
+      const text = await resp.text();
+      return text.trim().split(/\n+/).map(line => JSON.parse(line));
+    }
+
+    function formatPct(value, decimals = 2) {
+      if (value === null || value === undefined || Number.isNaN(value)) return '—';
+      return `${(value * 100).toFixed(decimals)}%`;
+    }
+
+    function computeContext(raw) {
+      if (!raw?.length) return null;
+      const closes = raw.map(d => d.close);
+      const vols = raw.map(d => d.volume);
+      const last = raw[raw.length - 1];
+      const prev = raw[raw.length - 2] || last;
+      const ret1d = (last.close - prev.close) / prev.close;
+      const returns = [];
+      for (let i = 1; i < closes.length; i++) {
+        const r = (closes[i] - closes[i - 1]) / closes[i - 1];
+        returns.push(r);
+      }
+      const slice = returns.slice(-20);
+      const mean = slice.reduce((a, b) => a + b, 0) / Math.max(slice.length, 1);
+      const variance = slice.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / Math.max(slice.length, 1);
+      const vol20 = Math.sqrt(variance) * Math.sqrt(252);
+      const avgVol = vols.slice(-20).reduce((a, b) => a + b, 0) / Math.max(Math.min(vols.length, 20), 1);
+      const volumeRatio = avgVol ? last.volume / avgVol : 1;
+      return { ret1d, vol20, volumeRatio, lastClose: last.close };
+    }
+
+    function renderStatusCards() {
+      const { latestSignal, raw } = state.data;
+      const context = computeContext(raw);
+      const cards = [
+        {
+          title: 'Market State',
+          value: latestSignal.market_state,
+          sub: `Regime confidence: ${formatPct(latestSignal.confidence, 0)}`,
+        },
+        {
+          title: 'Recommended Action',
+          value: latestSignal.action,
+          badge: latestSignal.action,
+          sub: 'Horizon: 3–10 days',
+          extra: latestSignal.invalidation || 'Invalidation: below recent swing low',
+        },
+        {
+          title: "Today's Context",
+          value: context ? `${context.ret1d >= 0 ? '+' : ''}${formatPct(context.ret1d, 2)}` : '—',
+          sub: context ? `Volatility (20D): ${context.vol20.toFixed(2)}` : 'Volatility (20D): —',
+          extra: context ? `Volume vs avg: ${context.volumeRatio.toFixed(1)}×` : '',
+        },
+        {
+          title: 'Model Confidence',
+          value: `${(latestSignal.confidence * 100).toFixed(0)}%`,
+          sub: `Signals triggered: ${latestSignal.active_events?.length || 0}`,
+          progress: latestSignal.confidence,
+        },
+      ];
+
+      const container = document.getElementById('status-cards');
+      container.innerHTML = cards.map(card => `
+        <div class="card">
+          <h2>${card.title}</h2>
+          <div class="stat-value">${card.badge ? `<span class="badge ${card.badge}">${card.value}</span>` : card.value}</div>
+          <p class="subline">${card.sub || ''}</p>
+          ${card.progress !== undefined ? `<div class="progress"><span style="width:${Math.min(card.progress * 100, 100)}%"></span></div>` : ''}
+          ${card.extra ? `<p class="muted">${card.extra}</p>` : ''}
+        </div>
+      `).join('');
+    }
+
+    function buildRangeToggles(containerId, activeLabel, onChange) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = ranges.map(r => `<button data-label="${r.label}" class="${r.label === activeLabel ? 'active' : ''}">${r.label}</button>`).join('');
+      container.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          container.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          onChange(btn.dataset.label);
+        });
+      });
+    }
+
+    function filterByRange(data, label, accessor) {
+      if (!data?.length) return [];
+      const lastValue = accessor(data[data.length - 1]);
+      const isNumeric = typeof lastValue === 'number';
+      if (!label || label === 'ALL') return data;
+
+      if (label === 'YTD' && !isNumeric) {
+        const start = new Date(lastValue);
+        start.setMonth(0, 1);
+        return data.filter(d => new Date(accessor(d)) >= start);
+      }
+
+      const cfg = ranges.find(r => r.label === label);
+      if (!cfg || !cfg.days) return data;
+
+      if (isNumeric) {
+        const start = lastValue - cfg.days;
+        return data.filter(d => accessor(d) >= start);
+      }
+
+      const start = new Date(lastValue);
+      start.setDate(start.getDate() - cfg.days);
+      return data.filter(d => new Date(accessor(d)) >= start);
+    }
+
+    function priceAtDate(raw, dateStr) {
+      const idx = raw.findIndex(d => d.date >= dateStr);
+      if (idx === -1) return null;
+      return raw[idx].close;
+    }
+
+    function renderPriceChart(rangeLabel = defaultRange) {
+      const { raw, signalHistory } = state.data;
+      const data = filterByRange(raw, rangeLabel, d => d.date).map(d => ({ x: d.date, y: d.close }));
+      const labelsSet = new Set(data.map(d => d.x));
+      const signalPoints = signalHistory
+        .filter(sig => labelsSet.has(sig.timestamp.slice(0, 10)))
+        .map(sig => ({ x: sig.timestamp.slice(0, 10), y: priceAtDate(raw, sig.timestamp.slice(0, 10)), action: sig.action, state: sig.market_state }))
+        .filter(p => p.y !== null && p.y !== undefined);
+      const shakeouts = signalPoints.filter(p => p.state?.toUpperCase().includes('SHAKEOUT')).map(p => p.x);
+
+      const ctx = document.getElementById('price-chart').getContext('2d');
+      if (state.charts.price) state.charts.price.destroy();
+
+      const plugin = {
+        id: 'shakeoutBg',
+        beforeDraw(chart) {
+          const { ctx, scales: { x } } = chart;
+          ctx.save();
+          shakeouts.forEach(date => {
+            const start = x.getPixelForValue(date);
+            ctx.fillStyle = 'rgba(255, 193, 7, 0.12)';
+            ctx.fillRect(start - 6, chart.chartArea.top, 12, chart.chartArea.bottom - chart.chartArea.top);
+          });
+          ctx.restore();
+        },
+      };
+
+      state.charts.price = new Chart(ctx, {
+        type: 'line',
+        data: {
+          datasets: [
+            {
+              label: 'SLV',
+              data,
+              borderColor: '#2d6cdf',
+              backgroundColor: 'rgba(45,108,223,0.1)',
+              tension: 0.2,
+              pointRadius: 0,
+              fill: false,
+            },
+            {
+              type: 'scatter',
+              label: 'Signals',
+              data: signalPoints,
+              parsing: false,
+              pointRadius: 5,
+              pointHoverRadius: 6,
+              pointBackgroundColor: signalPoints.map(p => p.action === 'BUY' || p.action === 'ADD' ? '#1c9c68' : '#d64545'),
+              pointBorderColor: '#fff',
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: true },
+            tooltip: {
+              callbacks: {
+                label(ctx) {
+                  const p = ctx.raw;
+                  if (ctx.dataset.type === 'scatter') {
+                    return `${p.action} @ ${p.y?.toFixed(2) || '—'} (${p.state})`;
+                  }
+                  return `Close: ${ctx.parsed.y.toFixed(2)}`;
+                },
+              },
+            },
+          },
+          scales: {
+            x: { type: 'time', time: { unit: 'day' }, ticks: { autoSkip: true, maxTicksLimit: 10 } },
+            y: { ticks: { callback: value => `$${value}` } },
+          },
+        },
+        plugins: [plugin],
+      });
+    }
+
+    function renderExplainability() {
+      const { latestSignal, perfSummary } = state.data;
+      const list = document.getElementById('explain-triggers');
+      list.innerHTML = (latestSignal.active_events || []).map(evt => `
+        <li><strong>${evt.name}</strong><br><span class="muted">${evt.rationale}</span></li>
+      `).join('') || '<li class="muted">No triggers provided.</li>';
+
+      const outcome = document.getElementById('historical-outcome');
+      outcome.innerHTML = `
+        <p>Hit rate: ${formatPct(perfSummary.hit_rate, 1)} | Max drawdown: ${formatPct(perfSummary.max_drawdown, 2)}</p>
+        <p>Avg return 5D: ${formatPct(perfSummary.avg_return_5d, 2)} | Avg return 10D: ${formatPct(perfSummary.avg_return_10d, 2)}</p>
       `;
     }
 
-    function renderEvents(events) {
-      const list = document.getElementById("events");
-      list.innerHTML = events.map(evt => `
+    function buildSignalTable(rangeLabel = '3M') {
+      const { signalHistory, raw } = state.data;
+      const filtered = filterByRange(signalHistory, rangeLabel, s => s.timestamp);
+      const head = `
+        <thead>
+          <tr>
+            <th>Date/Time</th><th>Market State</th><th>Action</th><th>Confidence</th>
+            <th>Price</th><th>+1D</th><th>+3D</th><th>+7D</th><th>Status</th>
+          </tr>
+        </thead>`;
+      const rows = filtered.map(sig => {
+        const dateStr = sig.timestamp.slice(0, 10);
+        const basePrice = priceAtDate(raw, dateStr);
+        const metrics = [1, 3, 7].map(days => {
+          const idx = raw.findIndex(d => d.date >= dateStr);
+          const target = idx >= 0 && idx + days < raw.length ? raw[idx + days].close : null;
+          return basePrice && target ? (target - basePrice) / basePrice : null;
+        });
+        const status = metrics[2] === null ? '⏳ Pending' : metrics[2] >= 0 ? '✅ Win' : '❌ Loss';
+        return `
+          <tr class="signal-row" data-ts="${sig.timestamp}">
+            <td>${new Date(sig.timestamp).toLocaleString()}</td>
+            <td>${sig.market_state}</td>
+            <td><span class="badge ${sig.action}">${sig.action}</span></td>
+            <td>${formatPct(sig.confidence, 0)}</td>
+            <td>${basePrice ? `$${basePrice.toFixed(2)}` : '—'}</td>
+            ${metrics.map(m => `<td>${m !== null ? formatPct(m, 2) : '—'}</td>`).join('')}
+            <td>${status}</td>
+          </tr>`;
+      }).join('');
+      document.getElementById('signal-table').innerHTML = head + `<tbody>${rows}</tbody>`;
+
+      document.querySelectorAll('.signal-row').forEach(row => {
+        row.addEventListener('click', () => renderSignalDrawer(row.dataset.ts));
+      });
+    }
+
+    function renderSignalDrawer(timestamp) {
+      const { signalHistory, raw } = state.data;
+      const sig = signalHistory.find(s => s.timestamp === timestamp);
+      if (!sig) return;
+      const dateStr = sig.timestamp.slice(0, 10);
+      const startIdx = raw.findIndex(d => d.date >= dateStr);
+      const windowData = startIdx >= 0 ? raw.slice(Math.max(0, startIdx - 5), Math.min(raw.length, startIdx + 6)) : [];
+      const pricePoints = windowData.map(d => `${d.date}: $${d.close.toFixed(2)}`).join('<br>');
+      document.getElementById('signal-drawer').innerHTML = `
+        <div class="drawer">
+          <h3>Details for ${new Date(sig.timestamp).toLocaleString()}</h3>
+          <p><strong>${sig.action}</strong> in ${sig.market_state}</p>
+          <p class="muted">${sig.rationale || 'No rationale provided.'}</p>
+          <p><strong>Triggers</strong></p>
+          <ul class="explain-list">${(sig.active_events || []).map(e => `<li>${e.name}: <span class="muted">${e.rationale}</span></li>`).join('')}</ul>
+          <p><strong>Local price window (±5D)</strong><br>${pricePoints || 'No price data available.'}</p>
+        </div>
+      `;
+    }
+
+    function computeDrawdown(series) {
+      let peak = series[0];
+      let maxDd = 0;
+      series.forEach(v => {
+        peak = Math.max(peak, v);
+        maxDd = Math.min(maxDd, (v - peak) / peak);
+      });
+      return maxDd;
+    }
+
+    function kpiForRange(rangeLabel) {
+      const { equityCurve, signalHistory } = state.data;
+      const filtered = filterByRange(equityCurve, rangeLabel, p => p.index);
+      if (!filtered.length) return {};
+      const start = filtered[0].equity;
+      const end = filtered[filtered.length - 1].equity;
+      const totalReturn = (end - start) / start;
+      const maxDd = computeDrawdown(filtered.map(p => p.equity));
+      const wins = signalHistory.filter(s => s.confidence >= 0.5).length;
+      const trades = signalHistory.length;
+      return {
+        totalReturn,
+        maxDd,
+        winRate: trades ? wins / trades : null,
+        avgWin: totalReturn > 0 ? totalReturn / Math.max(wins, 1) : 0,
+        avgLoss: totalReturn < 0 ? totalReturn / Math.max(trades - wins, 1) : 0,
+        trades,
+        exposure: trades ? Math.min(1, trades / 50) : 0,
+      };
+    }
+
+    function renderKpis(rangeLabel = defaultRange) {
+      const stats = kpiForRange(rangeLabel);
+      const cards = [
+        { label: 'Total Return', value: formatPct(stats.totalReturn, 2) },
+        { label: 'Max Drawdown', value: formatPct(stats.maxDd, 2) },
+        { label: 'Win Rate', value: formatPct(stats.winRate, 1) },
+        { label: 'Avg Win', value: formatPct(stats.avgWin, 2) },
+        { label: 'Avg Loss', value: formatPct(stats.avgLoss, 2) },
+        { label: '# Trades', value: stats.trades ?? '—' },
+        { label: 'Exposure %', value: formatPct(stats.exposure, 1) },
+      ];
+      document.getElementById('kpi-cards').innerHTML = cards.map(c => `
+        <div class="card">
+          <p class="muted">${c.label}</p>
+          <div class="stat-value">${c.value}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderEquity(rangeLabel = defaultRange) {
+      const { equityCurve, raw } = state.data;
+      const filteredStrategy = filterByRange(equityCurve, rangeLabel, p => p.index);
+      const filteredPrices = filterByRange(raw, rangeLabel, d => d.date);
+      const canvas = document.getElementById('equity-chart');
+      if (state.charts.equity) state.charts.equity.destroy();
+      if (!filteredStrategy.length || !filteredPrices.length) {
+        return;
+      }
+      const firstPrice = filteredPrices[0]?.close || 1;
+      const buyHold = filteredPrices.map((d, idx) => ({ x: idx, y: d.close / firstPrice }));
+      const strategy = filteredStrategy.map((p, idx) => ({ x: idx, y: p.equity / filteredStrategy[0].equity }));
+
+      const ctx = canvas.getContext('2d');
+
+      state.charts.equity = new Chart(ctx, {
+        type: 'line',
+        data: {
+          datasets: [
+            { label: 'Strategy equity', data: strategy, borderColor: '#2d6cdf', tension: 0.2, pointRadius: 0, fill: false },
+            { label: 'Buy & Hold SLV', data: buyHold, borderColor: '#1c9c68', tension: 0.2, pointRadius: 0, borderDash: [5, 4], fill: false },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: true } },
+          scales: { x: { display: false }, y: { ticks: { callback: v => v.toFixed(2) } } },
+        },
+      });
+    }
+
+    function renderBreakdown() {
+      const { byEvent } = state.data;
+      const head = `<thead><tr><th>Event</th><th>Win Rate</th><th>Avg Return 5D</th><th>Avg Return 10D</th><th>Count</th></tr></thead>`;
+      const rows = (byEvent.breakdown || []).map(item => `
+        <tr>
+          <td>${item.event}</td>
+          <td>${formatPct(item.win_rate ?? 0, 1)}</td>
+          <td>${formatPct(item.avg_return_5d ?? 0, 2)}</td>
+          <td>${formatPct(item.avg_return_10d ?? 0, 2)}</td>
+          <td>${item.count ?? 0}</td>
+        </tr>
+      `).join('');
+      document.getElementById('breakdown-table').innerHTML = head + `<tbody>${rows}</tbody>`;
+    }
+
+    function renderEvents(typeFilter = 'ALL') {
+      const { eventsHistory } = state.data;
+      const filtered = eventsHistory.filter(entry => typeFilter === 'ALL' || entry.events.some(e => e.name === typeFilter));
+      document.getElementById('event-list').innerHTML = filtered.map(entry => `
         <li>
-          <strong>${evt.name}</strong> – ${(evt.confidence * 100).toFixed(0)}%<br />
-          <span class="muted">${evt.rationale}</span>
+          <strong>${new Date(entry.timestamp).toLocaleString()}</strong><br>
+          ${(entry.events || []).map(e => `<span class="badge" style="background:#eef2f7;color:${varColor(e.name)}">${e.name}</span>`).join(' ')}
+          <div class="muted">${entry.events.map(e => e.rationale).join(' | ')}</div>
         </li>
-      `).join("");
+      `).join('');
+
+      const counts = Array(7).fill(0);
+      filtered.forEach(entry => {
+        const day = new Date(entry.timestamp).getDay();
+        counts[day] += entry.events.length;
+      });
+      const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+      document.getElementById('heatmap').innerHTML = counts.map((c, idx) => `
+        <div style="background: rgba(45,108,223,${Math.min(0.1 + c * 0.1, 0.8)}); color:${c ? '#fff' : '#5b6b7b'}">${days[idx]}<br>${c}</div>
+      `).join('');
     }
 
-    function renderPerformance(summary) {
-      const container = document.getElementById("performance-body");
-      container.innerHTML = `
-        <p>Hit rate: ${(summary.hit_rate * 100).toFixed(1)}%</p>
-        <p>Avg return 5d: ${(summary.avg_return_5d * 100).toFixed(2)}%</p>
-        <p>Avg return 10d: ${(summary.avg_return_10d * 100).toFixed(2)}%</p>
-        <p>Max drawdown (10d): ${(summary.max_drawdown * 100).toFixed(2)}%</p>
-        <p class="muted">Updated: ${new Date(summary.updated_at).toLocaleString()}</p>
-      `;
+    function varColor(name) {
+      if (name.toUpperCase().includes('SELL')) return '#8b1f1f';
+      if (name.toUpperCase().includes('BUY')) return '#0f6847';
+      return '#1b2733';
     }
 
-    function renderEquity(curve) {
-      const tbody = document.querySelector("#equity-table tbody");
-      const sample = curve.slice(-20); // last 20 points for brevity
-      tbody.innerHTML = sample.map(point => `
-        <tr><td>${point.index}</td><td>${point.equity}</td></tr>
-      `).join("");
+    function buildEventFilters() {
+      const { eventsHistory } = state.data;
+      const types = new Set(['ALL']);
+      eventsHistory.forEach(entry => (entry.events || []).forEach(e => types.add(e.name)));
+      const container = document.getElementById('event-filter');
+      container.innerHTML = Array.from(types).map(t => `<button data-type="${t}">${t}</button>`).join('');
+      container.querySelectorAll('button').forEach((btn, idx) => {
+        if (idx === 0) btn.classList.add('active');
+        btn.addEventListener('click', () => {
+          container.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          renderEvents(btn.dataset.type);
+        });
+      });
+    }
+
+    function updateMeta() {
+      const { latestSignal, perfSummary } = state.data;
+      const last = new Date(perfSummary.updated_at || latestSignal.timestamp);
+      document.getElementById('last-update').textContent = `Last update: ${last.toISOString().slice(0, 16).replace('T', ' ')} UTC`;
+      const ageHours = (Date.now() - last.getTime()) / 36e5;
+      const fresh = ageHours < 24;
+      document.getElementById('data-status').innerHTML = `<span class="status-dot" style="background:${fresh ? '#16a34a' : '#f59e0b'}"></span>${fresh ? 'Updated' : 'Stale'}`;
     }
 
     async function bootstrap() {
       try {
-        const [signal, events, perf, curve] = await Promise.all([
-          loadJson("public/data/signals/latest_signal.json"),
-          loadJson("public/data/events/latest.json"),
-          loadJson("public/data/perf/summary.json"),
-          loadJson("public/data/perf/equity_curve.json"),
+        const [latestSignal, signalHistory, perfSummary, equityCurve, byEvent, eventsHistory, raw] = await Promise.all([
+          loadJson('public/data/signals/latest_signal.json'),
+          loadJsonl('public/data/signals/signal_history.jsonl'),
+          loadJson('public/data/perf/summary.json'),
+          loadJson('public/data/perf/equity_curve.json'),
+          loadJson('public/data/perf/by_event.json'),
+          loadJsonl('public/data/events/history.jsonl'),
+          loadJson('public/data/raw/slv_daily.json'),
         ]);
 
-        renderSignal(signal);
-        renderEvents(events.events);
-        renderPerformance(perf);
-        renderEquity(curve.equity_curve);
+        state.data = {
+          latestSignal,
+          signalHistory,
+          perfSummary,
+          equityCurve: equityCurve.equity_curve,
+          byEvent,
+          eventsHistory,
+          raw: raw.data,
+        };
+
+        updateMeta();
+        renderStatusCards();
+        buildRangeToggles('price-range', defaultRange, renderPriceChart);
+        renderPriceChart(defaultRange);
+        renderExplainability();
+
+        buildRangeToggles('signal-range', '1M', buildSignalTable);
+        buildSignalTable('1M');
+
+        buildRangeToggles('perf-range', defaultRange, (label) => { renderKpis(label); renderEquity(label); });
+        renderKpis(defaultRange);
+        renderEquity(defaultRange);
+        renderBreakdown();
+
+        buildEventFilters();
+        renderEvents('ALL');
       } catch (err) {
-        document.getElementById("signal-body").textContent = err.message;
+        document.body.innerHTML = `<pre style="color:#d64545; padding:16px;">${err.message}</pre>`;
       }
     }
 
