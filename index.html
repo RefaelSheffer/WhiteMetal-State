@@ -145,6 +145,9 @@
     }
 
     .chart-card { margin-top: 18px; }
+    .chart-wrapper { position: relative; height: 360px; }
+    .chart-wrapper.small { height: 240px; }
+    .chart-wrapper canvas { width: 100% !important; height: 100% !important; display: block; }
     .range-toggle { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
     .range-toggle button { padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border); background: #f1f4f8; cursor: pointer; }
     .range-toggle button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
@@ -216,7 +219,9 @@
           </div>
           <div class="range-toggle" id="price-range"></div>
         </div>
-        <canvas id="price-chart" height="120"></canvas>
+        <div class="chart-wrapper">
+          <canvas id="price-chart"></canvas>
+        </div>
       </section>
 
       <section class="panel">
@@ -259,7 +264,9 @@
           <h3>Equity Curve</h3>
           <span class="pill">Strategy vs SLV</span>
         </div>
-        <canvas id="equity-chart" height="110"></canvas>
+        <div class="chart-wrapper small">
+          <canvas id="equity-chart"></canvas>
+        </div>
       </section>
 
       <section class="card">
