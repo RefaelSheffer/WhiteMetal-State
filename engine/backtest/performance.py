@@ -151,6 +151,143 @@ def compute_rolling_stddev(closes: Sequence[float], window: int = 20) -> List[Ma
     return stddev_series
 
 
+def compute_macd(
+    closes: Sequence[float], fast_period: int = 12, slow_period: int = 26, signal_period: int = 9
+) -> List[Mapping]:
+    """Compute MACD line, signal line, and histogram.
+
+    Uses standard EMA smoothing. Returns entries only once enough values exist for
+    the slow EMA and signal line.
+    """
+
+    if len(closes) < slow_period + signal_period - 1:
+        return []
+
+    def ema(values: Sequence[float], period: int) -> List[float]:
+        if len(values) < period:
+            return []
+
+        k = 2 / (period + 1)
+        ema_values: List[float] = []
+        current = sum(values[:period]) / period
+        ema_values.append(current)
+        for value in values[period:]:
+            current = (value - current) * k + current
+            ema_values.append(current)
+        return ema_values
+
+    fast_ema = ema(closes, fast_period)
+    slow_ema = ema(closes, slow_period)
+
+    # Align fast EMA with slow EMA positions
+    offset = slow_period - fast_period
+    macd_values = [
+        fast_ema[i + offset] - slow
+        for i, slow in enumerate(slow_ema)
+        if i + offset < len(fast_ema)
+    ]
+
+    signal_ema = ema(macd_values, signal_period)
+
+    start_index = slow_period + signal_period - 2
+    macd_series: List[Mapping] = []
+
+    for idx, signal_value in enumerate(signal_ema):
+        macd_idx = idx + signal_period - 1
+        if macd_idx >= len(macd_values):
+            break
+        price_index = start_index + idx
+        macd_value = macd_values[macd_idx]
+        hist_value = macd_value - signal_value
+        macd_series.append(
+            {
+                "index": price_index,
+                "macd": round(macd_value, 4),
+                "signal": round(signal_value, 4),
+                "hist": round(hist_value, 4),
+            }
+        )
+
+    return macd_series
+
+
+def compute_bollinger_bands(
+    closes: Sequence[float], window: int = 20, num_stddev: float = 2.0
+) -> List[Mapping]:
+    """Compute Bollinger Bands (upper, middle, lower)."""
+
+    if len(closes) < window:
+        return []
+
+    bands: List[Mapping] = []
+    for idx in range(window - 1, len(closes)):
+        window_values = closes[idx - window + 1 : idx + 1]
+        mean = sum(window_values) / window
+        variance = sum((v - mean) ** 2 for v in window_values) / window
+        stddev = variance ** 0.5
+        bands.append(
+            {
+                "index": idx,
+                "middle": round(mean, 4),
+                "upper": round(mean + num_stddev * stddev, 4),
+                "lower": round(mean - num_stddev * stddev, 4),
+            }
+        )
+
+    return bands
+
+
+def compute_obv(closes: Sequence[float], volumes: Sequence[float]) -> List[Mapping]:
+    """Compute On-Balance Volume (OBV)."""
+
+    if not closes or not volumes or len(closes) != len(volumes):
+        return []
+
+    obv_series: List[Mapping] = []
+    obv_value = volumes[0]
+    obv_series.append({"index": 0, "obv": obv_value})
+
+    for idx in range(1, len(closes)):
+        if closes[idx] > closes[idx - 1]:
+            obv_value += volumes[idx]
+        elif closes[idx] < closes[idx - 1]:
+            obv_value -= volumes[idx]
+        # unchanged price keeps OBV flat
+        obv_series.append({"index": idx, "obv": obv_value})
+
+    return obv_series
+
+
+def compute_moving_average(closes: Sequence[float], window: int) -> List[Mapping]:
+    """Compute a simple moving average."""
+
+    if window <= 0:
+        raise ValueError("window must be positive")
+
+    if len(closes) < window:
+        return []
+
+    ma_series: List[Mapping] = []
+    for idx in range(window - 1, len(closes)):
+        window_values = closes[idx - window + 1 : idx + 1]
+        ma = sum(window_values) / window
+        ma_series.append({"index": idx, "ma": round(ma, 4)})
+
+    return ma_series
+
+
+def attach_dates(series: List[Mapping], dates: Sequence[str]) -> List[Mapping]:
+    """Attach ISO dates to indicator series that track price indices."""
+
+    dated: List[Mapping] = []
+    for entry in series:
+        idx = entry.get("index")
+        if idx is None or idx >= len(dates):
+            continue
+        dated.append({**entry, "date": dates[idx]})
+    return dated
+
+
 def decompose_closes(
     closes: Sequence[float], period: int = 14, robust: bool = True
 ) -> Mapping[str, List[Mapping]]:

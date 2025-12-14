@@ -96,6 +96,10 @@
           <span style="flex:1"></span>
           <label class="toggle"><input type="checkbox" id="toggleRsi" checked /><span data-i18n="rsiToggle">RSI</span></label>
           <label class="toggle"><input type="checkbox" id="toggleStd" checked /><span data-i18n="stdToggle">StdDev</span></label>
+          <label class="toggle"><input type="checkbox" id="toggleMacd" checked /><span data-i18n="macdToggle">MACD</span></label>
+          <label class="toggle"><input type="checkbox" id="toggleBoll" checked /><span data-i18n="bollToggle">Bollinger</span></label>
+          <label class="toggle"><input type="checkbox" id="toggleObv" checked /><span data-i18n="obvToggle">OBV</span></label>
+          <label class="toggle"><input type="checkbox" id="toggleMaLong" checked /><span data-i18n="maLongToggle">MA1000</span></label>
           <label class="toggle"><input type="checkbox" id="toggleDecomp" checked /><span data-i18n="decompToggle">Decomposition</span></label>
         </div>
         <div id="chart" style="height:420px;"></div>
@@ -157,6 +161,10 @@
         <div class="big" data-i18n="performanceTitle">Performance</div>
         <div class="muted" id="rsiRow"><span data-i18n="rsiLabel">RSI (14)</span>: <span class="mono" id="rsiValue">—</span></div>
         <div class="muted" id="stdRow"><span data-i18n="stdLabel">Rolling StdDev (20)</span>: <span class="mono" id="stddevValue">—</span></div>
+        <div class="muted" id="macdRow"><span data-i18n="macdLabel">MACD (12/26/9)</span>: <span class="mono" id="macdValue">—</span></div>
+        <div class="muted" id="bollRow"><span data-i18n="bollLabel">Bollinger Bands (20, 2σ)</span>: <span class="mono" id="bollValue">—</span></div>
+        <div class="muted" id="obvRow"><span data-i18n="obvLabel">OBV</span>: <span class="mono" id="obvValue">—</span></div>
+        <div class="muted" id="maLongRow"><span data-i18n="maLongLabel">MA1000</span>: <span class="mono" id="maLongValue">—</span></div>
         <div class="muted"><span data-i18n="perfUpdatedLabel">Perf Updated</span>: <span class="mono" id="perfUpdated">—</span></div>
       </div>
 
@@ -215,6 +223,10 @@ const translations = {
     performanceTitle: "ביצועים",
     rsiLabel: "RSI (14)",
     stdLabel: "סטיית תקן מתגלגלת (20)",
+    macdLabel: "MACD (12/26/9)",
+    bollLabel: "בולינגר (20, 2σ)",
+    obvLabel: "OBV",
+    maLongLabel: "MA1000",
     perfUpdatedLabel: "עדכון ביצועים",
     decompTitle: "פירוק (Decomposition)",
     decompUpdatedLabel: "עדכון",
@@ -244,6 +256,10 @@ const translations = {
     maxDrawdownLabel: "Max Drawdown",
     rsiToggle: "RSI",
     stdToggle: "StdDev",
+    macdToggle: "MACD",
+    bollToggle: "בולינגר",
+    obvToggle: "OBV",
+    maLongToggle: "MA1000",
     decompToggle: "Decomposition",
     langToggleEnglish: "English",
     langToggleHebrew: "עברית",
@@ -268,6 +284,10 @@ const translations = {
     performanceTitle: "Performance",
     rsiLabel: "RSI (14)",
     stdLabel: "Rolling StdDev (20)",
+    macdLabel: "MACD (12/26/9)",
+    bollLabel: "Bollinger Bands (20, 2σ)",
+    obvLabel: "OBV",
+    maLongLabel: "MA1000",
     perfUpdatedLabel: "Perf Updated",
     decompTitle: "Decomposition",
     decompUpdatedLabel: "Updated",
@@ -297,6 +317,10 @@ const translations = {
     maxDrawdownLabel: "Max Drawdown",
     rsiToggle: "RSI",
     stdToggle: "StdDev",
+    macdToggle: "MACD",
+    bollToggle: "Bollinger",
+    obvToggle: "OBV",
+    maLongToggle: "MA1000",
     decompToggle: "Decomposition",
     langToggleEnglish: "English",
     langToggleHebrew: "עברית",
@@ -316,20 +340,24 @@ function fmtPct(x, d=1) {
 }
 
 (async () => {
-  const [prices, signal, cot, edgar, rsiPerf, stddevPerf, decomposition, perfSummary, equityCurve, cycleStats] = await Promise.all([
+  const [prices, signal, cot, edgar, rsiPerf, stddevPerf, macdPerf, bollPerf, obvPerf, maLongPerf, decomposition, perfSummary, equityCurve, cycleStats] = await Promise.all([
     getJson("./data/slv_prices.json"),
     getJson("./data/signal_latest.json"),
     getJson("./data/cot_silver.json"),
     getJson("./data/edgar_latest.json"),
     getJson("./public/data/perf/rsi.json"),
     getJson("./public/data/perf/stddev.json"),
+    getJson("./public/data/perf/macd.json"),
+    getJson("./public/data/perf/bollinger.json"),
+    getJson("./public/data/perf/obv.json"),
+    getJson("./public/data/perf/ma1000.json"),
     getJson("./public/data/perf/decomposition.json"),
     getJson("./public/data/perf/summary.json"),
     getJson("./public/data/perf/equity_curve.json"),
     getJson("./public/data/events/cycle_stats.json"),
   ]);
 
-  const state = { range: "3m", showRsi: true, showStd: true, showDecomp: true, lang: detectLang() };
+  const state = { range: "3m", showRsi: true, showStd: true, showMacd: true, showBoll: true, showObv: true, showMaLong: true, showDecomp: true, lang: detectLang() };
   const priceDates = prices.dates.map((d) => new Date(d));
 
   function t(key) {
@@ -530,6 +558,10 @@ function fmtPct(x, d=1) {
   function renderIndicators(range) {
     document.getElementById("rsiRow").style.display = state.showRsi ? "" : "none";
     document.getElementById("stdRow").style.display = state.showStd ? "" : "none";
+    document.getElementById("macdRow").style.display = state.showMacd ? "" : "none";
+    document.getElementById("bollRow").style.display = state.showBoll ? "" : "none";
+    document.getElementById("obvRow").style.display = state.showObv ? "" : "none";
+    document.getElementById("maLongRow").style.display = state.showMaLong ? "" : "none";
 
     const months = range === "3m" ? 3 : range === "1y" ? 12 : null;
     const lastPriceDate = priceDates[priceDates.length - 1];
@@ -539,18 +571,32 @@ function fmtPct(x, d=1) {
       if (!Array.isArray(series) || series.length === 0) return null;
       const filtered = series.filter((p) => {
         if (!start) return true;
-        const d = new Date(p.date);
-        return d >= start;
+        const d = p.date ? new Date(p.date) : (p.index !== undefined ? priceDates[p.index] : null);
+        if (!d || Number.isNaN(new Date(d))) return false;
+        return new Date(d) >= start;
       });
       return filtered[filtered.length - 1] || null;
     }
 
     const latestRsi = state.showRsi ? latestInRange(rsiPerf.rsi) : null;
     const latestStd = state.showStd ? latestInRange(stddevPerf.stddev) : null;
+    const latestMacd = state.showMacd ? latestInRange(macdPerf.macd) : null;
+    const latestBoll = state.showBoll ? latestInRange(bollPerf.bands) : null;
+    const latestObv = state.showObv ? latestInRange(obvPerf.obv) : null;
+    const latestMaLong = state.showMaLong ? latestInRange(maLongPerf.ma) : null;
 
     document.getElementById("rsiValue").textContent = fmt(latestRsi?.rsi, 2);
     document.getElementById("stddevValue").textContent = fmt(latestStd?.stddev, 4);
-    document.getElementById("perfUpdated").textContent = rsiPerf.updated_at || "—";
+    document.getElementById("macdValue").textContent = latestMacd
+      ? `${fmt(latestMacd.macd, 4)} / ${fmt(latestMacd.signal, 4)} (${fmt(latestMacd.hist, 4)})`
+      : "—";
+    document.getElementById("bollValue").textContent = latestBoll
+      ? `${fmt(latestBoll.upper, 2)} / ${fmt(latestBoll.middle, 2)} / ${fmt(latestBoll.lower, 2)}`
+      : "—";
+    document.getElementById("obvValue").textContent = fmt(latestObv?.obv, 0);
+    document.getElementById("maLongValue").textContent = fmt(latestMaLong?.ma, 2);
+    const indicatorUpdated = rsiPerf.updated_at || macdPerf.updated_at || stddevPerf.updated_at || bollPerf.updated_at || obvPerf.updated_at || maLongPerf.updated_at;
+    document.getElementById("perfUpdated").textContent = indicatorUpdated || "—";
   }
 
   function renderAll() {
@@ -622,6 +668,26 @@ function fmtPct(x, d=1) {
 
   document.getElementById("toggleStd").addEventListener("change", (e) => {
     state.showStd = e.target.checked;
+    renderIndicators(state.range);
+  });
+
+  document.getElementById("toggleMacd").addEventListener("change", (e) => {
+    state.showMacd = e.target.checked;
+    renderIndicators(state.range);
+  });
+
+  document.getElementById("toggleBoll").addEventListener("change", (e) => {
+    state.showBoll = e.target.checked;
+    renderIndicators(state.range);
+  });
+
+  document.getElementById("toggleObv").addEventListener("change", (e) => {
+    state.showObv = e.target.checked;
+    renderIndicators(state.range);
+  });
+
+  document.getElementById("toggleMaLong").addEventListener("change", (e) => {
+    state.showMaLong = e.target.checked;
     renderIndicators(state.range);
   });
 
