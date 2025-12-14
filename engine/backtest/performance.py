@@ -3,6 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable, List, Mapping, Sequence
 
+import pandas as pd
+from statsmodels.tsa.seasonal import STL
+
 
 @dataclass
 class PerformanceSummary:
@@ -146,3 +149,30 @@ def compute_rolling_stddev(closes: Sequence[float], window: int = 20) -> List[Ma
         stddev_series.append({"index": idx, "stddev": round(variance ** 0.5, 4)})
 
     return stddev_series
+
+
+def decompose_closes(
+    closes: Sequence[float], period: int = 14, robust: bool = True
+) -> Mapping[str, List[Mapping]]:
+    """Decompose close prices into trend/seasonal/residual components.
+
+    Returns lists of mappings with the index to align with the input closes.
+    """
+
+    if len(closes) < period:
+        return {"trend": [], "seasonal": [], "resid": []}
+
+    series = pd.Series(closes)
+    decomposition = STL(series, period=period, robust=robust).fit()
+
+    def to_list(values, key: str) -> List[Mapping]:
+        return [
+            {"index": idx, key: round(float(value), 4)}
+            for idx, value in enumerate(values)
+        ]
+
+    return {
+        "trend": to_list(decomposition.trend, "trend"),
+        "seasonal": to_list(decomposition.seasonal, "seasonal"),
+        "resid": to_list(decomposition.resid, "resid"),
+    }
