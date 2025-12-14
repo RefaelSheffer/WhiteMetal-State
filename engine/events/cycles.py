@@ -74,6 +74,12 @@ def detect_cycles(prices: Sequence[Mapping]) -> Tuple[List[CycleSegment], List[T
     return segments, turning_points
 
 
+def filter_cycles(cycles: Sequence[CycleSegment], min_length: int = 2) -> List[CycleSegment]:
+    """Drop cycles that are too short to be meaningful for decisioning."""
+
+    return [cycle for cycle in cycles if cycle.length >= min_length]
+
+
 def summarize_cycles(cycles: Sequence[CycleSegment]) -> Mapping:
     if not cycles:
         return {

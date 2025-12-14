@@ -5,7 +5,7 @@ from statistics import mean
 from typing import List, Mapping, Sequence
 
 from engine.events.detector import Event
-from engine.events.cycles import CycleSegment
+from engine.events.cycles import CycleSegment, filter_cycles
 
 ACTIONS = {"BUY", "ADD", "HOLD", "REDUCE", "WAIT"}
 
@@ -27,7 +27,8 @@ def select_action(
     primary = prioritized[0]
     base_action = ACTION_BY_EVENT.get(primary.name, "WAIT")
 
-    cycle_context = _analyze_cycle_context(cycles)
+    filtered_cycles = filter_cycles(cycles, min_length=2)
+    cycle_context = _analyze_cycle_context(filtered_cycles, raw_cycle_count=len(cycles))
     action, rationale = _apply_indicator_filters(
         base_action, primary, indicator_context
     )
@@ -45,13 +46,20 @@ def select_action(
     }
 
 
-def _analyze_cycle_context(cycles: Sequence[CycleSegment]) -> Mapping:
+def _analyze_cycle_context(
+    cycles: Sequence[CycleSegment], raw_cycle_count: int | None = None
+) -> Mapping:
     """Summarize the latest cycle to bias event-based actions."""
+
+    context: Mapping[str, object]
 
     if not cycles:
         return {
             "bias": "neutral",
-            "note": "No completed cycles detected; keep event-driven stance.",
+            "note": "No completed cycles detected after filtering; keep event-driven stance.",
+            "filtered_cycle_count": 0,
+            "raw_cycle_count": raw_cycle_count if raw_cycle_count is not None else 0,
+            "min_cycle_length": 2,
         }
 
     latest = cycles[-1]
@@ -65,8 +73,18 @@ def _analyze_cycle_context(cycles: Sequence[CycleSegment]) -> Mapping:
     avg_up_amplitude = _avg([cycle.amplitude for cycle in up_cycles], fallback=latest.amplitude)
     avg_down_length = _avg([cycle.length for cycle in down_cycles], fallback=latest.length)
     avg_down_amplitude = _avg([abs(cycle.amplitude) for cycle in down_cycles], fallback=abs(latest.amplitude))
+    avg_magnitude = _avg([abs(cycle.amplitude) for cycle in cycles], fallback=abs(latest.amplitude))
+    reference_magnitude = max(min(avg_magnitude, 0.01), 0.0047)
 
-    context: Mapping[str, object] = {
+    low_amplitude_cutoff = round(max(0.002, reference_magnitude * 0.6), 4)
+    high_amplitude_cutoff = round(max(reference_magnitude * 1.4, 0.007), 4)
+    amplitude_flag = "normal"
+    if abs(latest.amplitude) < low_amplitude_cutoff:
+        amplitude_flag = "low"
+    elif abs(latest.amplitude) > high_amplitude_cutoff:
+        amplitude_flag = "high"
+
+    context = {
         "bias": "neutral",
         "latest_direction": latest.direction,
         "latest_length": latest.length,
@@ -75,6 +93,14 @@ def _analyze_cycle_context(cycles: Sequence[CycleSegment]) -> Mapping:
         "avg_up_amplitude": avg_up_amplitude,
         "avg_down_length": avg_down_length,
         "avg_down_amplitude": avg_down_amplitude,
+        "avg_magnitude": avg_magnitude,
+        "reference_magnitude": reference_magnitude,
+        "low_amplitude_cutoff": low_amplitude_cutoff,
+        "high_amplitude_cutoff": high_amplitude_cutoff,
+        "amplitude_flag": amplitude_flag,
+        "filtered_cycle_count": len(cycles),
+        "raw_cycle_count": raw_cycle_count if raw_cycle_count is not None else len(cycles),
+        "min_cycle_length": 2,
     }
 
     matured_upswing = (
@@ -89,18 +115,31 @@ def _analyze_cycle_context(cycles: Sequence[CycleSegment]) -> Mapping:
         and abs(latest.amplitude) <= max(avg_down_amplitude * 0.75, 0.01)
     )
 
+    notes: List[str] = []
+
     if matured_upswing:
         context["bias"] = "mature_upswing"
-        context["note"] = (
+        notes.append(
             "Late-stage upswing with extended length/amplitude; favor taking risk off."
         )
     elif shallow_downswing:
         context["bias"] = "shallow_downswing"
-        context["note"] = (
+        notes.append(
             "Downswing is young and shallow; avoid reactionary reductions."
         )
     else:
-        context["note"] = "Cycle posture is neutral; follow event guidance."
+        notes.append("Cycle posture is neutral; follow event guidance.")
+
+    if amplitude_flag == "low":
+        notes.append(
+            "Latest cycle amplitude is muted; stand down until volatility expands beyond the low cutoff."
+        )
+    elif amplitude_flag == "high":
+        notes.append(
+            "Latest cycle amplitude is elevated versus average; conviction trades can be sized up."
+        )
+
+    context["note"] = " ".join(notes)
 
     return context
 
@@ -171,6 +210,23 @@ def _apply_cycle_bias(action: str, rationale: str, cycle_context: Mapping) -> tu
         )
     else:
         notes.append(cycle_context.get("note", ""))
+
+    amplitude_flag = cycle_context.get("amplitude_flag")
+    latest_amplitude = cycle_context.get("latest_amplitude")
+    latest_direction = cycle_context.get("latest_direction")
+    low_cutoff = cycle_context.get("low_amplitude_cutoff")
+    high_cutoff = cycle_context.get("high_amplitude_cutoff")
+
+    if amplitude_flag == "low":
+        action = "WAIT"
+        notes.append(
+            f"Cycle amplitude ({latest_amplitude}) is below the trade filter ({low_cutoff}); deferring trades until swings expand."
+        )
+    elif amplitude_flag == "high" and latest_direction == "upswing" and action in {"BUY", "ADD", "HOLD"}:
+        action = "ADD"
+        notes.append(
+            f"High-amplitude upswing ({latest_amplitude}) above {high_cutoff}; leaning into long exposure with a larger add."
+        )
 
     return action, " ".join(note for note in notes if note)
 
