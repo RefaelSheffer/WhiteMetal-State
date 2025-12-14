@@ -67,8 +67,18 @@
     </div>
 
     <div style="height:16px"></div>
-    <div class="card muted">
-      Not financial advice. For research only.
+
+    <div class="row">
+      <div class="card">
+        <div class="big">Performance</div>
+        <div class="muted">RSI (14): <span class="mono" id="rsiValue">—</span></div>
+        <div class="muted">Rolling StdDev (20): <span class="mono" id="stddevValue">—</span></div>
+        <div class="muted">Perf Updated: <span class="mono" id="perfUpdated">—</span></div>
+      </div>
+
+      <div class="card muted">
+        Not financial advice. For research only.
+      </div>
     </div>
   </div>
 
@@ -85,11 +95,13 @@ function fmt(x, d=2) {
 }
 
 (async () => {
-  const [prices, signal, cot, edgar] = await Promise.all([
+  const [prices, signal, cot, edgar, rsiPerf, stddevPerf] = await Promise.all([
     getJson("./data/slv_prices.json"),
     getJson("./data/signal_latest.json"),
     getJson("./data/cot_silver.json"),
     getJson("./data/edgar_latest.json"),
+    getJson("./public/data/perf/rsi.json"),
+    getJson("./public/data/perf/stddev.json"),
   ]);
 
   document.getElementById("updated").textContent =
@@ -122,6 +134,12 @@ function fmt(x, d=2) {
   } else {
     document.getElementById("edgarLine").textContent = "EDGAR unavailable (yet).";
   }
+
+  const latestRsi = rsiPerf.rsi?.[rsiPerf.rsi.length - 1];
+  const latestStd = stddevPerf.stddev?.[stddevPerf.stddev.length - 1];
+  document.getElementById("rsiValue").textContent = fmt(latestRsi?.rsi, 2);
+  document.getElementById("stddevValue").textContent = fmt(latestStd?.stddev, 4);
+  document.getElementById("perfUpdated").textContent = rsiPerf.updated_at || "—";
 
   // Chart
   const trace = {

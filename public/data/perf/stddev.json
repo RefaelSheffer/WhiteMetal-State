@@ -1,0 +1,650 @@
+{
+  "updated_at": "2025-12-14T11:00:25.725032",
+  "window": 20,
+  "stddev": [
+    {
+      "index": 19,
+      "stddev": 0.8702
+    },
+    {
+      "index": 20,
+      "stddev": 0.8677
+    },
+    {
+      "index": 21,
+      "stddev": 0.8516
+    },
+    {
+      "index": 22,
+      "stddev": 0.8045
+    },
+    {
+      "index": 23,
+      "stddev": 0.7468
+    },
+    {
+      "index": 24,
+      "stddev": 0.7204
+    },
+    {
+      "index": 25,
+      "stddev": 0.7034
+    },
+    {
+      "index": 26,
+      "stddev": 0.6867
+    },
+    {
+      "index": 27,
+      "stddev": 0.6248
+    },
+    {
+      "index": 28,
+      "stddev": 0.5385
+    },
+    {
+      "index": 29,
+      "stddev": 0.4988
+    },
+    {
+      "index": 30,
+      "stddev": 0.4588
+    },
+    {
+      "index": 31,
+      "stddev": 0.4617
+    },
+    {
+      "index": 32,
+      "stddev": 0.4587
+    },
+    {
+      "index": 33,
+      "stddev": 0.4601
+    },
+    {
+      "index": 34,
+      "stddev": 0.4191
+    },
+    {
+      "index": 35,
+      "stddev": 0.3934
+    },
+    {
+      "index": 36,
+      "stddev": 0.3621
+    },
+    {
+      "index": 37,
+      "stddev": 0.35
+    },
+    {
+      "index": 38,
+      "stddev": 0.3214
+    },
+    {
+      "index": 39,
+      "stddev": 0.312
+    },
+    {
+      "index": 40,
+      "stddev": 0.3129
+    },
+    {
+      "index": 41,
+      "stddev": 0.2906
+    },
+    {
+      "index": 42,
+      "stddev": 0.3035
+    },
+    {
+      "index": 43,
+      "stddev": 0.3283
+    },
+    {
+      "index": 44,
+      "stddev": 0.3668
+    },
+    {
+      "index": 45,
+      "stddev": 0.3823
+    },
+    {
+      "index": 46,
+      "stddev": 0.3851
+    },
+    {
+      "index": 47,
+      "stddev": 0.3996
+    },
+    {
+      "index": 48,
+      "stddev": 0.4129
+    },
+    {
+      "index": 49,
+      "stddev": 0.4394
+    },
+    {
+      "index": 50,
+      "stddev": 0.488
+    },
+    {
+      "index": 51,
+      "stddev": 0.5165
+    },
+    {
+      "index": 52,
+      "stddev": 0.5212
+    },
+    {
+      "index": 53,
+      "stddev": 0.5182
+    },
+    {
+      "index": 54,
+      "stddev": 0.5098
+    },
+    {
+      "index": 55,
+      "stddev": 0.474
+    },
+    {
+      "index": 56,
+      "stddev": 0.4478
+    },
+    {
+      "index": 57,
+      "stddev": 0.4216
+    },
+    {
+      "index": 58,
+      "stddev": 0.3755
+    },
+    {
+      "index": 59,
+      "stddev": 0.3262
+    },
+    {
+      "index": 60,
+      "stddev": 0.3256
+    },
+    {
+      "index": 61,
+      "stddev": 0.3308
+    },
+    {
+      "index": 62,
+      "stddev": 0.3354
+    },
+    {
+      "index": 63,
+      "stddev": 0.3342
+    },
+    {
+      "index": 64,
+      "stddev": 0.3417
+    },
+    {
+      "index": 65,
+      "stddev": 0.3756
+    },
+    {
+      "index": 66,
+      "stddev": 0.399
+    },
+    {
+      "index": 67,
+      "stddev": 0.4626
+    },
+    {
+      "index": 68,
+      "stddev": 0.5575
+    },
+    {
+      "index": 69,
+      "stddev": 0.6662
+    },
+    {
+      "index": 70,
+      "stddev": 0.7341
+    },
+    {
+      "index": 71,
+      "stddev": 0.8127
+    },
+    {
+      "index": 72,
+      "stddev": 0.8537
+    },
+    {
+      "index": 73,
+      "stddev": 0.8598
+    },
+    {
+      "index": 74,
+      "stddev": 0.8488
+    },
+    {
+      "index": 75,
+      "stddev": 0.8223
+    },
+    {
+      "index": 76,
+      "stddev": 0.8079
+    },
+    {
+      "index": 77,
+      "stddev": 0.7536
+    },
+    {
+      "index": 78,
+      "stddev": 0.7279
+    },
+    {
+      "index": 79,
+      "stddev": 0.6692
+    },
+    {
+      "index": 80,
+      "stddev": 0.636
+    },
+    {
+      "index": 81,
+      "stddev": 0.6287
+    },
+    {
+      "index": 82,
+      "stddev": 0.61
+    },
+    {
+      "index": 83,
+      "stddev": 0.5484
+    },
+    {
+      "index": 84,
+      "stddev": 0.503
+    },
+    {
+      "index": 85,
+      "stddev": 0.5153
+    },
+    {
+      "index": 86,
+      "stddev": 0.5328
+    },
+    {
+      "index": 87,
+      "stddev": 0.592
+    },
+    {
+      "index": 88,
+      "stddev": 0.6551
+    },
+    {
+      "index": 89,
+      "stddev": 0.7309
+    },
+    {
+      "index": 90,
+      "stddev": 0.8219
+    },
+    {
+      "index": 91,
+      "stddev": 0.91
+    },
+    {
+      "index": 92,
+      "stddev": 0.9892
+    },
+    {
+      "index": 93,
+      "stddev": 1.0666
+    },
+    {
+      "index": 94,
+      "stddev": 1.0865
+    },
+    {
+      "index": 95,
+      "stddev": 1.0957
+    },
+    {
+      "index": 96,
+      "stddev": 1.1197
+    },
+    {
+      "index": 97,
+      "stddev": 1.1031
+    },
+    {
+      "index": 98,
+      "stddev": 1.0964
+    },
+    {
+      "index": 99,
+      "stddev": 1.0238
+    },
+    {
+      "index": 100,
+      "stddev": 0.9649
+    },
+    {
+      "index": 101,
+      "stddev": 0.9315
+    },
+    {
+      "index": 102,
+      "stddev": 0.8693
+    },
+    {
+      "index": 103,
+      "stddev": 0.7861
+    },
+    {
+      "index": 104,
+      "stddev": 0.695
+    },
+    {
+      "index": 105,
+      "stddev": 0.624
+    },
+    {
+      "index": 106,
+      "stddev": 0.5454
+    },
+    {
+      "index": 107,
+      "stddev": 0.4875
+    },
+    {
+      "index": 108,
+      "stddev": 0.4076
+    },
+    {
+      "index": 109,
+      "stddev": 0.331
+    },
+    {
+      "index": 110,
+      "stddev": 0.3006
+    },
+    {
+      "index": 111,
+      "stddev": 0.2867
+    },
+    {
+      "index": 112,
+      "stddev": 0.3006
+    },
+    {
+      "index": 113,
+      "stddev": 0.3013
+    },
+    {
+      "index": 114,
+      "stddev": 0.2863
+    },
+    {
+      "index": 115,
+      "stddev": 0.2813
+    },
+    {
+      "index": 116,
+      "stddev": 0.2909
+    },
+    {
+      "index": 117,
+      "stddev": 0.3055
+    },
+    {
+      "index": 118,
+      "stddev": 0.3057
+    },
+    {
+      "index": 119,
+      "stddev": 0.323
+    },
+    {
+      "index": 120,
+      "stddev": 0.3247
+    },
+    {
+      "index": 121,
+      "stddev": 0.2982
+    },
+    {
+      "index": 122,
+      "stddev": 0.2952
+    },
+    {
+      "index": 123,
+      "stddev": 0.3272
+    },
+    {
+      "index": 124,
+      "stddev": 0.3519
+    },
+    {
+      "index": 125,
+      "stddev": 0.4036
+    },
+    {
+      "index": 126,
+      "stddev": 0.4535
+    },
+    {
+      "index": 127,
+      "stddev": 0.4788
+    },
+    {
+      "index": 128,
+      "stddev": 0.5081
+    },
+    {
+      "index": 129,
+      "stddev": 0.5184
+    },
+    {
+      "index": 130,
+      "stddev": 0.5216
+    },
+    {
+      "index": 131,
+      "stddev": 0.5009
+    },
+    {
+      "index": 132,
+      "stddev": 0.4497
+    },
+    {
+      "index": 133,
+      "stddev": 0.428
+    },
+    {
+      "index": 134,
+      "stddev": 0.3848
+    },
+    {
+      "index": 135,
+      "stddev": 0.3674
+    },
+    {
+      "index": 136,
+      "stddev": 0.3587
+    },
+    {
+      "index": 137,
+      "stddev": 0.351
+    },
+    {
+      "index": 138,
+      "stddev": 0.3192
+    },
+    {
+      "index": 139,
+      "stddev": 0.3091
+    },
+    {
+      "index": 140,
+      "stddev": 0.3
+    },
+    {
+      "index": 141,
+      "stddev": 0.2514
+    },
+    {
+      "index": 142,
+      "stddev": 0.2003
+    },
+    {
+      "index": 143,
+      "stddev": 0.1927
+    },
+    {
+      "index": 144,
+      "stddev": 0.183
+    },
+    {
+      "index": 145,
+      "stddev": 0.1831
+    },
+    {
+      "index": 146,
+      "stddev": 0.1824
+    },
+    {
+      "index": 147,
+      "stddev": 0.1858
+    },
+    {
+      "index": 148,
+      "stddev": 0.2112
+    },
+    {
+      "index": 149,
+      "stddev": 0.2186
+    },
+    {
+      "index": 150,
+      "stddev": 0.2143
+    },
+    {
+      "index": 151,
+      "stddev": 0.2312
+    },
+    {
+      "index": 152,
+      "stddev": 0.2547
+    },
+    {
+      "index": 153,
+      "stddev": 0.2959
+    },
+    {
+      "index": 154,
+      "stddev": 0.3337
+    },
+    {
+      "index": 155,
+      "stddev": 0.3512
+    },
+    {
+      "index": 156,
+      "stddev": 0.3768
+    },
+    {
+      "index": 157,
+      "stddev": 0.3804
+    },
+    {
+      "index": 158,
+      "stddev": 0.3804
+    },
+    {
+      "index": 159,
+      "stddev": 0.3734
+    },
+    {
+      "index": 160,
+      "stddev": 0.3527
+    },
+    {
+      "index": 161,
+      "stddev": 0.3377
+    },
+    {
+      "index": 162,
+      "stddev": 0.3308
+    },
+    {
+      "index": 163,
+      "stddev": 0.3311
+    },
+    {
+      "index": 164,
+      "stddev": 0.3308
+    },
+    {
+      "index": 165,
+      "stddev": 0.328
+    },
+    {
+      "index": 166,
+      "stddev": 0.3307
+    },
+    {
+      "index": 167,
+      "stddev": 0.3207
+    },
+    {
+      "index": 168,
+      "stddev": 0.2777
+    },
+    {
+      "index": 169,
+      "stddev": 0.2502
+    },
+    {
+      "index": 170,
+      "stddev": 0.2551
+    },
+    {
+      "index": 171,
+      "stddev": 0.2537
+    },
+    {
+      "index": 172,
+      "stddev": 0.2493
+    },
+    {
+      "index": 173,
+      "stddev": 0.2387
+    },
+    {
+      "index": 174,
+      "stddev": 0.221
+    },
+    {
+      "index": 175,
+      "stddev": 0.259
+    },
+    {
+      "index": 176,
+      "stddev": 0.2528
+    },
+    {
+      "index": 177,
+      "stddev": 0.3081
+    },
+    {
+      "index": 178,
+      "stddev": 0.3271
+    },
+    {
+      "index": 179,
+      "stddev": 0.3293
+    }
+  ]
+}
