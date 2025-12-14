@@ -7,6 +7,7 @@ from engine.backtest.performance import (
     compute_equity_curve,
     compute_rolling_stddev,
     compute_rsi,
+    decompose_closes,
     event_breakdown,
     summarize_returns,
 )
@@ -36,6 +37,7 @@ def run_pipeline() -> None:
     breakdown = event_breakdown([event.name for event in latest_events], closes)
     rsi_series = compute_rsi(closes)
     stddev_series = compute_rolling_stddev(closes)
+    decomposition = decompose_closes(closes, period=30)
 
     write_json(BASE_PATH / "raw/slv_daily.json", {"symbol": "SLV", "data": raw_data})
     write_json(BASE_PATH / "events/latest.json", {"as_of": now, "events": [e.to_dict() for e in latest_events]})
@@ -68,6 +70,16 @@ def run_pipeline() -> None:
     write_json(
         BASE_PATH / "perf/stddev.json",
         {"updated_at": now, "window": 20, "stddev": stddev_series},
+    )
+    write_json(
+        BASE_PATH / "perf/decomposition.json",
+        {
+            "updated_at": now,
+            "period": 30,
+            "trend": decomposition["trend"],
+            "seasonal": decomposition["seasonal"],
+            "resid": decomposition["resid"],
+        },
     )
 
 

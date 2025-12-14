@@ -76,8 +76,24 @@
         <div class="muted">Perf Updated: <span class="mono" id="perfUpdated">—</span></div>
       </div>
 
-      <div class="card muted">
-        Not financial advice. For research only.
+      <div class="card">
+        <div class="big">Decomposition</div>
+        <div class="muted">Updated: <span class="mono" id="decompUpdated">—</span></div>
+        <div class="muted">Period: <span class="mono" id="decompPeriod">—</span></div>
+      </div>
+    </div>
+
+    <div style="height:16px"></div>
+
+    <div class="row">
+      <div class="card">
+        <div class="big">Trend</div>
+        <div id="trendChart" style="height:320px;"></div>
+      </div>
+
+      <div class="card">
+        <div class="big">Seasonal / Residual</div>
+        <div id="seasonalChart" style="height:320px;"></div>
       </div>
     </div>
   </div>
@@ -95,13 +111,14 @@ function fmt(x, d=2) {
 }
 
 (async () => {
-  const [prices, signal, cot, edgar, rsiPerf, stddevPerf] = await Promise.all([
+  const [prices, signal, cot, edgar, rsiPerf, stddevPerf, decomposition] = await Promise.all([
     getJson("./data/slv_prices.json"),
     getJson("./data/signal_latest.json"),
     getJson("./data/cot_silver.json"),
     getJson("./data/edgar_latest.json"),
     getJson("./public/data/perf/rsi.json"),
     getJson("./public/data/perf/stddev.json"),
+    getJson("./public/data/perf/decomposition.json"),
   ]);
 
   document.getElementById("updated").textContent =
@@ -141,6 +158,9 @@ function fmt(x, d=2) {
   document.getElementById("stddevValue").textContent = fmt(latestStd?.stddev, 4);
   document.getElementById("perfUpdated").textContent = rsiPerf.updated_at || "—";
 
+  document.getElementById("decompUpdated").textContent = decomposition.updated_at || "—";
+  document.getElementById("decompPeriod").textContent = decomposition.period ?? "—";
+
   // Chart
   const trace = {
     x: prices.dates,
@@ -159,6 +179,55 @@ function fmt(x, d=2) {
   };
 
   Plotly.newPlot("chart", [trace], layout, {displayModeBar: false});
+
+  if (decomposition.trend?.length) {
+    const trendTrace = {
+      x: prices.dates,
+      y: decomposition.trend.map((p) => p.trend),
+      type: "scatter",
+      mode: "lines",
+      name: "Trend",
+      line: { color: "#4c9cff" },
+    };
+
+    Plotly.newPlot(
+      "trendChart",
+      [trendTrace],
+      { ...layout, yaxis: { ...layout.yaxis, title: "Trend" } },
+      { displayModeBar: false }
+    );
+  } else {
+    document.getElementById("trendChart").textContent = "Decomposition unavailable.";
+  }
+
+  if (decomposition.seasonal?.length || decomposition.resid?.length) {
+    const seasonalTrace = {
+      x: prices.dates,
+      y: decomposition.seasonal?.map((p) => p.seasonal) ?? [],
+      type: "scatter",
+      mode: "lines",
+      name: "Seasonal",
+      line: { color: "#22c55e" },
+    };
+
+    const residTrace = {
+      x: prices.dates,
+      y: decomposition.resid?.map((p) => p.resid) ?? [],
+      type: "scatter",
+      mode: "lines",
+      name: "Residual",
+      line: { color: "#fbbf24" },
+    };
+
+    Plotly.newPlot(
+      "seasonalChart",
+      [seasonalTrace, residTrace],
+      { ...layout, yaxis: { ...layout.yaxis, title: "Seasonal / Residual" } },
+      { displayModeBar: false }
+    );
+  } else {
+    document.getElementById("seasonalChart").textContent = "Decomposition unavailable.";
+  }
 })();
 </script>
 </body>
