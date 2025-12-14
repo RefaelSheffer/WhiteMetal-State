@@ -3,7 +3,13 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 
-from engine.backtest.performance import compute_equity_curve, event_breakdown, summarize_returns
+from engine.backtest.performance import (
+    compute_equity_curve,
+    compute_rolling_stddev,
+    compute_rsi,
+    event_breakdown,
+    summarize_returns,
+)
 from engine.decision.engine import select_action
 from engine.events.detector import detect_events
 from engine.fetchers.slv import generate_slv_series
@@ -25,6 +31,8 @@ def run_pipeline() -> None:
     perf_summary = summarize_returns(closes)
     equity_curve = compute_equity_curve(closes)
     breakdown = event_breakdown([event.name for event in latest_events], closes)
+    rsi_series = compute_rsi(closes)
+    stddev_series = compute_rolling_stddev(closes)
 
     write_json(BASE_PATH / "raw/slv_daily.json", {"symbol": "SLV", "data": raw_data})
     write_json(BASE_PATH / "events/latest.json", {"as_of": now, "events": [e.to_dict() for e in latest_events]})
@@ -42,6 +50,14 @@ def run_pipeline() -> None:
     )
     write_json(BASE_PATH / "perf/equity_curve.json", {"updated_at": now, "equity_curve": equity_curve})
     write_json(BASE_PATH / "perf/by_event.json", {"updated_at": now, "breakdown": breakdown})
+    write_json(
+        BASE_PATH / "perf/rsi.json",
+        {"updated_at": now, "period": 14, "rsi": rsi_series},
+    )
+    write_json(
+        BASE_PATH / "perf/stddev.json",
+        {"updated_at": now, "window": 20, "stddev": stddev_series},
+    )
 
 
 def append_jsonl(path: Path, record: dict) -> None:

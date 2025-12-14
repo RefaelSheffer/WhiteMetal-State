@@ -82,3 +82,67 @@ def event_breakdown(events: Iterable[str], closes: Sequence[float]) -> List[Mapp
     )
 
     return breakdown
+
+
+def compute_rsi(closes: Sequence[float], period: int = 14) -> List[Mapping]:
+    """Compute a rolling Relative Strength Index (RSI).
+
+    Returns a list of {"index": idx, "rsi": value} starting once enough
+    closes are available for the initial window.
+    """
+
+    if len(closes) <= period:
+        return []
+
+    gains: List[float] = []
+    losses: List[float] = []
+    for idx in range(1, period + 1):
+        delta = closes[idx] - closes[idx - 1]
+        if delta >= 0:
+            gains.append(delta)
+            losses.append(0.0)
+        else:
+            gains.append(0.0)
+            losses.append(-delta)
+
+    avg_gain = sum(gains) / period
+    avg_loss = sum(losses) / period
+
+    rsi_series: List[Mapping] = []
+    rs = avg_gain / avg_loss if avg_loss != 0 else float("inf")
+    rsi = 100 - (100 / (1 + rs)) if rs != float("inf") else 100.0
+    rsi_series.append({"index": period, "rsi": round(rsi, 2)})
+
+    for idx in range(period + 1, len(closes)):
+        delta = closes[idx] - closes[idx - 1]
+        gain = max(delta, 0.0)
+        loss = max(-delta, 0.0)
+
+        avg_gain = ((avg_gain * (period - 1)) + gain) / period
+        avg_loss = ((avg_loss * (period - 1)) + loss) / period
+
+        if avg_loss == 0:
+            rsi = 100.0
+        else:
+            rs = avg_gain / avg_loss
+            rsi = 100 - (100 / (1 + rs))
+
+        rsi_series.append({"index": idx, "rsi": round(rsi, 2)})
+
+    return rsi_series
+
+
+def compute_rolling_stddev(closes: Sequence[float], window: int = 20) -> List[Mapping]:
+    """Compute a simple rolling standard deviation over closes."""
+
+    if len(closes) < window:
+        return []
+
+    stddev_series: List[Mapping] = []
+    for idx in range(window - 1, len(closes)):
+        window_values = closes[idx - window + 1 : idx + 1]
+        mean = sum(window_values) / window
+        variance = sum((v - mean) ** 2 for v in window_values) / window
+        stddev_series.append({"index": idx, "stddev": round(variance ** 0.5, 4)})
+
+    return stddev_series
