@@ -1,5 +1,5 @@
 {
-  "updated_at": "2025-12-14T11:08:05.481281",
+  "updated_at": "2025-12-14T13:14:03.518139",
   "cycles": [
     {
       "start_date": "2025-06-18",
@@ -839,5 +839,565 @@
     "avg_down_length": 1.54,
     "avg_up_amplitude": 0.0184,
     "avg_down_amplitude": -0.009
-  }
+  },
+  "turning_points": [
+    {
+      "index": 1,
+      "kind": "peak",
+      "date": "2025-06-18",
+      "close": 22.35
+    },
+    {
+      "index": 2,
+      "kind": "trough",
+      "date": "2025-06-19",
+      "close": 22.08
+    },
+    {
+      "index": 6,
+      "kind": "peak",
+      "date": "2025-06-23",
+      "close": 23.09
+    },
+    {
+      "index": 7,
+      "kind": "trough",
+      "date": "2025-06-24",
+      "close": 22.81
+    },
+    {
+      "index": 13,
+      "kind": "peak",
+      "date": "2025-06-30",
+      "close": 24.16
+    },
+    {
+      "index": 14,
+      "kind": "trough",
+      "date": "2025-07-01",
+      "close": 23.99
+    },
+    {
+      "index": 15,
+      "kind": "peak",
+      "date": "2025-07-02",
+      "close": 24.38
+    },
+    {
+      "index": 16,
+      "kind": "trough",
+      "date": "2025-07-03",
+      "close": 24.34
+    },
+    {
+      "index": 17,
+      "kind": "peak",
+      "date": "2025-07-04",
+      "close": 24.59
+    },
+    {
+      "index": 18,
+      "kind": "trough",
+      "date": "2025-07-05",
+      "close": 24.56
+    },
+    {
+      "index": 19,
+      "kind": "peak",
+      "date": "2025-07-06",
+      "close": 24.81
+    },
+    {
+      "index": 21,
+      "kind": "trough",
+      "date": "2025-07-08",
+      "close": 24.65
+    },
+    {
+      "index": 22,
+      "kind": "peak",
+      "date": "2025-07-09",
+      "close": 24.85
+    },
+    {
+      "index": 23,
+      "kind": "trough",
+      "date": "2025-07-10",
+      "close": 24.73
+    },
+    {
+      "index": 24,
+      "kind": "peak",
+      "date": "2025-07-11",
+      "close": 25.16
+    },
+    {
+      "index": 25,
+      "kind": "trough",
+      "date": "2025-07-12",
+      "close": 25.05
+    },
+    {
+      "index": 27,
+      "kind": "peak",
+      "date": "2025-07-14",
+      "close": 25.17
+    },
+    {
+      "index": 28,
+      "kind": "trough",
+      "date": "2025-07-15",
+      "close": 25.01
+    },
+    {
+      "index": 31,
+      "kind": "peak",
+      "date": "2025-07-18",
+      "close": 25.77
+    },
+    {
+      "index": 32,
+      "kind": "trough",
+      "date": "2025-07-19",
+      "close": 25.67
+    },
+    {
+      "index": 33,
+      "kind": "peak",
+      "date": "2025-07-20",
+      "close": 25.68
+    },
+    {
+      "index": 35,
+      "kind": "trough",
+      "date": "2025-07-22",
+      "close": 25.21
+    },
+    {
+      "index": 37,
+      "kind": "peak",
+      "date": "2025-07-24",
+      "close": 25.51
+    },
+    {
+      "index": 38,
+      "kind": "trough",
+      "date": "2025-07-25",
+      "close": 25.24
+    },
+    {
+      "index": 40,
+      "kind": "peak",
+      "date": "2025-07-27",
+      "close": 25.72
+    },
+    {
+      "index": 41,
+      "kind": "trough",
+      "date": "2025-07-28",
+      "close": 25.7
+    },
+    {
+      "index": 43,
+      "kind": "peak",
+      "date": "2025-07-30",
+      "close": 26.32
+    },
+    {
+      "index": 46,
+      "kind": "trough",
+      "date": "2025-08-02",
+      "close": 26.13
+    },
+    {
+      "index": 50,
+      "kind": "peak",
+      "date": "2025-08-06",
+      "close": 26.97
+    },
+    {
+      "index": 53,
+      "kind": "trough",
+      "date": "2025-08-09",
+      "close": 26.25
+    },
+    {
+      "index": 56,
+      "kind": "peak",
+      "date": "2025-08-12",
+      "close": 26.49
+    },
+    {
+      "index": 57,
+      "kind": "trough",
+      "date": "2025-08-13",
+      "close": 26.43
+    },
+    {
+      "index": 58,
+      "kind": "peak",
+      "date": "2025-08-14",
+      "close": 26.87
+    },
+    {
+      "index": 59,
+      "kind": "trough",
+      "date": "2025-08-15",
+      "close": 26.76
+    },
+    {
+      "index": 61,
+      "kind": "peak",
+      "date": "2025-08-17",
+      "close": 27.34
+    },
+    {
+      "index": 63,
+      "kind": "trough",
+      "date": "2025-08-19",
+      "close": 26.88
+    },
+    {
+      "index": 69,
+      "kind": "peak",
+      "date": "2025-08-25",
+      "close": 28.71
+    },
+    {
+      "index": 70,
+      "kind": "trough",
+      "date": "2025-08-26",
+      "close": 28.51
+    },
+    {
+      "index": 71,
+      "kind": "peak",
+      "date": "2025-08-27",
+      "close": 28.85
+    },
+    {
+      "index": 75,
+      "kind": "trough",
+      "date": "2025-08-31",
+      "close": 28.47
+    },
+    {
+      "index": 76,
+      "kind": "peak",
+      "date": "2025-09-01",
+      "close": 28.87
+    },
+    {
+      "index": 77,
+      "kind": "trough",
+      "date": "2025-09-02",
+      "close": 28.55
+    },
+    {
+      "index": 78,
+      "kind": "peak",
+      "date": "2025-09-03",
+      "close": 28.69
+    },
+    {
+      "index": 79,
+      "kind": "trough",
+      "date": "2025-09-04",
+      "close": 28.37
+    },
+    {
+      "index": 93,
+      "kind": "peak",
+      "date": "2025-09-18",
+      "close": 31.65
+    },
+    {
+      "index": 94,
+      "kind": "trough",
+      "date": "2025-09-19",
+      "close": 31.34
+    },
+    {
+      "index": 98,
+      "kind": "peak",
+      "date": "2025-09-23",
+      "close": 32.0
+    },
+    {
+      "index": 99,
+      "kind": "trough",
+      "date": "2025-09-24",
+      "close": 31.87
+    },
+    {
+      "index": 101,
+      "kind": "peak",
+      "date": "2025-09-26",
+      "close": 32.45
+    },
+    {
+      "index": 104,
+      "kind": "trough",
+      "date": "2025-09-29",
+      "close": 31.7
+    },
+    {
+      "index": 105,
+      "kind": "peak",
+      "date": "2025-09-30",
+      "close": 31.95
+    },
+    {
+      "index": 106,
+      "kind": "trough",
+      "date": "2025-10-01",
+      "close": 31.82
+    },
+    {
+      "index": 107,
+      "kind": "peak",
+      "date": "2025-10-02",
+      "close": 32.05
+    },
+    {
+      "index": 112,
+      "kind": "trough",
+      "date": "2025-10-07",
+      "close": 31.21
+    },
+    {
+      "index": 117,
+      "kind": "peak",
+      "date": "2025-10-12",
+      "close": 32.3
+    },
+    {
+      "index": 118,
+      "kind": "trough",
+      "date": "2025-10-13",
+      "close": 32.01
+    },
+    {
+      "index": 119,
+      "kind": "peak",
+      "date": "2025-10-14",
+      "close": 32.34
+    },
+    {
+      "index": 121,
+      "kind": "trough",
+      "date": "2025-10-16",
+      "close": 31.92
+    },
+    {
+      "index": 126,
+      "kind": "peak",
+      "date": "2025-10-21",
+      "close": 32.95
+    },
+    {
+      "index": 127,
+      "kind": "trough",
+      "date": "2025-10-22",
+      "close": 32.74
+    },
+    {
+      "index": 128,
+      "kind": "peak",
+      "date": "2025-10-23",
+      "close": 32.95
+    },
+    {
+      "index": 129,
+      "kind": "trough",
+      "date": "2025-10-24",
+      "close": 32.8
+    },
+    {
+      "index": 130,
+      "kind": "peak",
+      "date": "2025-10-25",
+      "close": 32.96
+    },
+    {
+      "index": 131,
+      "kind": "trough",
+      "date": "2025-10-26",
+      "close": 32.94
+    },
+    {
+      "index": 133,
+      "kind": "peak",
+      "date": "2025-10-28",
+      "close": 33.03
+    },
+    {
+      "index": 134,
+      "kind": "trough",
+      "date": "2025-10-29",
+      "close": 32.77
+    },
+    {
+      "index": 135,
+      "kind": "peak",
+      "date": "2025-10-30",
+      "close": 33.01
+    },
+    {
+      "index": 137,
+      "kind": "trough",
+      "date": "2025-11-01",
+      "close": 32.78
+    },
+    {
+      "index": 138,
+      "kind": "peak",
+      "date": "2025-11-02",
+      "close": 32.87
+    },
+    {
+      "index": 141,
+      "kind": "trough",
+      "date": "2025-11-05",
+      "close": 32.37
+    },
+    {
+      "index": 143,
+      "kind": "peak",
+      "date": "2025-11-07",
+      "close": 32.93
+    },
+    {
+      "index": 145,
+      "kind": "trough",
+      "date": "2025-11-09",
+      "close": 32.78
+    },
+    {
+      "index": 146,
+      "kind": "peak",
+      "date": "2025-11-10",
+      "close": 32.93
+    },
+    {
+      "index": 148,
+      "kind": "trough",
+      "date": "2025-11-12",
+      "close": 32.32
+    },
+    {
+      "index": 154,
+      "kind": "peak",
+      "date": "2025-11-18",
+      "close": 33.52
+    },
+    {
+      "index": 155,
+      "kind": "trough",
+      "date": "2025-11-19",
+      "close": 33.37
+    },
+    {
+      "index": 156,
+      "kind": "peak",
+      "date": "2025-11-20",
+      "close": 33.49
+    },
+    {
+      "index": 158,
+      "kind": "trough",
+      "date": "2025-11-22",
+      "close": 32.96
+    },
+    {
+      "index": 159,
+      "kind": "peak",
+      "date": "2025-11-23",
+      "close": 32.99
+    },
+    {
+      "index": 161,
+      "kind": "trough",
+      "date": "2025-11-25",
+      "close": 32.58
+    },
+    {
+      "index": 162,
+      "kind": "peak",
+      "date": "2025-11-26",
+      "close": 32.92
+    },
+    {
+      "index": 163,
+      "kind": "trough",
+      "date": "2025-11-27",
+      "close": 32.9
+    },
+    {
+      "index": 166,
+      "kind": "peak",
+      "date": "2025-11-30",
+      "close": 33.2
+    },
+    {
+      "index": 167,
+      "kind": "trough",
+      "date": "2025-12-01",
+      "close": 32.92
+    },
+    {
+      "index": 168,
+      "kind": "peak",
+      "date": "2025-12-02",
+      "close": 33.09
+    },
+    {
+      "index": 170,
+      "kind": "trough",
+      "date": "2025-12-04",
+      "close": 32.73
+    },
+    {
+      "index": 171,
+      "kind": "peak",
+      "date": "2025-12-05",
+      "close": 33.07
+    },
+    {
+      "index": 172,
+      "kind": "trough",
+      "date": "2025-12-06",
+      "close": 32.93
+    },
+    {
+      "index": 173,
+      "kind": "peak",
+      "date": "2025-12-07",
+      "close": 33.38
+    },
+    {
+      "index": 174,
+      "kind": "trough",
+      "date": "2025-12-08",
+      "close": 33.3
+    },
+    {
+      "index": 175,
+      "kind": "peak",
+      "date": "2025-12-09",
+      "close": 33.73
+    },
+    {
+      "index": 176,
+      "kind": "trough",
+      "date": "2025-12-10",
+      "close": 33.41
+    },
+    {
+      "index": 177,
+      "kind": "peak",
+      "date": "2025-12-11",
+      "close": 33.86
+    }
+  ]
 }

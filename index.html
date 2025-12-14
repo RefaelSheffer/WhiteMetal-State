@@ -18,6 +18,13 @@
     .kpi { background:#0d1424; border:1px solid #1e2a45; border-radius:12px; padding:10px; }
     .kpi .v { font-size: 18px; font-weight: 700; margin-top: 4px; }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .cycle-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14px; }
+    .cycle-table th, .cycle-table td { padding: 6px 8px; text-align: right; border-bottom: 1px solid #1e2a45; }
+    .cycle-table th { color: #a8b4d6; font-weight: 600; }
+    .cycle-table td { color: #e8eefc; }
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; border: 1px solid #1e2a45; }
+    .pill.up { background: rgba(34, 197, 94, 0.12); color: #22c55e; }
+    .pill.down { background: rgba(244, 63, 94, 0.12); color: #f43f5e; }
     @media (max-width: 900px) { .row { grid-template-columns: 1fr; } }
     a { color:#8bb2ff; }
   </style>
@@ -69,6 +76,21 @@
       <div class="card">
         <div class="big">Price</div>
         <div id="chart" style="height:420px;"></div>
+        <div class="muted" style="margin-top:8px;">מחזורי Peaks/Troughs אחרונים</div>
+        <table class="cycle-table" id="cycleTable">
+          <thead>
+            <tr>
+              <th>תאריך סיום</th>
+              <th>תאריך התחלה</th>
+              <th>כיוון</th>
+              <th>אורך</th>
+              <th>אמפליטודה</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="5" class="muted">Loading…</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
@@ -155,7 +177,7 @@ function fmtPct(x, d=1) {
 }
 
 (async () => {
-  const [prices, signal, cot, edgar, rsiPerf, stddevPerf, decomposition, perfSummary, equityCurve] = await Promise.all([
+  const [prices, signal, cot, edgar, rsiPerf, stddevPerf, decomposition, perfSummary, equityCurve, cycleStats] = await Promise.all([
     getJson("./data/slv_prices.json"),
     getJson("./data/signal_latest.json"),
     getJson("./data/cot_silver.json"),
@@ -165,6 +187,7 @@ function fmtPct(x, d=1) {
     getJson("./public/data/perf/decomposition.json"),
     getJson("./public/data/perf/summary.json"),
     getJson("./public/data/perf/equity_curve.json"),
+    getJson("./public/data/events/cycle_stats.json"),
   ]);
 
   document.getElementById("updated").textContent =
@@ -222,6 +245,28 @@ function fmtPct(x, d=1) {
     name: "SLV Close",
   };
 
+  const turningPoints = cycleStats?.turning_points ?? [];
+  const peakPoints = turningPoints.filter((p) => p.kind === "peak");
+  const troughPoints = turningPoints.filter((p) => p.kind === "trough");
+
+  const peakTrace = {
+    x: peakPoints.map((p) => p.date),
+    y: peakPoints.map((p) => p.close),
+    mode: "markers",
+    type: "scatter",
+    name: "Peak",
+    marker: { color: "#f43f5e", size: 8, symbol: "triangle-up" },
+  };
+
+  const troughTrace = {
+    x: troughPoints.map((p) => p.date),
+    y: troughPoints.map((p) => p.close),
+    mode: "markers",
+    type: "scatter",
+    name: "Trough",
+    marker: { color: "#22c55e", size: 8, symbol: "triangle-down" },
+  };
+
   const layout = {
     paper_bgcolor: "rgba(0,0,0,0)",
     plot_bgcolor: "rgba(0,0,0,0)",
@@ -230,7 +275,39 @@ function fmtPct(x, d=1) {
     yaxis: { showgrid: true, gridcolor: "#1e2a45", color: "#a8b4d6" },
   };
 
-  Plotly.newPlot("chart", [trace], layout, {displayModeBar: false});
+  const priceSeries = [trace];
+  if (turningPoints.length) {
+    priceSeries.push(peakTrace, troughTrace);
+  }
+
+  Plotly.newPlot("chart", priceSeries, layout, {displayModeBar: false});
+
+  const cyclesData = cycleStats?.cycles ?? [];
+  const tableBody = document.querySelector("#cycleTable tbody");
+  const recentCycles = cyclesData.slice(-6).reverse();
+
+  if (tableBody) {
+    if (recentCycles.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="5" class="muted">No cycles detected yet.</td></tr>';
+    } else {
+      tableBody.innerHTML = recentCycles
+        .map((cycle) => {
+          const amp = fmtPct(cycle.amplitude, 1);
+          const len = cycle.length ?? 0;
+          const dir = cycle.direction === "upswing" ? "up" : "down";
+          return `
+            <tr>
+              <td>${cycle.end_date}</td>
+              <td>${cycle.start_date}</td>
+              <td><span class="pill ${dir}">${cycle.direction}</span></td>
+              <td>${len}d</td>
+              <td>${amp}</td>
+            </tr>
+          `;
+        })
+        .join("");
+    }
+  }
 
   const equitySeries = equityCurve.equity_curve ?? [];
   if (equitySeries.length) {

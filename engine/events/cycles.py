@@ -2,13 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from statistics import mean
-from typing import List, Mapping, Sequence
-
-
-@dataclass
-class TurningPoint:
-    index: int
-    kind: str  # "peak" or "trough"
+from typing import List, Mapping, Sequence, Tuple
 
 
 @dataclass
@@ -35,11 +29,17 @@ class CycleSegment:
         }
 
 
-def detect_cycles(prices: Sequence[Mapping]) -> List[CycleSegment]:
+@dataclass
+class TurningPoint:
+    index: int
+    kind: str  # "peak" or "trough"
+
+
+def detect_cycles(prices: Sequence[Mapping]) -> Tuple[List[CycleSegment], List[TurningPoint]]:
     """Identify peak/trough-based cycles using sign flips in daily returns."""
 
     if len(prices) < 3:
-        return []
+        return [], []
 
     closes = [row["close"] for row in prices]
     dates = [row["date"] for row in prices]
@@ -71,7 +71,7 @@ def detect_cycles(prices: Sequence[Mapping]) -> List[CycleSegment]:
             )
         )
 
-    return segments
+    return segments, turning_points
 
 
 def summarize_cycles(cycles: Sequence[CycleSegment]) -> Mapping:
@@ -106,6 +106,27 @@ def summarize_cycles(cycles: Sequence[CycleSegment]) -> Mapping:
         "avg_up_amplitude": _avg([cycle.amplitude for cycle in up_cycles]),
         "avg_down_amplitude": _avg([cycle.amplitude for cycle in down_cycles]),
     }
+
+
+def turning_points_to_records(
+    turning_points: Sequence[TurningPoint], dates: Sequence[str], closes: Sequence[float]
+) -> List[Mapping]:
+    records: List[Mapping] = []
+
+    for tp in turning_points:
+        if tp.index < 0 or tp.index >= len(dates) or tp.index >= len(closes):
+            continue
+
+        records.append(
+            {
+                "index": tp.index,
+                "kind": tp.kind,
+                "date": dates[tp.index],
+                "close": round(closes[tp.index], 2),
+            }
+        )
+
+    return records
 
 
 def _find_turning_points(closes: Sequence[float]) -> List[TurningPoint]:
