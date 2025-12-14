@@ -30,19 +30,27 @@
     .btn.active { background: #1f2d4a; border-color: #4c9cff; }
     .toggle { display: flex; gap: 6px; align-items: center; padding: 6px 10px; background: #0d1424; border: 1px solid #1e2a45; border-radius: 10px; }
     .toggle input { accent-color: #4c9cff; }
+    .lang-toggle { align-self: flex-start; white-space: nowrap; }
+    .header-top { display: flex; justify-content: space-between; gap: 12px; }
+    .header-content { flex: 1; min-width: 0; }
     @media (max-width: 900px) { .row { grid-template-columns: 1fr; } }
+    body[dir="ltr"] .cycle-table th, body[dir="ltr"] .cycle-table td { text-align: left; }
     a { color:#8bb2ff; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
-      <div class="big">SLV Monitor</div>
-      <div class="muted">דשבורד סטטי ב-GitHub Pages + “מוח” שרץ ב-GitHub Actions ומעדכן JSON.</div>
-      <div class="muted mono" id="updated">Loading…</div>
-      <div class="alert">
-        המלצות המערכת הן תוצאה של עיבוד סטטיסטי ואינן מהוות ייעוץ או הנחיה לביצוע פעולה מיידית. מומלץ לשלב את האיתותים עם
-        גורמים נוספים כמו חדשות מאקרו, מדיניות מוניטרית ושיקולים אישיים אחרים.
+      <div class="header-top">
+        <div class="header-content">
+          <div class="big" data-i18n="title">SLV Monitor</div>
+          <div class="muted" data-i18n="subtitle">דשבורד סטטי ב-GitHub Pages + “מוח” שרץ ב-GitHub Actions ומעדכן JSON.</div>
+          <div class="muted mono" id="updated">Loading…</div>
+        </div>
+        <button class="btn lang-toggle" id="langToggle">English</button>
+      </div>
+      <div class="alert" data-i18n="alert">
+        המלצות המערכת הן תוצאה של עיבוד סטטיסטי ואינן מהוות ייעוץ או הנחיה לביצוע פעולה מיידית. מומלץ לשלב את האיתותים עם גורמים נוספים כמו חדשות מאקרו, מדיניות מוניטרית ושיקולים אישיים אחרים.
       </div>
     </div>
 
@@ -51,55 +59,55 @@
     <div class="row">
       <div class="card">
         <div class="big" id="action">—</div>
-        <div class="muted">Confidence: <span class="mono" id="confidence">—</span></div>
+        <div class="muted"><span data-i18n="confidenceLabel">Confidence</span>: <span class="mono" id="confidence">—</span></div>
 
         <div class="kpis">
           <div class="kpi">
-            <div class="muted">Score Total</div>
+            <div class="muted" data-i18n="scoreTotalLabel">Score Total</div>
             <div class="v mono" id="scoreTotal">—</div>
           </div>
           <div class="kpi">
-            <div class="muted">Price Score</div>
+            <div class="muted" data-i18n="scorePriceLabel">Price Score</div>
             <div class="v mono" id="scorePrice">—</div>
           </div>
           <div class="kpi">
-            <div class="muted">COT Score</div>
+            <div class="muted" data-i18n="scoreCOTLabel">COT Score</div>
             <div class="v mono" id="scoreCOT">—</div>
           </div>
         </div>
 
         <div style="height:12px"></div>
-        <div class="muted">Latest Close: <span class="mono" id="lastClose">—</span></div>
-        <div class="muted">MA20/50/200: <span class="mono" id="mas">—</span></div>
-        <div class="muted">1M Mom%: <span class="mono" id="mom">—</span></div>
+        <div class="muted"><span data-i18n="latestCloseLabel">Latest Close</span>: <span class="mono" id="lastClose">—</span></div>
+        <div class="muted"><span data-i18n="maLabel">MA20/50/200</span>: <span class="mono" id="mas">—</span></div>
+        <div class="muted"><span data-i18n="momLabel">1M Mom%</span>: <span class="mono" id="mom">—</span></div>
 
         <div style="height:12px"></div>
-        <div class="muted">COT (Silver): <span class="mono" id="cotLine">—</span></div>
-        <div class="muted">EDGAR: <span class="mono" id="edgarLine">—</span></div>
+        <div class="muted"><span data-i18n="cotLabel">COT (Silver)</span>: <span class="mono" id="cotLine">—</span></div>
+        <div class="muted"><span data-i18n="edgarLabel">EDGAR</span>: <span class="mono" id="edgarLine">—</span></div>
       </div>
 
       <div class="card">
-        <div class="big">Price</div>
+        <div class="big" data-i18n="priceTitle">Price</div>
         <div class="controls">
-          <div class="muted">טווח זמן:</div>
+          <div class="muted" data-i18n="rangeLabel">טווח זמן:</div>
           <button class="btn active" data-range="3m">3M</button>
           <button class="btn" data-range="1y">1Y</button>
           <button class="btn" data-range="all">All</button>
           <span style="flex:1"></span>
-          <label class="toggle"><input type="checkbox" id="toggleRsi" checked />RSI</label>
-          <label class="toggle"><input type="checkbox" id="toggleStd" checked />StdDev</label>
-          <label class="toggle"><input type="checkbox" id="toggleDecomp" checked />Decomposition</label>
+          <label class="toggle"><input type="checkbox" id="toggleRsi" checked /><span data-i18n="rsiToggle">RSI</span></label>
+          <label class="toggle"><input type="checkbox" id="toggleStd" checked /><span data-i18n="stdToggle">StdDev</span></label>
+          <label class="toggle"><input type="checkbox" id="toggleDecomp" checked /><span data-i18n="decompToggle">Decomposition</span></label>
         </div>
         <div id="chart" style="height:420px;"></div>
-        <div class="muted" style="margin-top:8px;">מחזורי Peaks/Troughs אחרונים</div>
+        <div class="muted" style="margin-top:8px;" data-i18n="cycleTitle">מחזורי Peaks/Troughs אחרונים</div>
         <table class="cycle-table" id="cycleTable">
           <thead>
             <tr>
-              <th>תאריך סיום</th>
-              <th>תאריך התחלה</th>
-              <th>כיוון</th>
-              <th>אורך</th>
-              <th>אמפליטודה</th>
+              <th data-i18n="cycleEndDate">תאריך סיום</th>
+              <th data-i18n="cycleStartDate">תאריך התחלה</th>
+              <th data-i18n="cycleDirection">כיוון</th>
+              <th data-i18n="cycleLength">אורך</th>
+              <th data-i18n="cycleAmplitude">אמפליטודה</th>
             </tr>
           </thead>
           <tbody>
@@ -113,31 +121,31 @@
 
     <div class="row">
       <div class="card">
-        <div class="big">ציון ביצועים כולל</div>
-        <div class="muted">עודכן: <span class="mono" id="perfSummaryUpdated">—</span></div>
+        <div class="big" data-i18n="performanceScoreTitle">ציון ביצועים כולל</div>
+        <div class="muted"><span data-i18n="perfSummaryUpdatedLabel">עודכן</span>: <span class="mono" id="perfSummaryUpdated">—</span></div>
 
         <div class="kpis four">
           <div class="kpi">
-            <div class="muted">Hit Rate</div>
+            <div class="muted" data-i18n="hitRateLabel">Hit Rate</div>
             <div class="v mono" id="hitRate">—</div>
           </div>
           <div class="kpi">
-            <div class="muted">Avg Return 5d</div>
+            <div class="muted" data-i18n="avgReturn5dLabel">Avg Return 5d</div>
             <div class="v mono" id="avgReturn5d">—</div>
           </div>
           <div class="kpi">
-            <div class="muted">Avg Return 10d</div>
+            <div class="muted" data-i18n="avgReturn10dLabel">Avg Return 10d</div>
             <div class="v mono" id="avgReturn10d">—</div>
           </div>
           <div class="kpi">
-            <div class="muted">Max Drawdown</div>
+            <div class="muted" data-i18n="maxDrawdownLabel">Max Drawdown</div>
             <div class="v mono" id="maxDrawdown">—</div>
           </div>
         </div>
       </div>
 
       <div class="card">
-        <div class="big">Equity vs Benchmark (SLV)</div>
+        <div class="big" data-i18n="equityTitle">Equity vs Benchmark (SLV)</div>
         <div id="perfChart" style="height:320px;"></div>
       </div>
     </div>
@@ -146,16 +154,16 @@
 
     <div class="row">
       <div class="card" id="perfCard">
-        <div class="big">Performance</div>
-        <div class="muted" id="rsiRow">RSI (14): <span class="mono" id="rsiValue">—</span></div>
-        <div class="muted" id="stdRow">Rolling StdDev (20): <span class="mono" id="stddevValue">—</span></div>
-        <div class="muted">Perf Updated: <span class="mono" id="perfUpdated">—</span></div>
+        <div class="big" data-i18n="performanceTitle">Performance</div>
+        <div class="muted" id="rsiRow"><span data-i18n="rsiLabel">RSI (14)</span>: <span class="mono" id="rsiValue">—</span></div>
+        <div class="muted" id="stdRow"><span data-i18n="stdLabel">Rolling StdDev (20)</span>: <span class="mono" id="stddevValue">—</span></div>
+        <div class="muted"><span data-i18n="perfUpdatedLabel">Perf Updated</span>: <span class="mono" id="perfUpdated">—</span></div>
       </div>
 
       <div class="card" id="decompCard">
-        <div class="big">Decomposition</div>
-        <div class="muted">Updated: <span class="mono" id="decompUpdated">—</span></div>
-        <div class="muted">Period: <span class="mono" id="decompPeriod">—</span></div>
+        <div class="big" data-i18n="decompTitle">Decomposition</div>
+        <div class="muted"><span data-i18n="decompUpdatedLabel">Updated</span>: <span class="mono" id="decompUpdated">—</span></div>
+        <div class="muted"><span data-i18n="decompPeriodLabel">Period</span>: <span class="mono" id="decompPeriod">—</span></div>
       </div>
     </div>
 
@@ -163,12 +171,12 @@
 
     <div class="row">
       <div class="card" id="trendCardWrap">
-        <div class="big">Trend</div>
+        <div class="big" data-i18n="trendTitle">Trend</div>
         <div id="trendChart" style="height:320px;"></div>
       </div>
 
       <div class="card" id="seasonalCardWrap">
-        <div class="big">Seasonal / Residual</div>
+        <div class="big" data-i18n="seasonalTitle">Seasonal / Residual</div>
         <div id="seasonalChart" style="height:320px;"></div>
       </div>
     </div>
@@ -180,6 +188,122 @@ async function getJson(path) {
   if (!r.ok) throw new Error(`Failed ${path}: ${r.status}`);
   return await r.json();
 }
+
+function detectLang() {
+  const stored = localStorage.getItem("lang");
+  if (stored) return stored;
+  const nav = navigator.language || navigator.userLanguage || "";
+  return nav.toLowerCase().startsWith("he") ? "he" : "en";
+}
+
+const translations = {
+  he: {
+    title: "SLV Monitor",
+    subtitle: "דשבורד סטטי ב-GitHub Pages + “מוח” שרץ ב-GitHub Actions ומעדכן JSON.",
+    alert: "המלצות המערכת הן תוצאה של עיבוד סטטיסטי ואינן מהוות ייעוץ או הנחיה לביצוע פעולה מיידית. מומלץ לשלב את האיתותים עם גורמים נוספים כמו חדשות מאקרו, מדיניות מוניטרית ושיקולים אישיים אחרים.",
+    priceTitle: "מחיר",
+    rangeLabel: "טווח זמן:",
+    cycleTitle: "מחזורי Peaks/Troughs אחרונים",
+    cycleEndDate: "תאריך סיום",
+    cycleStartDate: "תאריך התחלה",
+    cycleDirection: "כיוון",
+    cycleLength: "אורך",
+    cycleAmplitude: "אמפליטודה",
+    performanceScoreTitle: "ציון ביצועים כולל",
+    perfSummaryUpdatedLabel: "עודכן",
+    equityTitle: "תשואת אלגו מול SLV",
+    performanceTitle: "ביצועים",
+    rsiLabel: "RSI (14)",
+    stdLabel: "סטיית תקן מתגלגלת (20)",
+    perfUpdatedLabel: "עדכון ביצועים",
+    decompTitle: "פירוק (Decomposition)",
+    decompUpdatedLabel: "עדכון",
+    decompPeriodLabel: "אורך מחזור",
+    trendTitle: "מגמה",
+    seasonalTitle: "עונתיות / שארית",
+    noCycles: "לא זוהו מחזורים עדיין.",
+    perfSeriesUnavailable: "סדרת ביצועים לא זמינה.",
+    benchUnavailable: "חלון מדד חסר.",
+    decompUnavailable: "פירוק לא זמין.",
+    updatedPrefix: "עודכן (UTC)",
+    confidenceLabel: "Confidence",
+    scoreTotalLabel: "Score Total",
+    scorePriceLabel: "Price Score",
+    scoreCOTLabel: "COT Score",
+    latestCloseLabel: "מחיר סגירה אחרון",
+    maLabel: "ממוצעים 20/50/200",
+    momLabel: "מומנטום 1M",
+    cotLabel: "COT (Silver)",
+    edgarLabel: "EDGAR",
+    cotUnavailable: "COT לא זמין (בינתיים).",
+    edgarNoFiling: "לא נמצאה הגשה אחרונה.",
+    edgarUnavailable: "EDGAR לא זמין (בינתיים).",
+    hitRateLabel: "Hit Rate",
+    avgReturn5dLabel: "תשואה ממוצעת 5 ימים",
+    avgReturn10dLabel: "תשואה ממוצעת 10 ימים",
+    maxDrawdownLabel: "Max Drawdown",
+    rsiToggle: "RSI",
+    stdToggle: "StdDev",
+    decompToggle: "Decomposition",
+    langToggleEnglish: "English",
+    langToggleHebrew: "עברית",
+    switchToEnglishAria: "Switch to English",
+    switchToHebrewAria: "החלף לעברית"
+  },
+  en: {
+    title: "SLV Monitor",
+    subtitle: "Static dashboard on GitHub Pages + a 'brain' running in GitHub Actions updating JSON.",
+    alert: "System recommendations are the result of statistical processing and do not constitute advice or a call for immediate action. Combine signals with other factors like macro news, monetary policy, and personal considerations.",
+    priceTitle: "Price",
+    rangeLabel: "Range:",
+    cycleTitle: "Recent Peaks/Troughs Cycles",
+    cycleEndDate: "End Date",
+    cycleStartDate: "Start Date",
+    cycleDirection: "Direction",
+    cycleLength: "Length",
+    cycleAmplitude: "Amplitude",
+    performanceScoreTitle: "Performance Scorecard",
+    perfSummaryUpdatedLabel: "Updated",
+    equityTitle: "Equity vs Benchmark (SLV)",
+    performanceTitle: "Performance",
+    rsiLabel: "RSI (14)",
+    stdLabel: "Rolling StdDev (20)",
+    perfUpdatedLabel: "Perf Updated",
+    decompTitle: "Decomposition",
+    decompUpdatedLabel: "Updated",
+    decompPeriodLabel: "Period",
+    trendTitle: "Trend",
+    seasonalTitle: "Seasonal / Residual",
+    noCycles: "No cycles detected yet.",
+    perfSeriesUnavailable: "Performance series unavailable.",
+    benchUnavailable: "Benchmark window unavailable.",
+    decompUnavailable: "Decomposition unavailable.",
+    updatedPrefix: "Updated (UTC)",
+    confidenceLabel: "Confidence",
+    scoreTotalLabel: "Score Total",
+    scorePriceLabel: "Price Score",
+    scoreCOTLabel: "COT Score",
+    latestCloseLabel: "Latest Close",
+    maLabel: "MA20/50/200",
+    momLabel: "1M Mom%",
+    cotLabel: "COT (Silver)",
+    edgarLabel: "EDGAR",
+    cotUnavailable: "COT unavailable (yet).",
+    edgarNoFiling: "No latest filing found.",
+    edgarUnavailable: "EDGAR unavailable (yet).",
+    hitRateLabel: "Hit Rate",
+    avgReturn5dLabel: "Avg Return 5d",
+    avgReturn10dLabel: "Avg Return 10d",
+    maxDrawdownLabel: "Max Drawdown",
+    rsiToggle: "RSI",
+    stdToggle: "StdDev",
+    decompToggle: "Decomposition",
+    langToggleEnglish: "English",
+    langToggleHebrew: "עברית",
+    switchToEnglishAria: "Switch to English",
+    switchToHebrewAria: "Switch to Hebrew"
+  }
+};
 
 function fmt(x, d=2) {
   if (x === null || x === undefined || Number.isNaN(x)) return "—";
@@ -205,8 +329,24 @@ function fmtPct(x, d=1) {
     getJson("./public/data/events/cycle_stats.json"),
   ]);
 
-  const state = { range: "3m", showRsi: true, showStd: true, showDecomp: true };
+  const state = { range: "3m", showRsi: true, showStd: true, showDecomp: true, lang: detectLang() };
   const priceDates = prices.dates.map((d) => new Date(d));
+
+  function t(key) {
+    return translations[state.lang]?.[key] ?? translations.en[key] ?? key;
+  }
+
+  function applyLanguage() {
+    document.documentElement.lang = state.lang;
+    document.body.dir = state.lang === "he" ? "rtl" : "ltr";
+    document.querySelectorAll("[data-i18n]").forEach((el) => {
+      const key = el.getAttribute("data-i18n");
+      el.textContent = t(key);
+    });
+    const langBtn = document.getElementById("langToggle");
+    langBtn.textContent = state.lang === "he" ? translations.en.langToggleEnglish : translations.he.langToggleHebrew;
+    langBtn.setAttribute("aria-label", state.lang === "he" ? translations.en.switchToEnglishAria : translations.he.switchToHebrewAria);
+  }
 
   function getRangeMask(months) {
     if (!months) return priceDates.map((_, i) => i);
@@ -271,7 +411,7 @@ function fmtPct(x, d=1) {
 
     if (tableBody) {
       if (recentCycles.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="5" class="muted">No cycles detected yet.</td></tr>';
+        tableBody.innerHTML = `<tr><td colspan="5" class="muted">${t("noCycles")}</td></tr>`;
       } else {
         tableBody.innerHTML = recentCycles
           .map((cycle) => {
@@ -298,7 +438,7 @@ function fmtPct(x, d=1) {
     const equitySeries = equityCurve.equity_curve ?? [];
     const eqValues = equitySeries.map((p) => p.equity);
     if (!eqValues.length) {
-      document.getElementById("perfChart").textContent = "Performance series unavailable.";
+      document.getElementById("perfChart").textContent = t("perfSeriesUnavailable");
       return;
     }
 
@@ -309,7 +449,7 @@ function fmtPct(x, d=1) {
     const benchDates = prices.dates.slice(-sliceLen);
 
     if (benchPrices.length !== sliceLen || benchDates.length !== sliceLen) {
-      document.getElementById("perfChart").textContent = "Benchmark window unavailable.";
+      document.getElementById("perfChart").textContent = t("benchUnavailable");
       return;
     }
 
@@ -375,7 +515,7 @@ function fmtPct(x, d=1) {
     if (trendValues.length) {
       Plotly.newPlot("trendChart", [{ x: rangeDates, y: trendValues, type: "scatter", mode: "lines", name: "Trend", line: { color: "#4c9cff" } }], { ...layout, yaxis: { ...layout.yaxis, title: "Trend" } }, { displayModeBar: false });
     } else {
-      document.getElementById("trendChart").textContent = "Decomposition unavailable.";
+      document.getElementById("trendChart").textContent = t("decompUnavailable");
     }
 
     if (seasonalValues.length || residValues.length) {
@@ -383,7 +523,7 @@ function fmtPct(x, d=1) {
       const residTrace = { x: rangeDates, y: residValues, type: "scatter", mode: "lines", name: "Residual", line: { color: "#fbbf24" } };
       Plotly.newPlot("seasonalChart", [seasonalTrace, residTrace], { ...layout, yaxis: { ...layout.yaxis, title: "Seasonal / Residual" } }, { displayModeBar: false });
     } else {
-      document.getElementById("seasonalChart").textContent = "Decomposition unavailable.";
+      document.getElementById("seasonalChart").textContent = t("decompUnavailable");
     }
   }
 
@@ -414,51 +554,55 @@ function fmtPct(x, d=1) {
   }
 
   function renderAll() {
+    applyLanguage();
+    renderSummary();
     renderPrice(state.range);
     renderEquity(state.range);
     renderDecomposition(state.range);
     renderIndicators(state.range);
   }
 
-  document.getElementById("updated").textContent =
-    `Updated (UTC): ${signal.updated_at_utc}`;
+  function renderSummary() {
+    document.getElementById("updated").textContent =
+      `${t("updatedPrefix")}: ${signal.updated_at_utc}`;
 
-  document.getElementById("action").textContent = signal.action;
-  document.getElementById("confidence").textContent = signal.confidence;
+    document.getElementById("action").textContent = signal.action;
+    document.getElementById("confidence").textContent = signal.confidence;
 
-  document.getElementById("scoreTotal").textContent = fmt(signal.score_total, 0);
-  document.getElementById("scorePrice").textContent = fmt(signal.breakdown.score_price, 0);
-  document.getElementById("scoreCOT").textContent = fmt(signal.breakdown.score_cot, 0);
+    document.getElementById("scoreTotal").textContent = fmt(signal.score_total, 0);
+    document.getElementById("scorePrice").textContent = fmt(signal.breakdown.score_price, 0);
+    document.getElementById("scoreCOT").textContent = fmt(signal.breakdown.score_cot, 0);
 
-  document.getElementById("lastClose").textContent = fmt(signal.price.last_close, 2);
-  document.getElementById("mas").textContent =
-    `${fmt(signal.price.ma20,2)} / ${fmt(signal.price.ma50,2)} / ${fmt(signal.price.ma200,2)}`;
-  document.getElementById("mom").textContent = fmt(signal.price.mom_1m_pct, 2);
+    document.getElementById("lastClose").textContent = fmt(signal.price.last_close, 2);
+    document.getElementById("mas").textContent =
+      `${fmt(signal.price.ma20,2)} / ${fmt(signal.price.ma50,2)} / ${fmt(signal.price.ma200,2)}`;
+    document.getElementById("mom").textContent = fmt(signal.price.mom_1m_pct, 2);
 
-  if (cot.cot_available) {
-    document.getElementById("cotLine").textContent =
-      `Report ${cot.cot_report_date}, nc_net=${fmt(cot.nc_net,0)}, Δ4w=${fmt(cot.nc_net_delta_4w,0)}, pct=${fmt(cot.nc_net_percentile,1)}`;
-  } else {
-    document.getElementById("cotLine").textContent = "COT unavailable (yet).";
+    if (cot.cot_available) {
+      document.getElementById("cotLine").textContent =
+        `Report ${cot.cot_report_date}, nc_net=${fmt(cot.nc_net,0)}, Δ4w=${fmt(cot.nc_net_delta_4w,0)}, pct=${fmt(cot.nc_net_percentile,1)}`;
+    } else {
+      document.getElementById("cotLine").textContent = t("cotUnavailable");
+    }
+
+    if (edgar.edgar_available && edgar.latest_filing) {
+      document.getElementById("edgarLine").textContent =
+        `${edgar.latest_filing.form} @ ${edgar.latest_filing.filingDate} (days_ago=${edgar.latest_filing.days_ago})`;
+    } else if (edgar.edgar_available) {
+      document.getElementById("edgarLine").textContent = t("edgarNoFiling");
+    } else {
+      document.getElementById("edgarLine").textContent = t("edgarUnavailable");
+    }
+
+    document.getElementById("perfSummaryUpdated").textContent = perfSummary.updated_at || "—";
+    document.getElementById("hitRate").textContent = fmtPct(perfSummary.hit_rate, 0);
+    document.getElementById("avgReturn5d").textContent = fmtPct(perfSummary.avg_return_5d, 2);
+    document.getElementById("avgReturn10d").textContent = fmtPct(perfSummary.avg_return_10d, 2);
+    document.getElementById("maxDrawdown").textContent = fmtPct(perfSummary.max_drawdown, 2);
+
+    document.getElementById("decompUpdated").textContent = decomposition.updated_at || "—";
+    document.getElementById("decompPeriod").textContent = decomposition.period ?? "—";
   }
-
-  if (edgar.edgar_available && edgar.latest_filing) {
-    document.getElementById("edgarLine").textContent =
-      `${edgar.latest_filing.form} @ ${edgar.latest_filing.filingDate} (days_ago=${edgar.latest_filing.days_ago})`;
-  } else if (edgar.edgar_available) {
-    document.getElementById("edgarLine").textContent = "No latest filing found.";
-  } else {
-    document.getElementById("edgarLine").textContent = "EDGAR unavailable (yet).";
-  }
-
-  document.getElementById("perfSummaryUpdated").textContent = perfSummary.updated_at || "—";
-  document.getElementById("hitRate").textContent = fmtPct(perfSummary.hit_rate, 0);
-  document.getElementById("avgReturn5d").textContent = fmtPct(perfSummary.avg_return_5d, 2);
-  document.getElementById("avgReturn10d").textContent = fmtPct(perfSummary.avg_return_10d, 2);
-  document.getElementById("maxDrawdown").textContent = fmtPct(perfSummary.max_drawdown, 2);
-
-  document.getElementById("decompUpdated").textContent = decomposition.updated_at || "—";
-  document.getElementById("decompPeriod").textContent = decomposition.period ?? "—";
 
   renderAll();
 
@@ -484,6 +628,12 @@ function fmtPct(x, d=1) {
   document.getElementById("toggleDecomp").addEventListener("change", (e) => {
     state.showDecomp = e.target.checked;
     renderDecomposition(state.range);
+  });
+
+  document.getElementById("langToggle").addEventListener("click", () => {
+    state.lang = state.lang === "he" ? "en" : "he";
+    localStorage.setItem("lang", state.lang);
+    renderAll();
   });
 })();
 </script>
