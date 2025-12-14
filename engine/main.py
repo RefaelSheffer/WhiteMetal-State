@@ -12,7 +12,11 @@ from engine.backtest.performance import (
     summarize_returns,
 )
 from engine.decision.engine import select_action
-from engine.events.cycles import detect_cycles, summarize_cycles
+from engine.events.cycles import (
+    detect_cycles,
+    summarize_cycles,
+    turning_points_to_records,
+)
 from engine.events.detector import detect_events
 from engine.fetchers.slv import generate_slv_series
 from engine.utils.io import ensure_parent, write_json
@@ -25,7 +29,7 @@ def run_pipeline() -> None:
     closes = [row["close"] for row in raw_data]
 
     latest_events = detect_events(raw_data)
-    cycles = detect_cycles(raw_data)
+    cycles, turning_points = detect_cycles(raw_data)
     cycle_stats = summarize_cycles(cycles)
     signal = select_action(latest_events)
 
@@ -47,6 +51,9 @@ def run_pipeline() -> None:
             "updated_at": now,
             "cycles": [cycle.to_dict() for cycle in cycles],
             "stats": cycle_stats,
+            "turning_points": turning_points_to_records(
+                turning_points, dates=[row["date"] for row in raw_data], closes=closes
+            ),
         },
     )
     write_json(BASE_PATH / "signals/latest_signal.json", signal)
