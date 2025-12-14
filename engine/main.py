@@ -31,7 +31,7 @@ def run_pipeline() -> None:
     latest_events = detect_events(raw_data)
     cycles, turning_points = detect_cycles(raw_data)
     cycle_stats = summarize_cycles(cycles)
-    signal = select_action(latest_events)
+    signal = select_action(latest_events, cycles)
 
     now = datetime.utcnow().isoformat()
     history_record = {"timestamp": now, **signal}
