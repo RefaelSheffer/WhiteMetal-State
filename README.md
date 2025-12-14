@@ -15,6 +15,16 @@ python -m http.server 8000  # optional: serve index.html for quick preview
 ```
 Then open http://localhost:8000 to view the dashboard.
 
+To pull the latest live SLV prices, CFTC COT data, and EDGAR filings (with historical COT coverage back to 2008) plus JSON backups, run:
+```bash
+python scripts/update_data.py  # writes data/*.json and data/backups/<timestamp>/*
+```
+Use `--loop-daily` to keep the collector running once per day:
+```bash
+python scripts/update_data.py --loop-daily --interval-hours 24
+```
+The default start year for COT data is 2008; override with `--start-year` if you need a narrower slice.
+
 ## GitHub Actions (suggested)
 A workflow can call `python main.py` on a schedule and commit the refreshed JSON
 files back to the repository (or the `gh-pages` branch). No secrets are needed
