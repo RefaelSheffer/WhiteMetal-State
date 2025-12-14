@@ -18,13 +18,20 @@ ACTION_BY_EVENT = {
 }
 
 
-def select_action(events: Sequence[Event], cycles: Sequence[CycleSegment]) -> Mapping:
+def select_action(
+    events: Sequence[Event],
+    cycles: Sequence[CycleSegment],
+    indicator_context: Mapping | None = None,
+) -> Mapping:
     prioritized = sorted(events, key=lambda e: e.confidence, reverse=True)
     primary = prioritized[0]
     base_action = ACTION_BY_EVENT.get(primary.name, "WAIT")
 
     cycle_context = _analyze_cycle_context(cycles)
-    action, rationale = _apply_cycle_bias(base_action, primary.rationale, cycle_context)
+    action, rationale = _apply_indicator_filters(
+        base_action, primary, indicator_context
+    )
+    action, rationale = _apply_cycle_bias(action, rationale, cycle_context)
 
     return {
         "timestamp": datetime.utcnow().isoformat(),
@@ -33,6 +40,7 @@ def select_action(events: Sequence[Event], cycles: Sequence[CycleSegment]) -> Ma
         "confidence": round(primary.confidence, 2),
         "rationale": rationale,
         "cycle_context": cycle_context,
+        "indicator_context": indicator_context or {},
         "active_events": [event.to_dict() for event in prioritized],
     }
 
@@ -97,6 +105,51 @@ def _analyze_cycle_context(cycles: Sequence[CycleSegment]) -> Mapping:
     return context
 
 
+def _apply_indicator_filters(
+    action: str, primary: Event, indicator_context: Mapping | None
+) -> tuple[str, str]:
+    """Gate event-driven actions behind simple RSI/MACD confirmations."""
+
+    if action not in ACTIONS:
+        return "WAIT", f"Unrecognized base action; defaulting to WAIT. {primary.rationale}"
+
+    if indicator_context is None:
+        return action, f"{primary.rationale} Technical filters unavailable; keeping event action."
+
+    notes: List[str] = [primary.rationale]
+    rsi = indicator_context.get("latest_rsi")
+    macd = indicator_context.get("latest_macd")
+    macd_hist = indicator_context.get("latest_macd_hist")
+    macd_improving = indicator_context.get("macd_improving")
+
+    if primary.name == "SHAKEOUT" and action == "BUY":
+        oversold = rsi is not None and rsi < 30
+        if oversold or macd_improving:
+            qualifier = "RSI oversold" if oversold else "MACD momentum improving"
+            notes.append(f"BUY confirmed by {qualifier} filter.")
+        else:
+            action = "WAIT"
+            notes.append(
+                "BUY gated until RSI < 30 or MACD momentum improves to reduce false triggers."
+            )
+
+    if primary.name == "DISTRIBUTION_RISK" and action == "REDUCE":
+        overbought = rsi is not None and rsi > 70
+        macd_negative = (macd is not None and macd < 0) or (
+            macd_hist is not None and macd_hist < 0
+        )
+        if overbought or macd_negative:
+            qualifier = "RSI overbought" if overbought else "MACD negative bias"
+            notes.append(f"SELL/REDUCE confirmed by {qualifier} filter.")
+        else:
+            action = "HOLD"
+            notes.append(
+                "SELL/REDUCE deferred until RSI > 70 or MACD turns negative to avoid whipsaws."
+            )
+
+    return action, " ".join(note for note in notes if note)
+
+
 def _apply_cycle_bias(action: str, rationale: str, cycle_context: Mapping) -> tuple[str, str]:
     """Blend event actions with cycle-aware adjustments."""
 
@@ -120,3 +173,30 @@ def _apply_cycle_bias(action: str, rationale: str, cycle_context: Mapping) -> tu
         notes.append(cycle_context.get("note", ""))
 
     return action, " ".join(note for note in notes if note)
+
+
+def build_indicator_context(
+    rsi_series: Sequence[Mapping], macd_series: Sequence[Mapping]
+) -> Mapping:
+    """Extract the latest indicator readings and slope cues for gating actions."""
+
+    context: Mapping[str, float | bool | None]
+    latest_rsi = rsi_series[-1]["rsi"] if rsi_series else None
+    latest_macd_entry = macd_series[-1] if macd_series else None
+    prev_macd_entry = macd_series[-2] if len(macd_series) > 1 else None
+
+    macd_improving = False
+    if latest_macd_entry and prev_macd_entry:
+        macd_improving = (
+            latest_macd_entry.get("macd", 0) > prev_macd_entry.get("macd", 0)
+            and latest_macd_entry.get("hist", 0) >= prev_macd_entry.get("hist", 0)
+        )
+
+    context = {
+        "latest_rsi": latest_rsi,
+        "latest_macd": latest_macd_entry.get("macd") if latest_macd_entry else None,
+        "latest_macd_hist": latest_macd_entry.get("hist") if latest_macd_entry else None,
+        "macd_improving": macd_improving,
+    }
+
+    return context

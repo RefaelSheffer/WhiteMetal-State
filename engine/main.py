@@ -17,7 +17,7 @@ from engine.backtest.performance import (
     event_breakdown,
     summarize_returns,
 )
-from engine.decision.engine import select_action
+from engine.decision.engine import build_indicator_context, select_action
 from engine.events.cycles import (
     detect_cycles,
     summarize_cycles,
@@ -39,22 +39,27 @@ def run_pipeline() -> None:
     latest_events = detect_events(raw_data)
     cycles, turning_points = detect_cycles(raw_data)
     cycle_stats = summarize_cycles(cycles)
-    signal = select_action(latest_events, cycles)
-
-    now = datetime.utcnow().isoformat()
-    history_record = {"timestamp": now, **signal}
 
     perf_summary = summarize_returns(closes)
     algo_score = compute_algorithm_score(closes, cycles)
     equity_curve = compute_equity_curve(closes)
     breakdown = event_breakdown([event.name for event in latest_events], closes)
-    rsi_series = attach_dates(compute_rsi(closes), dates)
+    rsi_raw = compute_rsi(closes)
+    macd_raw = compute_macd(closes)
+    bollinger_raw = compute_bollinger_bands(closes)
+    obv_raw = compute_obv(closes, volumes)
+    rsi_series = attach_dates(rsi_raw, dates)
     stddev_series = attach_dates(compute_rolling_stddev(closes), dates)
-    macd_series = attach_dates(compute_macd(closes), dates)
-    bollinger_series = attach_dates(compute_bollinger_bands(closes), dates)
-    obv_series = attach_dates(compute_obv(closes, volumes), dates)
+    macd_series = attach_dates(macd_raw, dates)
+    bollinger_series = attach_dates(bollinger_raw, dates)
+    obv_series = attach_dates(obv_raw, dates)
     ma1000_series = attach_dates(compute_moving_average(closes, window=1000), dates)
     decomposition = decompose_closes(closes, period=30)
+
+    indicator_context = build_indicator_context(rsi_raw, macd_raw)
+    signal = select_action(latest_events, cycles, indicator_context=indicator_context)
+    now = datetime.utcnow().isoformat()
+    history_record = {"timestamp": now, **signal}
 
     write_json(BASE_PATH / "raw/slv_daily.json", {"symbol": "SLV", "data": raw_data})
     write_json(BASE_PATH / "events/latest.json", {"as_of": now, "events": [e.to_dict() for e in latest_events]})
