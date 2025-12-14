@@ -1,0 +1,843 @@
+{
+  "updated_at": "2025-12-14T11:08:05.481281",
+  "cycles": [
+    {
+      "start_date": "2025-06-18",
+      "end_date": "2025-06-19",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.0121,
+      "start_close": 22.35,
+      "end_close": 22.08
+    },
+    {
+      "start_date": "2025-06-19",
+      "end_date": "2025-06-23",
+      "direction": "upswing",
+      "length": 4,
+      "amplitude": 0.0457,
+      "start_close": 22.08,
+      "end_close": 23.09
+    },
+    {
+      "start_date": "2025-06-23",
+      "end_date": "2025-06-24",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.0121,
+      "start_close": 23.09,
+      "end_close": 22.81
+    },
+    {
+      "start_date": "2025-06-24",
+      "end_date": "2025-06-30",
+      "direction": "upswing",
+      "length": 6,
+      "amplitude": 0.0592,
+      "start_close": 22.81,
+      "end_close": 24.16
+    },
+    {
+      "start_date": "2025-06-30",
+      "end_date": "2025-07-01",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.007,
+      "start_close": 24.16,
+      "end_close": 23.99
+    },
+    {
+      "start_date": "2025-07-01",
+      "end_date": "2025-07-02",
+      "direction": "upswing",
+      "length": 1,
+      "amplitude": 0.0163,
+      "start_close": 23.99,
+      "end_close": 24.38
+    },
+    {
+      "start_date": "2025-07-02",
+      "end_date": "2025-07-03",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.0016,
+      "start_close": 24.38,
+      "end_close": 24.34
+    },
+    {
+      "start_date": "2025-07-03",
+      "end_date": "2025-07-04",
+      "direction": "upswing",
+      "length": 1,
+      "amplitude": 0.0103,
+      "start_close": 24.34,
+      "end_close": 24.59
+    },
+    {
+      "start_date": "2025-07-04",
+      "end_date": "2025-07-05",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.0012,
+      "start_close": 24.59,
+      "end_close": 24.56
+    },
+    {
+      "start_date": "2025-07-05",
+      "end_date": "2025-07-06",
+      "direction": "upswing",
+      "length": 1,
+      "amplitude": 0.0102,
+      "start_close": 24.56,
+      "end_close": 24.81
+    },
+    {
+      "start_date": "2025-07-06",
+      "end_date": "2025-07-08",
+      "direction": "downswing",
+      "length": 2,
+      "amplitude": -0.0064,
+      "start_close": 24.81,
+      "end_close": 24.65
+    },
+    {
+      "start_date": "2025-07-08",
+      "end_date": "2025-07-09",
+      "direction": "upswing",
+      "length": 1,
+      "amplitude": 0.0081,
+      "start_close": 24.65,
+      "end_close": 24.85
+    },
+    {
+      "start_date": "2025-07-09",
+      "end_date": "2025-07-10",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.0048,
+      "start_close": 24.85,
+      "end_close": 24.73
+    },
+    {
+      "start_date": "2025-07-10",
+      "end_date": "2025-07-11",
+      "direction": "upswing",
+      "length": 1,
+      "amplitude": 0.0174,
+      "start_close": 24.73,
+      "end_close": 25.16
+    },
+    {
+      "start_date": "2025-07-11",
+      "end_date": "2025-07-12",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.0044,
+      "start_close": 25.16,
+      "end_close": 25.05
+    },
+    {
+      "start_date": "2025-07-12",
+      "end_date": "2025-07-14",
+      "direction": "upswing",
+      "length": 2,
+      "amplitude": 0.0048,
+      "start_close": 25.05,
+      "end_close": 25.17
+    },
+    {
+      "start_date": "2025-07-14",
+      "end_date": "2025-07-15",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.0064,
+      "start_close": 25.17,
+      "end_close": 25.01
+    },
+    {
+      "start_date": "2025-07-15",
+      "end_date": "2025-07-18",
+      "direction": "upswing",
+      "length": 3,
+      "amplitude": 0.0304,
+      "start_close": 25.01,
+      "end_close": 25.77
+    },
+    {
+      "start_date": "2025-07-18",
+      "end_date": "2025-07-19",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.0039,
+      "start_close": 25.77,
+      "end_close": 25.67
+    },
+    {
+      "start_date": "2025-07-19",
+      "end_date": "2025-07-20",
+      "direction": "upswing",
+      "length": 1,
+      "amplitude": 0.0004,
+      "start_close": 25.67,
+      "end_close": 25.68
+    },
+    {
+      "start_date": "2025-07-20",
+      "end_date": "2025-07-22",
+      "direction": "downswing",
+      "length": 2,
+      "amplitude": -0.0183,
+      "start_close": 25.68,
+      "end_close": 25.21
+    },
+    {
+      "start_date": "2025-07-22",
+      "end_date": "2025-07-24",
+      "direction": "upswing",
+      "length": 2,
+      "amplitude": 0.0119,
+      "start_close": 25.21,
+      "end_close": 25.51
+    },
+    {
+      "start_date": "2025-07-24",
+      "end_date": "2025-07-25",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.0106,
+      "start_close": 25.51,
+      "end_close": 25.24
+    },
+    {
+      "start_date": "2025-07-25",
+      "end_date": "2025-07-27",
+      "direction": "upswing",
+      "length": 2,
+      "amplitude": 0.019,
+      "start_close": 25.24,
+      "end_close": 25.72
+    },
+    {
+      "start_date": "2025-07-27",
+      "end_date": "2025-07-28",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.0008,
+      "start_close": 25.72,
+      "end_close": 25.7
+    },
+    {
+      "start_date": "2025-07-28",
+      "end_date": "2025-07-30",
+      "direction": "upswing",
+      "length": 2,
+      "amplitude": 0.0241,
+      "start_close": 25.7,
+      "end_close": 26.32
+    },
+    {
+      "start_date": "2025-07-30",
+      "end_date": "2025-08-02",
+      "direction": "downswing",
+      "length": 3,
+      "amplitude": -0.0072,
+      "start_close": 26.32,
+      "end_close": 26.13
+    },
+    {
+      "start_date": "2025-08-02",
+      "end_date": "2025-08-06",
+      "direction": "upswing",
+      "length": 4,
+      "amplitude": 0.0321,
+      "start_close": 26.13,
+      "end_close": 26.97
+    },
+    {
+      "start_date": "2025-08-06",
+      "end_date": "2025-08-09",
+      "direction": "downswing",
+      "length": 3,
+      "amplitude": -0.0267,
+      "start_close": 26.97,
+      "end_close": 26.25
+    },
+    {
+      "start_date": "2025-08-09",
+      "end_date": "2025-08-12",
+      "direction": "upswing",
+      "length": 3,
+      "amplitude": 0.0091,
+      "start_close": 26.25,
+      "end_close": 26.49
+    },
+    {
+      "start_date": "2025-08-12",
+      "end_date": "2025-08-13",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.0023,
+      "start_close": 26.49,
+      "end_close": 26.43
+    },
+    {
+      "start_date": "2025-08-13",
+      "end_date": "2025-08-14",
+      "direction": "upswing",
+      "length": 1,
+      "amplitude": 0.0166,
+      "start_close": 26.43,
+      "end_close": 26.87
+    },
+    {
+      "start_date": "2025-08-14",
+      "end_date": "2025-08-15",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.0041,
+      "start_close": 26.87,
+      "end_close": 26.76
+    },
+    {
+      "start_date": "2025-08-15",
+      "end_date": "2025-08-17",
+      "direction": "upswing",
+      "length": 2,
+      "amplitude": 0.0217,
+      "start_close": 26.76,
+      "end_close": 27.34
+    },
+    {
+      "start_date": "2025-08-17",
+      "end_date": "2025-08-19",
+      "direction": "downswing",
+      "length": 2,
+      "amplitude": -0.0168,
+      "start_close": 27.34,
+      "end_close": 26.88
+    },
+    {
+      "start_date": "2025-08-19",
+      "end_date": "2025-08-25",
+      "direction": "upswing",
+      "length": 6,
+      "amplitude": 0.0681,
+      "start_close": 26.88,
+      "end_close": 28.71
+    },
+    {
+      "start_date": "2025-08-25",
+      "end_date": "2025-08-26",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.007,
+      "start_close": 28.71,
+      "end_close": 28.51
+    },
+    {
+      "start_date": "2025-08-26",
+      "end_date": "2025-08-27",
+      "direction": "upswing",
+      "length": 1,
+      "amplitude": 0.0119,
+      "start_close": 28.51,
+      "end_close": 28.85
+    },
+    {
+      "start_date": "2025-08-27",
+      "end_date": "2025-08-31",
+      "direction": "downswing",
+      "length": 4,
+      "amplitude": -0.0132,
+      "start_close": 28.85,
+      "end_close": 28.47
+    },
+    {
+      "start_date": "2025-08-31",
+      "end_date": "2025-09-01",
+      "direction": "upswing",
+      "length": 1,
+      "amplitude": 0.014,
+      "start_close": 28.47,
+      "end_close": 28.87
+    },
+    {
+      "start_date": "2025-09-01",
+      "end_date": "2025-09-02",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.0111,
+      "start_close": 28.87,
+      "end_close": 28.55
+    },
+    {
+      "start_date": "2025-09-02",
+      "end_date": "2025-09-03",
+      "direction": "upswing",
+      "length": 1,
+      "amplitude": 0.0049,
+      "start_close": 28.55,
+      "end_close": 28.69
+    },
+    {
+      "start_date": "2025-09-03",
+      "end_date": "2025-09-04",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.0112,
+      "start_close": 28.69,
+      "end_close": 28.37
+    },
+    {
+      "start_date": "2025-09-04",
+      "end_date": "2025-09-18",
+      "direction": "upswing",
+      "length": 14,
+      "amplitude": 0.1156,
+      "start_close": 28.37,
+      "end_close": 31.65
+    },
+    {
+      "start_date": "2025-09-18",
+      "end_date": "2025-09-19",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.0098,
+      "start_close": 31.65,
+      "end_close": 31.34
+    },
+    {
+      "start_date": "2025-09-19",
+      "end_date": "2025-09-23",
+      "direction": "upswing",
+      "length": 4,
+      "amplitude": 0.0211,
+      "start_close": 31.34,
+      "end_close": 32.0
+    },
+    {
+      "start_date": "2025-09-23",
+      "end_date": "2025-09-24",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.0041,
+      "start_close": 32.0,
+      "end_close": 31.87
+    },
+    {
+      "start_date": "2025-09-24",
+      "end_date": "2025-09-26",
+      "direction": "upswing",
+      "length": 2,
+      "amplitude": 0.0182,
+      "start_close": 31.87,
+      "end_close": 32.45
+    },
+    {
+      "start_date": "2025-09-26",
+      "end_date": "2025-09-29",
+      "direction": "downswing",
+      "length": 3,
+      "amplitude": -0.0231,
+      "start_close": 32.45,
+      "end_close": 31.7
+    },
+    {
+      "start_date": "2025-09-29",
+      "end_date": "2025-09-30",
+      "direction": "upswing",
+      "length": 1,
+      "amplitude": 0.0079,
+      "start_close": 31.7,
+      "end_close": 31.95
+    },
+    {
+      "start_date": "2025-09-30",
+      "end_date": "2025-10-01",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.0041,
+      "start_close": 31.95,
+      "end_close": 31.82
+    },
+    {
+      "start_date": "2025-10-01",
+      "end_date": "2025-10-02",
+      "direction": "upswing",
+      "length": 1,
+      "amplitude": 0.0072,
+      "start_close": 31.82,
+      "end_close": 32.05
+    },
+    {
+      "start_date": "2025-10-02",
+      "end_date": "2025-10-07",
+      "direction": "downswing",
+      "length": 5,
+      "amplitude": -0.0262,
+      "start_close": 32.05,
+      "end_close": 31.21
+    },
+    {
+      "start_date": "2025-10-07",
+      "end_date": "2025-10-12",
+      "direction": "upswing",
+      "length": 5,
+      "amplitude": 0.0349,
+      "start_close": 31.21,
+      "end_close": 32.3
+    },
+    {
+      "start_date": "2025-10-12",
+      "end_date": "2025-10-13",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.009,
+      "start_close": 32.3,
+      "end_close": 32.01
+    },
+    {
+      "start_date": "2025-10-13",
+      "end_date": "2025-10-14",
+      "direction": "upswing",
+      "length": 1,
+      "amplitude": 0.0103,
+      "start_close": 32.01,
+      "end_close": 32.34
+    },
+    {
+      "start_date": "2025-10-14",
+      "end_date": "2025-10-16",
+      "direction": "downswing",
+      "length": 2,
+      "amplitude": -0.013,
+      "start_close": 32.34,
+      "end_close": 31.92
+    },
+    {
+      "start_date": "2025-10-16",
+      "end_date": "2025-10-21",
+      "direction": "upswing",
+      "length": 5,
+      "amplitude": 0.0323,
+      "start_close": 31.92,
+      "end_close": 32.95
+    },
+    {
+      "start_date": "2025-10-21",
+      "end_date": "2025-10-22",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.0064,
+      "start_close": 32.95,
+      "end_close": 32.74
+    },
+    {
+      "start_date": "2025-10-22",
+      "end_date": "2025-10-23",
+      "direction": "upswing",
+      "length": 1,
+      "amplitude": 0.0064,
+      "start_close": 32.74,
+      "end_close": 32.95
+    },
+    {
+      "start_date": "2025-10-23",
+      "end_date": "2025-10-24",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.0046,
+      "start_close": 32.95,
+      "end_close": 32.8
+    },
+    {
+      "start_date": "2025-10-24",
+      "end_date": "2025-10-25",
+      "direction": "upswing",
+      "length": 1,
+      "amplitude": 0.0049,
+      "start_close": 32.8,
+      "end_close": 32.96
+    },
+    {
+      "start_date": "2025-10-25",
+      "end_date": "2025-10-26",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.0006,
+      "start_close": 32.96,
+      "end_close": 32.94
+    },
+    {
+      "start_date": "2025-10-26",
+      "end_date": "2025-10-28",
+      "direction": "upswing",
+      "length": 2,
+      "amplitude": 0.0027,
+      "start_close": 32.94,
+      "end_close": 33.03
+    },
+    {
+      "start_date": "2025-10-28",
+      "end_date": "2025-10-29",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.0079,
+      "start_close": 33.03,
+      "end_close": 32.77
+    },
+    {
+      "start_date": "2025-10-29",
+      "end_date": "2025-10-30",
+      "direction": "upswing",
+      "length": 1,
+      "amplitude": 0.0073,
+      "start_close": 32.77,
+      "end_close": 33.01
+    },
+    {
+      "start_date": "2025-10-30",
+      "end_date": "2025-11-01",
+      "direction": "downswing",
+      "length": 2,
+      "amplitude": -0.007,
+      "start_close": 33.01,
+      "end_close": 32.78
+    },
+    {
+      "start_date": "2025-11-01",
+      "end_date": "2025-11-02",
+      "direction": "upswing",
+      "length": 1,
+      "amplitude": 0.0027,
+      "start_close": 32.78,
+      "end_close": 32.87
+    },
+    {
+      "start_date": "2025-11-02",
+      "end_date": "2025-11-05",
+      "direction": "downswing",
+      "length": 3,
+      "amplitude": -0.0152,
+      "start_close": 32.87,
+      "end_close": 32.37
+    },
+    {
+      "start_date": "2025-11-05",
+      "end_date": "2025-11-07",
+      "direction": "upswing",
+      "length": 2,
+      "amplitude": 0.0173,
+      "start_close": 32.37,
+      "end_close": 32.93
+    },
+    {
+      "start_date": "2025-11-07",
+      "end_date": "2025-11-09",
+      "direction": "downswing",
+      "length": 2,
+      "amplitude": -0.0046,
+      "start_close": 32.93,
+      "end_close": 32.78
+    },
+    {
+      "start_date": "2025-11-09",
+      "end_date": "2025-11-10",
+      "direction": "upswing",
+      "length": 1,
+      "amplitude": 0.0046,
+      "start_close": 32.78,
+      "end_close": 32.93
+    },
+    {
+      "start_date": "2025-11-10",
+      "end_date": "2025-11-12",
+      "direction": "downswing",
+      "length": 2,
+      "amplitude": -0.0185,
+      "start_close": 32.93,
+      "end_close": 32.32
+    },
+    {
+      "start_date": "2025-11-12",
+      "end_date": "2025-11-18",
+      "direction": "upswing",
+      "length": 6,
+      "amplitude": 0.0371,
+      "start_close": 32.32,
+      "end_close": 33.52
+    },
+    {
+      "start_date": "2025-11-18",
+      "end_date": "2025-11-19",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.0045,
+      "start_close": 33.52,
+      "end_close": 33.37
+    },
+    {
+      "start_date": "2025-11-19",
+      "end_date": "2025-11-20",
+      "direction": "upswing",
+      "length": 1,
+      "amplitude": 0.0036,
+      "start_close": 33.37,
+      "end_close": 33.49
+    },
+    {
+      "start_date": "2025-11-20",
+      "end_date": "2025-11-22",
+      "direction": "downswing",
+      "length": 2,
+      "amplitude": -0.0158,
+      "start_close": 33.49,
+      "end_close": 32.96
+    },
+    {
+      "start_date": "2025-11-22",
+      "end_date": "2025-11-23",
+      "direction": "upswing",
+      "length": 1,
+      "amplitude": 0.0009,
+      "start_close": 32.96,
+      "end_close": 32.99
+    },
+    {
+      "start_date": "2025-11-23",
+      "end_date": "2025-11-25",
+      "direction": "downswing",
+      "length": 2,
+      "amplitude": -0.0124,
+      "start_close": 32.99,
+      "end_close": 32.58
+    },
+    {
+      "start_date": "2025-11-25",
+      "end_date": "2025-11-26",
+      "direction": "upswing",
+      "length": 1,
+      "amplitude": 0.0104,
+      "start_close": 32.58,
+      "end_close": 32.92
+    },
+    {
+      "start_date": "2025-11-26",
+      "end_date": "2025-11-27",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.0006,
+      "start_close": 32.92,
+      "end_close": 32.9
+    },
+    {
+      "start_date": "2025-11-27",
+      "end_date": "2025-11-30",
+      "direction": "upswing",
+      "length": 3,
+      "amplitude": 0.0091,
+      "start_close": 32.9,
+      "end_close": 33.2
+    },
+    {
+      "start_date": "2025-11-30",
+      "end_date": "2025-12-01",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.0084,
+      "start_close": 33.2,
+      "end_close": 32.92
+    },
+    {
+      "start_date": "2025-12-01",
+      "end_date": "2025-12-02",
+      "direction": "upswing",
+      "length": 1,
+      "amplitude": 0.0052,
+      "start_close": 32.92,
+      "end_close": 33.09
+    },
+    {
+      "start_date": "2025-12-02",
+      "end_date": "2025-12-04",
+      "direction": "downswing",
+      "length": 2,
+      "amplitude": -0.0109,
+      "start_close": 33.09,
+      "end_close": 32.73
+    },
+    {
+      "start_date": "2025-12-04",
+      "end_date": "2025-12-05",
+      "direction": "upswing",
+      "length": 1,
+      "amplitude": 0.0104,
+      "start_close": 32.73,
+      "end_close": 33.07
+    },
+    {
+      "start_date": "2025-12-05",
+      "end_date": "2025-12-06",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.0042,
+      "start_close": 33.07,
+      "end_close": 32.93
+    },
+    {
+      "start_date": "2025-12-06",
+      "end_date": "2025-12-07",
+      "direction": "upswing",
+      "length": 1,
+      "amplitude": 0.0137,
+      "start_close": 32.93,
+      "end_close": 33.38
+    },
+    {
+      "start_date": "2025-12-07",
+      "end_date": "2025-12-08",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.0024,
+      "start_close": 33.38,
+      "end_close": 33.3
+    },
+    {
+      "start_date": "2025-12-08",
+      "end_date": "2025-12-09",
+      "direction": "upswing",
+      "length": 1,
+      "amplitude": 0.0129,
+      "start_close": 33.3,
+      "end_close": 33.73
+    },
+    {
+      "start_date": "2025-12-09",
+      "end_date": "2025-12-10",
+      "direction": "downswing",
+      "length": 1,
+      "amplitude": -0.0095,
+      "start_close": 33.73,
+      "end_close": 33.41
+    },
+    {
+      "start_date": "2025-12-10",
+      "end_date": "2025-12-11",
+      "direction": "upswing",
+      "length": 1,
+      "amplitude": 0.0135,
+      "start_close": 33.41,
+      "end_close": 33.86
+    }
+  ],
+  "stats": {
+    "cycle_count": 92,
+    "avg_length": 1.91,
+    "avg_amplitude": 0.0047,
+    "avg_magnitude": 0.0137,
+    "avg_up_length": 2.28,
+    "avg_down_length": 1.54,
+    "avg_up_amplitude": 0.0184,
+    "avg_down_amplitude": -0.009
+  }
+}

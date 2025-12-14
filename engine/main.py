@@ -11,6 +11,7 @@ from engine.backtest.performance import (
     summarize_returns,
 )
 from engine.decision.engine import select_action
+from engine.events.cycles import detect_cycles, summarize_cycles
 from engine.events.detector import detect_events
 from engine.fetchers.slv import generate_slv_series
 from engine.utils.io import ensure_parent, write_json
@@ -23,6 +24,8 @@ def run_pipeline() -> None:
     closes = [row["close"] for row in raw_data]
 
     latest_events = detect_events(raw_data)
+    cycles = detect_cycles(raw_data)
+    cycle_stats = summarize_cycles(cycles)
     signal = select_action(latest_events)
 
     now = datetime.utcnow().isoformat()
@@ -36,6 +39,14 @@ def run_pipeline() -> None:
 
     write_json(BASE_PATH / "raw/slv_daily.json", {"symbol": "SLV", "data": raw_data})
     write_json(BASE_PATH / "events/latest.json", {"as_of": now, "events": [e.to_dict() for e in latest_events]})
+    write_json(
+        BASE_PATH / "events/cycle_stats.json",
+        {
+            "updated_at": now,
+            "cycles": [cycle.to_dict() for cycle in cycles],
+            "stats": cycle_stats,
+        },
+    )
     write_json(BASE_PATH / "signals/latest_signal.json", signal)
 
     events_history_path = BASE_PATH / "events/history.jsonl"
