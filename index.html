@@ -25,6 +25,11 @@
     .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; border: 1px solid #1e2a45; }
     .pill.up { background: rgba(34, 197, 94, 0.12); color: #22c55e; }
     .pill.down { background: rgba(244, 63, 94, 0.12); color: #f43f5e; }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0 4px; }
+    .btn { background: #0d1424; color: #e8eefc; border: 1px solid #1e2a45; border-radius: 10px; padding: 6px 10px; cursor: pointer; }
+    .btn.active { background: #1f2d4a; border-color: #4c9cff; }
+    .toggle { display: flex; gap: 6px; align-items: center; padding: 6px 10px; background: #0d1424; border: 1px solid #1e2a45; border-radius: 10px; }
+    .toggle input { accent-color: #4c9cff; }
     @media (max-width: 900px) { .row { grid-template-columns: 1fr; } }
     a { color:#8bb2ff; }
   </style>
@@ -75,6 +80,16 @@
 
       <div class="card">
         <div class="big">Price</div>
+        <div class="controls">
+          <div class="muted">טווח זמן:</div>
+          <button class="btn active" data-range="3m">3M</button>
+          <button class="btn" data-range="1y">1Y</button>
+          <button class="btn" data-range="all">All</button>
+          <span style="flex:1"></span>
+          <label class="toggle"><input type="checkbox" id="toggleRsi" checked />RSI</label>
+          <label class="toggle"><input type="checkbox" id="toggleStd" checked />StdDev</label>
+          <label class="toggle"><input type="checkbox" id="toggleDecomp" checked />Decomposition</label>
+        </div>
         <div id="chart" style="height:420px;"></div>
         <div class="muted" style="margin-top:8px;">מחזורי Peaks/Troughs אחרונים</div>
         <table class="cycle-table" id="cycleTable">
@@ -130,14 +145,14 @@
     <div style="height:16px"></div>
 
     <div class="row">
-      <div class="card">
+      <div class="card" id="perfCard">
         <div class="big">Performance</div>
-        <div class="muted">RSI (14): <span class="mono" id="rsiValue">—</span></div>
-        <div class="muted">Rolling StdDev (20): <span class="mono" id="stddevValue">—</span></div>
+        <div class="muted" id="rsiRow">RSI (14): <span class="mono" id="rsiValue">—</span></div>
+        <div class="muted" id="stdRow">Rolling StdDev (20): <span class="mono" id="stddevValue">—</span></div>
         <div class="muted">Perf Updated: <span class="mono" id="perfUpdated">—</span></div>
       </div>
 
-      <div class="card">
+      <div class="card" id="decompCard">
         <div class="big">Decomposition</div>
         <div class="muted">Updated: <span class="mono" id="decompUpdated">—</span></div>
         <div class="muted">Period: <span class="mono" id="decompPeriod">—</span></div>
@@ -147,12 +162,12 @@
     <div style="height:16px"></div>
 
     <div class="row">
-      <div class="card">
+      <div class="card" id="trendCardWrap">
         <div class="big">Trend</div>
         <div id="trendChart" style="height:320px;"></div>
       </div>
 
-      <div class="card">
+      <div class="card" id="seasonalCardWrap">
         <div class="big">Seasonal / Residual</div>
         <div id="seasonalChart" style="height:320px;"></div>
       </div>
@@ -190,6 +205,221 @@ function fmtPct(x, d=1) {
     getJson("./public/data/events/cycle_stats.json"),
   ]);
 
+  const state = { range: "3m", showRsi: true, showStd: true, showDecomp: true };
+  const priceDates = prices.dates.map((d) => new Date(d));
+
+  function getRangeMask(months) {
+    if (!months) return priceDates.map((_, i) => i);
+    const lastDate = priceDates[priceDates.length - 1];
+    const start = new Date(lastDate);
+    start.setMonth(start.getMonth() - months);
+    const mask = [];
+    priceDates.forEach((d, i) => {
+      if (d >= start) mask.push(i);
+    });
+    return mask;
+  }
+
+  function applyMask(arr, mask, accessor) {
+    if (!Array.isArray(arr)) return [];
+    return mask.map((i) => (accessor ? accessor(arr[i], i) : arr[i])).filter((v) => v !== undefined);
+  }
+
+  function renderPrice(range) {
+    const months = range === "3m" ? 3 : range === "1y" ? 12 : null;
+    const mask = getRangeMask(months);
+    const rangeDates = applyMask(prices.dates, mask);
+    const rangeClose = applyMask(prices.close, mask);
+
+    const turningPoints = (cycleStats?.turning_points ?? []).filter((p) => {
+      if (!months) return true;
+      const d = new Date(p.date);
+      const start = new Date(priceDates[priceDates.length - 1]);
+      start.setMonth(start.getMonth() - months);
+      return d >= start;
+    });
+
+    const trace = { x: rangeDates, y: rangeClose, type: "scatter", mode: "lines", name: "SLV Close" };
+    const peakPoints = turningPoints.filter((p) => p.kind === "peak");
+    const troughPoints = turningPoints.filter((p) => p.kind === "trough");
+    const peakTrace = { x: peakPoints.map((p) => p.date), y: peakPoints.map((p) => p.close), mode: "markers", type: "scatter", name: "Peak", marker: { color: "#f43f5e", size: 8, symbol: "triangle-up" } };
+    const troughTrace = { x: troughPoints.map((p) => p.date), y: troughPoints.map((p) => p.close), mode: "markers", type: "scatter", name: "Trough", marker: { color: "#22c55e", size: 8, symbol: "triangle-down" } };
+
+    const layout = {
+      paper_bgcolor: "rgba(0,0,0,0)",
+      plot_bgcolor: "rgba(0,0,0,0)",
+      margin: { l: 45, r: 15, t: 20, b: 40 },
+      xaxis: { showgrid: false, color: "#a8b4d6" },
+      yaxis: { showgrid: true, gridcolor: "#1e2a45", color: "#a8b4d6" },
+    };
+
+    const series = turningPoints.length ? [trace, peakTrace, troughTrace] : [trace];
+    Plotly.newPlot("chart", series, layout, { displayModeBar: false });
+
+    const cyclesData = cycleStats?.cycles ?? [];
+    const tableBody = document.querySelector("#cycleTable tbody");
+    const recentCycles = cyclesData
+      .filter((cycle) => {
+        if (!months) return true;
+        const d = new Date(cycle.end_date);
+        const start = new Date(priceDates[priceDates.length - 1]);
+        start.setMonth(start.getMonth() - months);
+        return d >= start;
+      })
+      .slice(-6)
+      .reverse();
+
+    if (tableBody) {
+      if (recentCycles.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="5" class="muted">No cycles detected yet.</td></tr>';
+      } else {
+        tableBody.innerHTML = recentCycles
+          .map((cycle) => {
+            const amp = fmtPct(cycle.amplitude, 1);
+            const len = cycle.length ?? 0;
+            const dir = cycle.direction === "upswing" ? "up" : "down";
+            return `
+              <tr>
+                <td>${cycle.end_date}</td>
+                <td>${cycle.start_date}</td>
+                <td><span class="pill ${dir}">${cycle.direction}</span></td>
+                <td>${len}d</td>
+                <td>${amp}</td>
+              </tr>
+            `;
+          })
+          .join("");
+      }
+    }
+  }
+
+  function renderEquity(range) {
+    const months = range === "3m" ? 3 : range === "1y" ? 12 : null;
+    const equitySeries = equityCurve.equity_curve ?? [];
+    const eqValues = equitySeries.map((p) => p.equity);
+    if (!eqValues.length) {
+      document.getElementById("perfChart").textContent = "Performance series unavailable.";
+      return;
+    }
+
+    const eqBase = eqValues[0] || 1;
+    const eqNormalized = eqValues.map((v) => v / eqBase);
+    const sliceLen = eqNormalized.length;
+    const benchPrices = prices.close.slice(-sliceLen);
+    const benchDates = prices.dates.slice(-sliceLen);
+
+    if (benchPrices.length !== sliceLen || benchDates.length !== sliceLen) {
+      document.getElementById("perfChart").textContent = "Benchmark window unavailable.";
+      return;
+    }
+
+    const benchBase = benchPrices[0] || 1;
+    const benchNormalized = benchPrices.map((p) => p / benchBase);
+
+    const lastBenchDate = new Date(benchDates[benchDates.length - 1]);
+    const startDate = months ? (() => { const s = new Date(lastBenchDate); s.setMonth(s.getMonth() - months); return s; })() : null;
+
+    const filteredDates = [];
+    const filteredEq = [];
+    const filteredBench = [];
+    benchDates.forEach((d, idx) => {
+      const dateObj = new Date(d);
+      if (!startDate || dateObj >= startDate) {
+        filteredDates.push(d);
+        filteredEq.push(eqNormalized[idx]);
+        filteredBench.push(benchNormalized[idx]);
+      }
+    });
+
+    const layout = {
+      paper_bgcolor: "rgba(0,0,0,0)",
+      plot_bgcolor: "rgba(0,0,0,0)",
+      margin: { l: 45, r: 15, t: 20, b: 40 },
+      xaxis: { showgrid: false, color: "#a8b4d6" },
+      yaxis: { showgrid: true, gridcolor: "#1e2a45", color: "#a8b4d6", title: "Normalized Performance" },
+    };
+
+    const equityTrace = { x: filteredDates, y: filteredEq, type: "scatter", mode: "lines", name: "Algo Equity", line: { color: "#60a5fa" } };
+    const benchTrace = { x: filteredDates, y: filteredBench, type: "scatter", mode: "lines", name: "SLV Benchmark", line: { color: "#22c55e" } };
+
+    Plotly.newPlot("perfChart", [equityTrace, benchTrace], layout, { displayModeBar: false });
+  }
+
+  function renderDecomposition(range) {
+    if (!state.showDecomp) {
+      document.getElementById("decompCard").style.display = "none";
+      document.getElementById("trendCardWrap").style.display = "none";
+      document.getElementById("seasonalCardWrap").style.display = "none";
+      return;
+    }
+
+    document.getElementById("decompCard").style.display = "";
+    document.getElementById("trendCardWrap").style.display = "";
+    document.getElementById("seasonalCardWrap").style.display = "";
+
+    const months = range === "3m" ? 3 : range === "1y" ? 12 : null;
+    const mask = getRangeMask(months);
+    const rangeDates = applyMask(prices.dates, mask);
+    const trendValues = applyMask(decomposition.trend, mask, (p) => p?.trend);
+    const seasonalValues = applyMask(decomposition.seasonal, mask, (p) => p?.seasonal);
+    const residValues = applyMask(decomposition.resid, mask, (p) => p?.resid);
+
+    const layout = {
+      paper_bgcolor: "rgba(0,0,0,0)",
+      plot_bgcolor: "rgba(0,0,0,0)",
+      margin: { l: 45, r: 15, t: 20, b: 40 },
+      xaxis: { showgrid: false, color: "#a8b4d6" },
+      yaxis: { showgrid: true, gridcolor: "#1e2a45", color: "#a8b4d6" },
+    };
+
+    if (trendValues.length) {
+      Plotly.newPlot("trendChart", [{ x: rangeDates, y: trendValues, type: "scatter", mode: "lines", name: "Trend", line: { color: "#4c9cff" } }], { ...layout, yaxis: { ...layout.yaxis, title: "Trend" } }, { displayModeBar: false });
+    } else {
+      document.getElementById("trendChart").textContent = "Decomposition unavailable.";
+    }
+
+    if (seasonalValues.length || residValues.length) {
+      const seasonalTrace = { x: rangeDates, y: seasonalValues, type: "scatter", mode: "lines", name: "Seasonal", line: { color: "#22c55e" } };
+      const residTrace = { x: rangeDates, y: residValues, type: "scatter", mode: "lines", name: "Residual", line: { color: "#fbbf24" } };
+      Plotly.newPlot("seasonalChart", [seasonalTrace, residTrace], { ...layout, yaxis: { ...layout.yaxis, title: "Seasonal / Residual" } }, { displayModeBar: false });
+    } else {
+      document.getElementById("seasonalChart").textContent = "Decomposition unavailable.";
+    }
+  }
+
+  function renderIndicators(range) {
+    document.getElementById("rsiRow").style.display = state.showRsi ? "" : "none";
+    document.getElementById("stdRow").style.display = state.showStd ? "" : "none";
+
+    const months = range === "3m" ? 3 : range === "1y" ? 12 : null;
+    const lastPriceDate = priceDates[priceDates.length - 1];
+    const start = months ? (() => { const s = new Date(lastPriceDate); s.setMonth(s.getMonth() - months); return s; })() : null;
+
+    function latestInRange(series) {
+      if (!Array.isArray(series) || series.length === 0) return null;
+      const filtered = series.filter((p) => {
+        if (!start) return true;
+        const d = new Date(p.date);
+        return d >= start;
+      });
+      return filtered[filtered.length - 1] || null;
+    }
+
+    const latestRsi = state.showRsi ? latestInRange(rsiPerf.rsi) : null;
+    const latestStd = state.showStd ? latestInRange(stddevPerf.stddev) : null;
+
+    document.getElementById("rsiValue").textContent = fmt(latestRsi?.rsi, 2);
+    document.getElementById("stddevValue").textContent = fmt(latestStd?.stddev, 4);
+    document.getElementById("perfUpdated").textContent = rsiPerf.updated_at || "—";
+  }
+
+  function renderAll() {
+    renderPrice(state.range);
+    renderEquity(state.range);
+    renderDecomposition(state.range);
+    renderIndicators(state.range);
+  }
+
   document.getElementById("updated").textContent =
     `Updated (UTC): ${signal.updated_at_utc}`;
 
@@ -221,12 +451,6 @@ function fmtPct(x, d=1) {
     document.getElementById("edgarLine").textContent = "EDGAR unavailable (yet).";
   }
 
-  const latestRsi = rsiPerf.rsi?.[rsiPerf.rsi.length - 1];
-  const latestStd = stddevPerf.stddev?.[stddevPerf.stddev.length - 1];
-  document.getElementById("rsiValue").textContent = fmt(latestRsi?.rsi, 2);
-  document.getElementById("stddevValue").textContent = fmt(latestStd?.stddev, 4);
-  document.getElementById("perfUpdated").textContent = rsiPerf.updated_at || "—";
-
   document.getElementById("perfSummaryUpdated").textContent = perfSummary.updated_at || "—";
   document.getElementById("hitRate").textContent = fmtPct(perfSummary.hit_rate, 0);
   document.getElementById("avgReturn5d").textContent = fmtPct(perfSummary.avg_return_5d, 2);
@@ -236,171 +460,31 @@ function fmtPct(x, d=1) {
   document.getElementById("decompUpdated").textContent = decomposition.updated_at || "—";
   document.getElementById("decompPeriod").textContent = decomposition.period ?? "—";
 
-  // Chart
-  const trace = {
-    x: prices.dates,
-    y: prices.close,
-    type: "scatter",
-    mode: "lines",
-    name: "SLV Close",
-  };
+  renderAll();
 
-  const turningPoints = cycleStats?.turning_points ?? [];
-  const peakPoints = turningPoints.filter((p) => p.kind === "peak");
-  const troughPoints = turningPoints.filter((p) => p.kind === "trough");
+  document.querySelectorAll('.btn[data-range]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.btn[data-range]').forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.range = btn.dataset.range;
+      renderAll();
+    });
+  });
 
-  const peakTrace = {
-    x: peakPoints.map((p) => p.date),
-    y: peakPoints.map((p) => p.close),
-    mode: "markers",
-    type: "scatter",
-    name: "Peak",
-    marker: { color: "#f43f5e", size: 8, symbol: "triangle-up" },
-  };
+  document.getElementById("toggleRsi").addEventListener("change", (e) => {
+    state.showRsi = e.target.checked;
+    renderIndicators(state.range);
+  });
 
-  const troughTrace = {
-    x: troughPoints.map((p) => p.date),
-    y: troughPoints.map((p) => p.close),
-    mode: "markers",
-    type: "scatter",
-    name: "Trough",
-    marker: { color: "#22c55e", size: 8, symbol: "triangle-down" },
-  };
+  document.getElementById("toggleStd").addEventListener("change", (e) => {
+    state.showStd = e.target.checked;
+    renderIndicators(state.range);
+  });
 
-  const layout = {
-    paper_bgcolor: "rgba(0,0,0,0)",
-    plot_bgcolor: "rgba(0,0,0,0)",
-    margin: { l: 45, r: 15, t: 20, b: 40 },
-    xaxis: { showgrid: false, color: "#a8b4d6" },
-    yaxis: { showgrid: true, gridcolor: "#1e2a45", color: "#a8b4d6" },
-  };
-
-  const priceSeries = [trace];
-  if (turningPoints.length) {
-    priceSeries.push(peakTrace, troughTrace);
-  }
-
-  Plotly.newPlot("chart", priceSeries, layout, {displayModeBar: false});
-
-  const cyclesData = cycleStats?.cycles ?? [];
-  const tableBody = document.querySelector("#cycleTable tbody");
-  const recentCycles = cyclesData.slice(-6).reverse();
-
-  if (tableBody) {
-    if (recentCycles.length === 0) {
-      tableBody.innerHTML = '<tr><td colspan="5" class="muted">No cycles detected yet.</td></tr>';
-    } else {
-      tableBody.innerHTML = recentCycles
-        .map((cycle) => {
-          const amp = fmtPct(cycle.amplitude, 1);
-          const len = cycle.length ?? 0;
-          const dir = cycle.direction === "upswing" ? "up" : "down";
-          return `
-            <tr>
-              <td>${cycle.end_date}</td>
-              <td>${cycle.start_date}</td>
-              <td><span class="pill ${dir}">${cycle.direction}</span></td>
-              <td>${len}d</td>
-              <td>${amp}</td>
-            </tr>
-          `;
-        })
-        .join("");
-    }
-  }
-
-  const equitySeries = equityCurve.equity_curve ?? [];
-  if (equitySeries.length) {
-    const eqValues = equitySeries.map((p) => p.equity);
-    const eqBase = eqValues[0] || 1;
-    const eqNormalized = eqValues.map((v) => v / eqBase);
-    const sliceLen = eqNormalized.length;
-    const benchPrices = prices.close.slice(-sliceLen);
-    const benchDates = prices.dates.slice(-sliceLen);
-
-    if (benchPrices.length === sliceLen && benchDates.length === sliceLen) {
-      const benchBase = benchPrices[0] || 1;
-      const benchNormalized = benchPrices.map((p) => p / benchBase);
-
-      const equityTrace = {
-        x: benchDates,
-        y: eqNormalized,
-        type: "scatter",
-        mode: "lines",
-        name: "Algo Equity",
-        line: { color: "#60a5fa" },
-      };
-
-      const benchTrace = {
-        x: benchDates,
-        y: benchNormalized,
-        type: "scatter",
-        mode: "lines",
-        name: "SLV Benchmark",
-        line: { color: "#22c55e" },
-      };
-
-      Plotly.newPlot(
-        "perfChart",
-        [equityTrace, benchTrace],
-        { ...layout, yaxis: { ...layout.yaxis, title: "Normalized Performance" } },
-        { displayModeBar: false }
-      );
-    } else {
-      document.getElementById("perfChart").textContent = "Benchmark window unavailable.";
-    }
-  } else {
-    document.getElementById("perfChart").textContent = "Performance series unavailable.";
-  }
-
-  if (decomposition.trend?.length) {
-    const trendTrace = {
-      x: prices.dates,
-      y: decomposition.trend.map((p) => p.trend),
-      type: "scatter",
-      mode: "lines",
-      name: "Trend",
-      line: { color: "#4c9cff" },
-    };
-
-    Plotly.newPlot(
-      "trendChart",
-      [trendTrace],
-      { ...layout, yaxis: { ...layout.yaxis, title: "Trend" } },
-      { displayModeBar: false }
-    );
-  } else {
-    document.getElementById("trendChart").textContent = "Decomposition unavailable.";
-  }
-
-  if (decomposition.seasonal?.length || decomposition.resid?.length) {
-    const seasonalTrace = {
-      x: prices.dates,
-      y: decomposition.seasonal?.map((p) => p.seasonal) ?? [],
-      type: "scatter",
-      mode: "lines",
-      name: "Seasonal",
-      line: { color: "#22c55e" },
-    };
-
-    const residTrace = {
-      x: prices.dates,
-      y: decomposition.resid?.map((p) => p.resid) ?? [],
-      type: "scatter",
-      mode: "lines",
-      name: "Residual",
-      line: { color: "#fbbf24" },
-    };
-
-    Plotly.newPlot(
-      "seasonalChart",
-      [seasonalTrace, residTrace],
-      { ...layout, yaxis: { ...layout.yaxis, title: "Seasonal / Residual" } },
-      { displayModeBar: false }
-    );
-  } else {
-    document.getElementById("seasonalChart").textContent = "Decomposition unavailable.";
-  }
+  document.getElementById("toggleDecomp").addEventListener("change", (e) => {
+    state.showDecomp = e.target.checked;
+    renderDecomposition(state.range);
+  });
 })();
 </script>
 </body>
