@@ -13,10 +13,11 @@
     .big { font-size: 28px; font-weight: 800; }
     .muted { color: #a8b4d6; }
     .alert { margin-top: 10px; background: rgba(255, 159, 64, 0.12); border: 1px solid #ff9f40; color: #ffd7a2; padding: 10px 12px; border-radius: 10px; line-height: 1.5; }
-    .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
-    .kpis.four { grid-template-columns: repeat(4, 1fr); }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 12px; }
+    .kpis.four { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
     .kpi { background:#0d1424; border:1px solid #1e2a45; border-radius:12px; padding:10px; }
     .kpi .v { font-size: 18px; font-weight: 700; margin-top: 4px; }
+    .kpi .small { font-size: 12px; color: #a8b4d6; margin-top: 4px; display: block; line-height: 1.4; }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
     .cycle-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14px; }
     .cycle-table th, .cycle-table td { padding: 6px 8px; text-align: right; border-bottom: 1px solid #1e2a45; }
@@ -128,6 +129,14 @@
         <div class="big" data-i18n="performanceScoreTitle">ציון ביצועים כולל</div>
         <div class="muted"><span data-i18n="perfSummaryUpdatedLabel">עודכן</span>: <span class="mono" id="perfSummaryUpdated">—</span></div>
 
+        <div class="kpis">
+          <div class="kpi">
+            <div class="muted" data-i18n="algoScoreLabel">ציון אלגוריתם</div>
+            <div class="v mono" id="algoScore">—</div>
+            <span class="small" id="algoScoreMeta">—</span>
+          </div>
+        </div>
+
         <div class="kpis four">
           <div class="kpi">
             <div class="muted" data-i18n="hitRateLabel">Hit Rate</div>
@@ -221,6 +230,9 @@ const translations = {
     perfSummaryUpdatedLabel: "עודכן",
     equityTitle: "תשואת אלגו מול SLV",
     performanceTitle: "ביצועים",
+    algoScoreLabel: "ציון אלגוריתם",
+    sharpeLabel: "Sharpe Ratio",
+    cycleCaptureLabel: "ציון מחזורי",
     rsiLabel: "RSI (14)",
     stdLabel: "סטיית תקן מתגלגלת (20)",
     macdLabel: "MACD (12/26/9)",
@@ -282,6 +294,9 @@ const translations = {
     perfSummaryUpdatedLabel: "Updated",
     equityTitle: "Equity vs Benchmark (SLV)",
     performanceTitle: "Performance",
+    algoScoreLabel: "Algorithm Score",
+    sharpeLabel: "Sharpe Ratio",
+    cycleCaptureLabel: "Cycle Capture",
     rsiLabel: "RSI (14)",
     stdLabel: "Rolling StdDev (20)",
     macdLabel: "MACD (12/26/9)",
@@ -641,6 +656,13 @@ function fmtPct(x, d=1) {
     }
 
     document.getElementById("perfSummaryUpdated").textContent = perfSummary.updated_at || "—";
+    const algoScore = perfSummary.algo_score || {};
+    const algoComposite = algoScore.composite ?? algoScore.score ?? null;
+    document.getElementById("algoScore").textContent = fmt(algoComposite, 0);
+    const hit = fmtPct(algoScore.hit_rate ?? perfSummary.hit_rate, 0);
+    const sharpe = fmt(algoScore.sharpe_ratio, 2);
+    const cycle = fmtPct(algoScore.cycle_capture_rate, 0);
+    document.getElementById("algoScoreMeta").textContent = `${t("hitRateLabel")}: ${hit} · ${t("sharpeLabel")}: ${sharpe} · ${t("cycleCaptureLabel")}: ${cycle}`;
     document.getElementById("hitRate").textContent = fmtPct(perfSummary.hit_rate, 0);
     document.getElementById("avgReturn5d").textContent = fmtPct(perfSummary.avg_return_5d, 2);
     document.getElementById("avgReturn10d").textContent = fmtPct(perfSummary.avg_return_10d, 2);

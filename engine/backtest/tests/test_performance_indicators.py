@@ -2,12 +2,15 @@ import math
 import sys
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))
 
 from engine.backtest.performance import (
     attach_dates,
+    compute_algorithm_score,
     compute_bollinger_bands,
     compute_macd,
     compute_moving_average,
@@ -16,6 +19,7 @@ from engine.backtest.performance import (
     compute_rolling_stddev,
     decompose_closes,
 )
+from engine.events.cycles import CycleSegment
 
 
 class TestComputeRSI:
@@ -194,3 +198,39 @@ class TestAttachDates:
         dates = ["2024-01-01", "2024-01-02"]
 
         assert attach_dates(series, dates) == []
+
+
+class TestComputeAlgorithmScore:
+    def test_blends_hit_rate_sharpe_and_cycle_capture(self):
+        closes = [10, 11, 10.5, 12, 12.5, 11.5]
+        cycles = [
+            CycleSegment(
+                start_idx=0,
+                end_idx=3,
+                start_date="",
+                end_date="",
+                direction="upswing",
+                length=3,
+                amplitude=(12 - 10) / 10,
+                start_close=10,
+                end_close=12,
+            ),
+            CycleSegment(
+                start_idx=3,
+                end_idx=5,
+                start_date="",
+                end_date="",
+                direction="downswing",
+                length=2,
+                amplitude=(11.5 - 12) / 12,
+                start_close=12,
+                end_close=11.5,
+            ),
+        ]
+
+        score = compute_algorithm_score(closes, cycles)
+
+        assert score.hit_rate == pytest.approx(0.6)
+        assert score.sharpe_ratio == pytest.approx(0.3773, rel=1e-3)
+        assert score.cycle_capture_rate == pytest.approx(0.7273, rel=1e-3)
+        assert 50 <= score.composite <= 80  # weighted blend should land mid-range
