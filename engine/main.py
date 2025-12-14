@@ -4,7 +4,12 @@ from datetime import datetime
 from pathlib import Path
 
 from engine.backtest.performance import (
+    attach_dates,
+    compute_bollinger_bands,
     compute_equity_curve,
+    compute_macd,
+    compute_moving_average,
+    compute_obv,
     compute_rolling_stddev,
     compute_rsi,
     decompose_closes,
@@ -27,6 +32,8 @@ BASE_PATH = Path("public/data")
 def run_pipeline() -> None:
     raw_data = generate_slv_series()
     closes = [row["close"] for row in raw_data]
+    volumes = [row["volume"] for row in raw_data]
+    dates = [row["date"] for row in raw_data]
 
     latest_events = detect_events(raw_data)
     cycles, turning_points = detect_cycles(raw_data)
@@ -39,8 +46,12 @@ def run_pipeline() -> None:
     perf_summary = summarize_returns(closes)
     equity_curve = compute_equity_curve(closes)
     breakdown = event_breakdown([event.name for event in latest_events], closes)
-    rsi_series = compute_rsi(closes)
-    stddev_series = compute_rolling_stddev(closes)
+    rsi_series = attach_dates(compute_rsi(closes), dates)
+    stddev_series = attach_dates(compute_rolling_stddev(closes), dates)
+    macd_series = attach_dates(compute_macd(closes), dates)
+    bollinger_series = attach_dates(compute_bollinger_bands(closes), dates)
+    obv_series = attach_dates(compute_obv(closes, volumes), dates)
+    ma1000_series = attach_dates(compute_moving_average(closes, window=1000), dates)
     decomposition = decompose_closes(closes, period=30)
 
     write_json(BASE_PATH / "raw/slv_daily.json", {"symbol": "SLV", "data": raw_data})
@@ -77,6 +88,33 @@ def run_pipeline() -> None:
     write_json(
         BASE_PATH / "perf/stddev.json",
         {"updated_at": now, "window": 20, "stddev": stddev_series},
+    )
+    write_json(
+        BASE_PATH / "perf/macd.json",
+        {
+            "updated_at": now,
+            "fast_period": 12,
+            "slow_period": 26,
+            "signal_period": 9,
+            "macd": macd_series,
+        },
+    )
+    write_json(
+        BASE_PATH / "perf/bollinger.json",
+        {
+            "updated_at": now,
+            "window": 20,
+            "num_stddev": 2.0,
+            "bands": bollinger_series,
+        },
+    )
+    write_json(
+        BASE_PATH / "perf/obv.json",
+        {"updated_at": now, "obv": obv_series},
+    )
+    write_json(
+        BASE_PATH / "perf/ma1000.json",
+        {"updated_at": now, "window": 1000, "ma": ma1000_series},
     )
     write_json(
         BASE_PATH / "perf/decomposition.json",
