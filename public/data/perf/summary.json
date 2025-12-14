@@ -1,7 +1,13 @@
 {
-  "updated_at": "2025-12-14T14:11:15.932308",
+  "updated_at": "2025-12-14T14:32:46.649293",
   "hit_rate": 0.58,
   "avg_return_5d": 0.012,
   "avg_return_10d": 0.023,
-  "max_drawdown": -0.033
+  "max_drawdown": -0.033,
+  "algo_score": {
+    "composite": 65.09,
+    "hit_rate": 0.581,
+    "sharpe_ratio": 0.291,
+    "cycle_capture_rate": 0.848
+  }
 }

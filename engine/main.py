@@ -12,6 +12,7 @@ from engine.backtest.performance import (
     compute_obv,
     compute_rolling_stddev,
     compute_rsi,
+    compute_algorithm_score,
     decompose_closes,
     event_breakdown,
     summarize_returns,
@@ -44,6 +45,7 @@ def run_pipeline() -> None:
     history_record = {"timestamp": now, **signal}
 
     perf_summary = summarize_returns(closes)
+    algo_score = compute_algorithm_score(closes, cycles)
     equity_curve = compute_equity_curve(closes)
     breakdown = event_breakdown([event.name for event in latest_events], closes)
     rsi_series = attach_dates(compute_rsi(closes), dates)
@@ -77,7 +79,7 @@ def run_pipeline() -> None:
 
     write_json(
         BASE_PATH / "perf/summary.json",
-        {"updated_at": now, **perf_summary.to_dict()},
+        {"updated_at": now, **perf_summary.to_dict(), "algo_score": algo_score.to_dict()},
     )
     write_json(BASE_PATH / "perf/equity_curve.json", {"updated_at": now, "equity_curve": equity_curve})
     write_json(BASE_PATH / "perf/by_event.json", {"updated_at": now, "breakdown": breakdown})

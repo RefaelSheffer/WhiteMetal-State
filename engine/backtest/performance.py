@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from math import atan
+from statistics import mean, pstdev
 from typing import Iterable, List, Mapping, Sequence
+
+from engine.events.cycles import CycleSegment
 
 import pandas as pd
 from statsmodels.tsa.seasonal import STL
@@ -21,6 +25,26 @@ class PerformanceSummary:
             "avg_return_10d": round(self.avg_return_10d, 3),
             "max_drawdown": round(self.max_drawdown, 3),
         }
+
+
+@dataclass
+class AlgorithmScore:
+    composite: float
+    hit_rate: float
+    sharpe_ratio: float
+    cycle_capture_rate: float
+
+    def to_dict(self) -> Mapping:
+        return {
+            "composite": round(self.composite, 2),
+            "hit_rate": round(self.hit_rate, 3),
+            "sharpe_ratio": round(self.sharpe_ratio, 3),
+            "cycle_capture_rate": round(self.cycle_capture_rate, 3),
+        }
+
+
+def _clamp(value: float, lower: float = 0.0, upper: float = 1.0) -> float:
+    return max(lower, min(upper, value))
 
 
 def compute_equity_curve(closes: Sequence[float]) -> List[Mapping]:
@@ -63,6 +87,94 @@ def summarize_returns(closes: Sequence[float]) -> PerformanceSummary:
         avg_return_5d=sum(horizon5) / len(horizon5),
         avg_return_10d=sum(horizon10) / len(horizon10),
         max_drawdown=max_drawdown,
+    )
+
+
+def _normalized_sharpe(mean_ret: float, stddev: float) -> float:
+    """Map a raw Sharpe-style ratio into [0, 1] for scoring.
+
+    The arctangent keeps extreme values bounded without clipping positive surprise.
+    """
+
+    if stddev == 0:
+        return 0.0
+
+    raw_ratio = mean_ret / stddev
+    # atan returns (-pi/2, pi/2); rescale to [0, 1]
+    return _clamp(0.5 + (atan(raw_ratio) / 3.14159))
+
+
+def _cycle_capture_rate(closes: Sequence[float], cycles: Sequence[CycleSegment]) -> float:
+    """Estimate how much of each detected cycle move was captured.
+
+    We assume a realistic entry a third of the way into the cycle and an exit
+    just before the turning point. The ratio compares that captured move to the
+    full amplitude so that late/early exits are penalized.
+    """
+
+    if not closes or not cycles:
+        return 0.0
+
+    ratios: List[float] = []
+    last_idx = len(closes) - 1
+
+    for cycle in cycles:
+        if cycle.start_idx >= len(closes) or cycle.end_idx > last_idx:
+            continue
+
+        amplitude = cycle.amplitude
+        if amplitude == 0:
+            continue
+
+        entry_idx = min(cycle.end_idx - 1, cycle.start_idx + max(1, cycle.length // 3))
+        exit_idx = cycle.end_idx
+
+        if entry_idx >= exit_idx:
+            entry_idx = cycle.start_idx
+        if entry_idx >= exit_idx or exit_idx >= len(closes):
+            continue
+
+        entry = closes[entry_idx]
+        exit_price = closes[exit_idx]
+
+        captured = (exit_price - entry) / entry
+        ratios.append(_clamp(abs(captured) / abs(amplitude)))
+
+    if not ratios:
+        return 0.0
+
+    return sum(ratios) / len(ratios)
+
+
+def compute_algorithm_score(closes: Sequence[float], cycles: Sequence[CycleSegment]) -> AlgorithmScore:
+    """Build a weighted scorecard combining hit rate, Sharpe, and cycle capture."""
+
+    if len(closes) < 3:
+        return AlgorithmScore(composite=0.0, hit_rate=0.0, sharpe_ratio=0.0, cycle_capture_rate=0.0)
+
+    changes = [
+        (closes[i + 1] - closes[i]) / closes[i]
+        for i in range(len(closes) - 1)
+    ]
+
+    mean_ret = mean(changes) if changes else 0.0
+    stddev = pstdev(changes) if len(changes) > 1 else 0.0
+    hit_rate = len([c for c in changes if c > 0]) / len(changes) if changes else 0.0
+    sharpe_ratio = mean_ret / stddev if stddev != 0 else 0.0
+    cycle_capture = _cycle_capture_rate(closes, cycles)
+
+    normalized_sharpe = _normalized_sharpe(mean_ret, stddev)
+    composite = (
+        (hit_rate * 0.4)
+        + (normalized_sharpe * 0.35)
+        + (cycle_capture * 0.25)
+    )
+
+    return AlgorithmScore(
+        composite=round(composite * 100, 2),
+        hit_rate=hit_rate,
+        sharpe_ratio=sharpe_ratio,
+        cycle_capture_rate=cycle_capture,
     )
 
 
