@@ -20,6 +20,7 @@ from engine.backtest.performance import (
 from engine.decision.engine import build_indicator_context, select_action
 from engine.events.cycles import (
     detect_cycles,
+    filter_cycles,
     summarize_cycles,
     turning_points_to_records,
 )
@@ -38,10 +39,11 @@ def run_pipeline() -> None:
 
     latest_events = detect_events(raw_data)
     cycles, turning_points = detect_cycles(raw_data)
-    cycle_stats = summarize_cycles(cycles)
+    filtered_cycles = filter_cycles(cycles, min_length=2)
+    cycle_stats = summarize_cycles(filtered_cycles)
 
     perf_summary = summarize_returns(closes)
-    algo_score = compute_algorithm_score(closes, cycles)
+    algo_score = compute_algorithm_score(closes, filtered_cycles)
     equity_curve = compute_equity_curve(closes)
     breakdown = event_breakdown([event.name for event in latest_events], closes)
     rsi_raw = compute_rsi(closes)
@@ -57,7 +59,9 @@ def run_pipeline() -> None:
     decomposition = decompose_closes(closes, period=30)
 
     indicator_context = build_indicator_context(rsi_raw, macd_raw)
-    signal = select_action(latest_events, cycles, indicator_context=indicator_context)
+    signal = select_action(
+        latest_events, filtered_cycles, indicator_context=indicator_context
+    )
     now = datetime.utcnow().isoformat()
     history_record = {"timestamp": now, **signal}
 
@@ -67,7 +71,7 @@ def run_pipeline() -> None:
         BASE_PATH / "events/cycle_stats.json",
         {
             "updated_at": now,
-            "cycles": [cycle.to_dict() for cycle in cycles],
+            "cycles": [cycle.to_dict() for cycle in filtered_cycles],
             "stats": cycle_stats,
             "turning_points": turning_points_to_records(
                 turning_points, dates=[row["date"] for row in raw_data], closes=closes
