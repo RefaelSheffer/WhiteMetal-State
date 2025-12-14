@@ -1,16 +1,20 @@
+import argparse
+import io
 import json
 import os
-import io
+import shutil
+import time
 import zipfile
 from datetime import datetime, timezone
 from dateutil.relativedelta import relativedelta
 
-import numpy as np
 import pandas as pd
 import requests
 
 
 DATA_DIR = "data"
+BACKUP_DIR = os.path.join(DATA_DIR, "backups")
+HISTORICAL_START_YEAR = 2008
 
 STOOQ_URL = "https://stooq.com/q/d/l/?s=slv.us&i=d"  # Daily OHLCV
 CIK = "0001330568"  # iShares Silver Trust
@@ -23,6 +27,13 @@ CFTC_LEGACY_FUTURES_ONLY_ZIP = "https://www.cftc.gov/files/dea/history/deacot{ye
 
 def ensure_dir(path: str):
     os.makedirs(path, exist_ok=True)
+
+
+def year_range(start_year: int, end_year: int | None = None) -> list[int]:
+    end = end_year or datetime.now(timezone.utc).year
+    if start_year > end:
+        return []
+    return list(range(start_year, end + 1))
 
 
 def utc_now_iso():
@@ -39,7 +50,10 @@ def safe_float(x):
 
 
 def fetch_prices_stooq() -> pd.DataFrame:
-    df = pd.read_csv(STOOQ_URL)
+    headers = {"User-Agent": "WhiteMetalBot/1.0 (whitemetal@example.com)"}
+    resp = requests.get(STOOQ_URL, headers=headers, timeout=60)
+    resp.raise_for_status()
+    df = pd.read_csv(io.BytesIO(resp.content))
     # Stooq columns: Date, Open, High, Low, Close, Volume
     df["Date"] = pd.to_datetime(df["Date"])
     df = df.sort_values("Date")
@@ -264,7 +278,32 @@ def decide_action(score_total: float) -> tuple[str, str]:
     return "HOLD / WAIT", "LOW"
 
 
-def main():
+def backup_json_outputs(paths: list[str], timestamp: str | None = None) -> str | None:
+    if not paths:
+        return None
+
+    ensure_dir(BACKUP_DIR)
+    ts = timestamp or datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    backup_dir = os.path.join(BACKUP_DIR, ts)
+    ensure_dir(backup_dir)
+
+    for p in paths:
+        if os.path.exists(p):
+            shutil.copy2(p, os.path.join(backup_dir, os.path.basename(p)))
+    return backup_dir
+
+
+def run_continuously(start_year: int, enable_backup: bool, interval_hours: float):
+    interval = max(interval_hours, 1.0)
+    while True:
+        run_once(start_year=start_year, enable_backup=enable_backup)
+        print(f"Sleeping for {interval} hours before next refresh...")
+        time.sleep(interval * 3600)
+
+
+
+
+def run_once(start_year: int = HISTORICAL_START_YEAR, enable_backup: bool = True):
     ensure_dir(DATA_DIR)
 
     # ---- Prices ----
@@ -279,20 +318,22 @@ def main():
         "close": prices_df["Close"].astype(float).round(4).tolist(),
         "volume": prices_df["Volume"].fillna(0).astype(float).tolist(),
     }
-    with open(os.path.join(DATA_DIR, "slv_prices.json"), "w", encoding="utf-8") as f:
+    prices_path = os.path.join(DATA_DIR, "slv_prices.json")
+    with open(prices_path, "w", encoding="utf-8") as f:
         json.dump(prices_out, f, ensure_ascii=False)
 
     # ---- COT ----
-    today = datetime.now(timezone.utc).date()
-    years = [today.year, (today - relativedelta(years=1)).year]
+    years = year_range(start_year)
     cot_raw = fetch_cot_legacy_futures_only(years)
     cot_info = calc_cot_score(cot_raw)
-    with open(os.path.join(DATA_DIR, "cot_silver.json"), "w", encoding="utf-8") as f:
+    cot_path = os.path.join(DATA_DIR, "cot_silver.json")
+    with open(cot_path, "w", encoding="utf-8") as f:
         json.dump({"updated_at_utc": utc_now_iso(), **cot_info}, f, ensure_ascii=False)
 
     # ---- EDGAR ----
     edgar_info = fetch_edgar_latest()
-    with open(os.path.join(DATA_DIR, "edgar_latest.json"), "w", encoding="utf-8") as f:
+    edgar_path = os.path.join(DATA_DIR, "edgar_latest.json")
+    with open(edgar_path, "w", encoding="utf-8") as f:
         json.dump({"updated_at_utc": utc_now_iso(), **edgar_info}, f, ensure_ascii=False)
 
     # ---- Final Signal ----
@@ -319,13 +360,34 @@ def main():
         },
         "cot": cot_info,
         "edgar": edgar_info,
-        "disclaimer": "Not financial advice. For research/dashboard only."
+        "disclaimer": "Not financial advice. For research/dashboard only.",
     }
 
-    with open(os.path.join(DATA_DIR, "signal_latest.json"), "w", encoding="utf-8") as f:
+    signal_path = os.path.join(DATA_DIR, "signal_latest.json")
+    with open(signal_path, "w", encoding="utf-8") as f:
         json.dump(signal, f, ensure_ascii=False)
 
+    written = [prices_path, cot_path, edgar_path, signal_path]
+    if enable_backup:
+        backup_dir = backup_json_outputs(written)
+        print(f"Backed up outputs to {backup_dir}")
+
     print("OK: wrote data/*.json")
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Fetch SLV pricing, COT, and EDGAR data.")
+    parser.add_argument("--start-year", type=int, default=HISTORICAL_START_YEAR, help="First year to request CFTC history (default: 2008)")
+    parser.add_argument("--no-backup", action="store_true", help="Skip copying outputs to data/backups/<timestamp>")
+    parser.add_argument("--loop-daily", action="store_true", help="Run continuously with a daily refresh interval")
+    parser.add_argument("--interval-hours", type=float, default=24.0, help="Refresh cadence in hours when using --loop-daily")
+    args = parser.parse_args()
+
+    enable_backup = not args.no_backup
+    if args.loop_daily:
+        run_continuously(start_year=args.start_year, enable_backup=enable_backup, interval_hours=args.interval_hours)
+    else:
+        run_once(start_year=args.start_year, enable_backup=enable_backup)
 
 
 if __name__ == "__main__":
