@@ -14,6 +14,7 @@
     .muted { color: #a8b4d6; }
     .alert { margin-top: 10px; background: rgba(255, 159, 64, 0.12); border: 1px solid #ff9f40; color: #ffd7a2; padding: 10px 12px; border-radius: 10px; line-height: 1.5; }
     .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+    .kpis.four { grid-template-columns: repeat(4, 1fr); }
     .kpi { background:#0d1424; border:1px solid #1e2a45; border-radius:12px; padding:10px; }
     .kpi .v { font-size: 18px; font-weight: 700; margin-top: 4px; }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
@@ -75,6 +76,39 @@
 
     <div class="row">
       <div class="card">
+        <div class="big">ציון ביצועים כולל</div>
+        <div class="muted">עודכן: <span class="mono" id="perfSummaryUpdated">—</span></div>
+
+        <div class="kpis four">
+          <div class="kpi">
+            <div class="muted">Hit Rate</div>
+            <div class="v mono" id="hitRate">—</div>
+          </div>
+          <div class="kpi">
+            <div class="muted">Avg Return 5d</div>
+            <div class="v mono" id="avgReturn5d">—</div>
+          </div>
+          <div class="kpi">
+            <div class="muted">Avg Return 10d</div>
+            <div class="v mono" id="avgReturn10d">—</div>
+          </div>
+          <div class="kpi">
+            <div class="muted">Max Drawdown</div>
+            <div class="v mono" id="maxDrawdown">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="big">Equity vs Benchmark (SLV)</div>
+        <div id="perfChart" style="height:320px;"></div>
+      </div>
+    </div>
+
+    <div style="height:16px"></div>
+
+    <div class="row">
+      <div class="card">
         <div class="big">Performance</div>
         <div class="muted">RSI (14): <span class="mono" id="rsiValue">—</span></div>
         <div class="muted">Rolling StdDev (20): <span class="mono" id="stddevValue">—</span></div>
@@ -115,8 +149,13 @@ function fmt(x, d=2) {
   return Number(x).toFixed(d);
 }
 
+function fmtPct(x, d=1) {
+  if (x === null || x === undefined || Number.isNaN(x)) return "—";
+  return `${(Number(x) * 100).toFixed(d)}%`;
+}
+
 (async () => {
-  const [prices, signal, cot, edgar, rsiPerf, stddevPerf, decomposition] = await Promise.all([
+  const [prices, signal, cot, edgar, rsiPerf, stddevPerf, decomposition, perfSummary, equityCurve] = await Promise.all([
     getJson("./data/slv_prices.json"),
     getJson("./data/signal_latest.json"),
     getJson("./data/cot_silver.json"),
@@ -124,6 +163,8 @@ function fmt(x, d=2) {
     getJson("./public/data/perf/rsi.json"),
     getJson("./public/data/perf/stddev.json"),
     getJson("./public/data/perf/decomposition.json"),
+    getJson("./public/data/perf/summary.json"),
+    getJson("./public/data/perf/equity_curve.json"),
   ]);
 
   document.getElementById("updated").textContent =
@@ -163,6 +204,12 @@ function fmt(x, d=2) {
   document.getElementById("stddevValue").textContent = fmt(latestStd?.stddev, 4);
   document.getElementById("perfUpdated").textContent = rsiPerf.updated_at || "—";
 
+  document.getElementById("perfSummaryUpdated").textContent = perfSummary.updated_at || "—";
+  document.getElementById("hitRate").textContent = fmtPct(perfSummary.hit_rate, 0);
+  document.getElementById("avgReturn5d").textContent = fmtPct(perfSummary.avg_return_5d, 2);
+  document.getElementById("avgReturn10d").textContent = fmtPct(perfSummary.avg_return_10d, 2);
+  document.getElementById("maxDrawdown").textContent = fmtPct(perfSummary.max_drawdown, 2);
+
   document.getElementById("decompUpdated").textContent = decomposition.updated_at || "—";
   document.getElementById("decompPeriod").textContent = decomposition.period ?? "—";
 
@@ -184,6 +231,50 @@ function fmt(x, d=2) {
   };
 
   Plotly.newPlot("chart", [trace], layout, {displayModeBar: false});
+
+  const equitySeries = equityCurve.equity_curve ?? [];
+  if (equitySeries.length) {
+    const eqValues = equitySeries.map((p) => p.equity);
+    const eqBase = eqValues[0] || 1;
+    const eqNormalized = eqValues.map((v) => v / eqBase);
+    const sliceLen = eqNormalized.length;
+    const benchPrices = prices.close.slice(-sliceLen);
+    const benchDates = prices.dates.slice(-sliceLen);
+
+    if (benchPrices.length === sliceLen && benchDates.length === sliceLen) {
+      const benchBase = benchPrices[0] || 1;
+      const benchNormalized = benchPrices.map((p) => p / benchBase);
+
+      const equityTrace = {
+        x: benchDates,
+        y: eqNormalized,
+        type: "scatter",
+        mode: "lines",
+        name: "Algo Equity",
+        line: { color: "#60a5fa" },
+      };
+
+      const benchTrace = {
+        x: benchDates,
+        y: benchNormalized,
+        type: "scatter",
+        mode: "lines",
+        name: "SLV Benchmark",
+        line: { color: "#22c55e" },
+      };
+
+      Plotly.newPlot(
+        "perfChart",
+        [equityTrace, benchTrace],
+        { ...layout, yaxis: { ...layout.yaxis, title: "Normalized Performance" } },
+        { displayModeBar: false }
+      );
+    } else {
+      document.getElementById("perfChart").textContent = "Benchmark window unavailable.";
+    }
+  } else {
+    document.getElementById("perfChart").textContent = "Performance series unavailable.";
+  }
 
   if (decomposition.trend?.length) {
     const trendTrace = {
