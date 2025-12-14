@@ -31,6 +31,19 @@ files back to the repository (or the `gh-pages` branch). No secrets are needed
 for the current synthetic data path, and the structure is ready for real API
 fetchers when credentials are available.
 
+### Cadence and decomposition
+- The STL decomposition stored in `public/data/perf/decomposition.json` helps
+  validate the dominant cycle length (period) baked into the backtest. If you
+  adjust the `period` parameter in `engine/main.py` or downstream components,
+  rerun `python main.py` to regenerate the decomposition and confirm the
+  frequency assumptions.
+
+### Toward real-time detection
+- GitHub Actions can schedule `python main.py` roughly once per day. For
+  near-real-time event detection, run the script on a persistent host (e.g.,
+  hourly) and publish the refreshed JSON artifacts to `public/data/` so the
+  static dashboard always reflects the newest signal and decomposition.
+
 ## Directory layout
 - `engine/` – data fetchers, event/decision logic, performance calculation.
 - `public/data/` – published artifacts read by the static site.
