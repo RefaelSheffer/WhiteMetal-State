@@ -43,13 +43,62 @@ class AlgorithmScore:
         }
 
 
+@dataclass
+class TradingCosts:
+    """Per-side trading costs expressed in percent (e.g., 0.001 for 0.1%)."""
+
+    commission_pct: float = 0.0
+    slippage_pct: float = 0.0
+
+    @property
+    def per_side(self) -> float:
+        return max(self.commission_pct, 0.0) + max(self.slippage_pct, 0.0)
+
+    @property
+    def round_trip(self) -> float:
+        return self.per_side * 2
+
+
+DEFAULT_TRADING_COSTS = TradingCosts(commission_pct=0.001, slippage_pct=0.0005)
+
+
+def _apply_trading_friction(gross_return: float, turnover: float, costs: TradingCosts) -> float:
+    """Reduce returns by the expected commission + slippage hit.
+
+    `turnover` represents the fraction of the portfolio traded on each bar
+    (1.0 = full round trip). Costs are applied as a multiplicative haircut so
+    they scale with position size. Returns are bounded so extreme costs do not
+    flip the sign unexpectedly.
+    """
+
+    turnover = max(0.0, min(turnover, 1.0))
+    cost_haircut = 1 - (turnover * costs.round_trip)
+    cost_haircut = max(cost_haircut, 0.0)
+    return (1 + gross_return) * cost_haircut - 1
+
+
 def _clamp(value: float, lower: float = 0.0, upper: float = 1.0) -> float:
     return max(lower, min(upper, value))
 
 
-def compute_equity_curve(closes: Sequence[float]) -> List[Mapping]:
+def compute_equity_curve(
+    closes: Sequence[float],
+    opens: Sequence[float] | None = None,
+    costs: TradingCosts | None = None,
+    turnover: float = 1.0,
+) -> List[Mapping]:
+    """Construct an equity curve with optional slippage/commission haircuts.
+
+    If `opens` are provided (and match the length of `closes`), returns are
+    computed from the next session's open to its close to avoid lookahead when
+    signals are generated on the prior close.
+    """
+
     equity = 1.0
     curve: List[Mapping] = []
+
+    if costs is None:
+        costs = TradingCosts()
 
     if not closes:
         return curve
@@ -57,8 +106,20 @@ def compute_equity_curve(closes: Sequence[float]) -> List[Mapping]:
     curve.append({"index": 0, "equity": round(equity, 4)})
 
     for idx in range(1, len(closes)):
-        ret = (closes[idx] - closes[idx - 1]) / closes[idx - 1]
-        equity *= 1 + ret
+        if opens and len(opens) == len(closes):
+            entry = opens[idx]
+            exit_price = closes[idx]
+            if entry == 0:
+                continue
+            gross_return = (exit_price - entry) / entry
+        else:
+            prior = closes[idx - 1]
+            if prior == 0:
+                continue
+            gross_return = (closes[idx] - prior) / prior
+
+        net_return = _apply_trading_friction(gross_return, turnover, costs)
+        equity *= 1 + net_return
         curve.append({"index": idx, "equity": round(equity, 4)})
 
     return curve
