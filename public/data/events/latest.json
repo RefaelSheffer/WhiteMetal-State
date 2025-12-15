@@ -1,15 +1,10 @@
 {
-  "as_of": "2025-12-14T14:32:46.649293",
+  "as_of": "2025-12-15T22:43:01.160541",
   "events": [
     {
-      "name": "SHAKEOUT",
-      "confidence": 0.62,
-      "rationale": "Price tagged a 5-day low, often a shakeout signature."
-    },
-    {
-      "name": "DISTRIBUTION_RISK",
-      "confidence": 0.55,
-      "rationale": "Pullback from recent local high suggests distribution risk."
+      "name": "RANGE_ACCUMULATION",
+      "confidence": 0.5,
+      "rationale": "Staying above the 20-day mean while basing near highs."
     }
   ]
 }

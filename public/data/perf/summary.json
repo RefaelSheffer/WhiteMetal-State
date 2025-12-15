@@ -1,13 +1,13 @@
 {
-  "updated_at": "2025-12-14T14:32:46.649293",
-  "hit_rate": 0.58,
-  "avg_return_5d": 0.012,
-  "avg_return_10d": 0.023,
-  "max_drawdown": -0.033,
+  "updated_at": "2025-12-15T22:43:01.160541",
+  "hit_rate": 0.51,
+  "avg_return_5d": 0.002,
+  "avg_return_10d": 0.005,
+  "max_drawdown": -0.306,
   "algo_score": {
-    "composite": 65.09,
-    "hit_rate": 0.581,
-    "sharpe_ratio": 0.291,
-    "cycle_capture_rate": 0.848
+    "composite": 53.25,
+    "hit_rate": 0.514,
+    "sharpe_ratio": 0.025,
+    "cycle_capture_rate": 0.597
   }
 }
