@@ -30,16 +30,19 @@ from engine.events.cycles import (
 from engine.events.detector import detect_events
 from engine.fetchers.slv_real import fetch_slv_ohlcv
 from engine.utils.io import ensure_parent, write_json
+from engine.validation.sanity import validate_ohlcv
 
 BASE_PATH = Path("public/data")
 
 
 def run_pipeline() -> None:
+    source = "stooq"
     raw_data = fetch_slv_ohlcv(
         start_date="2008-01-01",
         cache_path=str(BASE_PATH / "raw/slv_daily.json"),
-        source="stooq",
+        source=source,
     )
+    validate_ohlcv(raw_data)
     closes = [row["close"] for row in raw_data]
     opens = [row["open"] for row in raw_data]
     volumes = [row["volume"] for row in raw_data]
@@ -76,7 +79,20 @@ def run_pipeline() -> None:
         latest_events, filtered_cycles, indicator_context=indicator_context
     )
     now = datetime.utcnow().isoformat()
+    last_updated = datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
     history_record = {"timestamp": now, **signal}
+
+    write_json(
+        BASE_PATH / "meta.json",
+        {
+            "source": source,
+            "symbol": "SLV",
+            "start": raw_data[0]["date"],
+            "end": raw_data[-1]["date"],
+            "rows": len(raw_data),
+            "last_updated_utc": last_updated,
+        },
+    )
 
     write_json(BASE_PATH / "events/latest.json", {"as_of": now, "events": [e.to_dict() for e in latest_events]})
     write_json(
