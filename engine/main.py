@@ -20,6 +20,7 @@ from engine.backtest.performance import (
     event_breakdown,
     summarize_returns,
 )
+from engine.backtest.walkforward import walk_forward_validate
 from engine.decision.engine import build_indicator_context, select_action
 from engine.events.cycles import (
     detect_cycles,
@@ -66,6 +67,9 @@ def run_pipeline() -> None:
     obv_series = attach_dates(obv_raw, dates)
     ma1000_series = attach_dates(compute_moving_average(closes, window=1000), dates)
     decomposition = decompose_closes(closes, period=30)
+    walk_forward_results = walk_forward_validate(
+        closes, dates=dates, train_size=120, test_size=30, step=30
+    )
 
     indicator_context = build_indicator_context(rsi_raw, macd_raw)
     signal = select_action(
@@ -161,6 +165,15 @@ def run_pipeline() -> None:
             "trend": decomposition["trend"],
             "seasonal": decomposition["seasonal"],
             "resid": decomposition["resid"],
+        },
+    )
+    write_json(
+        BASE_PATH / "perf/walkforward.json",
+        {
+            "updated_at": now,
+            "train_size": 120,
+            "test_size": 30,
+            **walk_forward_results,
         },
     )
 
