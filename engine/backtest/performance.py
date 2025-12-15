@@ -146,8 +146,40 @@ def _cycle_capture_rate(closes: Sequence[float], cycles: Sequence[CycleSegment])
     return sum(ratios) / len(ratios)
 
 
-def compute_algorithm_score(closes: Sequence[float], cycles: Sequence[CycleSegment]) -> AlgorithmScore:
-    """Build a weighted scorecard combining hit rate, Sharpe, and cycle capture."""
+DEFAULT_SCORE_WEIGHTS = {
+    "hit_rate": 0.4,
+    "sharpe_ratio": 0.35,
+    "cycle_capture_rate": 0.25,
+}
+
+
+def _normalize_score_weights(weights: Mapping[str, float] | None) -> Mapping[str, float]:
+    base = {**DEFAULT_SCORE_WEIGHTS}
+    if weights:
+        for key in DEFAULT_SCORE_WEIGHTS:
+            if weights.get(key) is not None:
+                base[key] = weights[key]
+
+    total = sum(value for value in base.values() if value > 0)
+    if total <= 0:
+        return DEFAULT_SCORE_WEIGHTS
+
+    return {key: value / total for key, value in base.items()}
+
+
+def compute_algorithm_score(
+    closes: Sequence[float],
+    cycles: Sequence[CycleSegment],
+    weights: Mapping[str, float] | None = None,
+) -> AlgorithmScore:
+    """Build a weighted scorecard combining hit rate, Sharpe, and cycle capture.
+
+    Custom `weights` can be supplied to stress-test the sensitivity of the
+    composite score during backtests. Missing keys fall back to the defaults
+    (40% hit rate, 35% Sharpe, 25% cycle capture), and weights are normalized
+    to sum to 1 so relative importance is preserved even if raw inputs do not
+    add up to 100%.
+    """
 
     if len(closes) < 3:
         return AlgorithmScore(composite=0.0, hit_rate=0.0, sharpe_ratio=0.0, cycle_capture_rate=0.0)
@@ -164,10 +196,11 @@ def compute_algorithm_score(closes: Sequence[float], cycles: Sequence[CycleSegme
     cycle_capture = _cycle_capture_rate(closes, cycles)
 
     normalized_sharpe = _normalized_sharpe(mean_ret, stddev)
+    weights = _normalize_score_weights(weights)
     composite = (
-        (hit_rate * 0.4)
-        + (normalized_sharpe * 0.35)
-        + (cycle_capture * 0.25)
+        (hit_rate * weights["hit_rate"])
+        + (normalized_sharpe * weights["sharpe_ratio"])
+        + (cycle_capture * weights["cycle_capture_rate"])
     )
 
     return AlgorithmScore(

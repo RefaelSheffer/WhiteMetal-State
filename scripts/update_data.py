@@ -265,15 +265,29 @@ def fetch_edgar_latest() -> dict:
         return {"edgar_available": False, "latest_filing": None, "score_events": 0}
 
 
-def decide_action(score_total: float) -> tuple[str, str]:
-    # Very simple tiers for MVP
-    if score_total >= 30:
+DEFAULT_BUY_THRESHOLD = 30.0
+DEFAULT_SELL_THRESHOLD = -30.0
+DEFAULT_BULLISH_HOLD_THRESHOLD = 10.0
+DEFAULT_BEARISH_HOLD_THRESHOLD = -10.0
+
+
+def decide_action(
+    score_total: float,
+    *,
+    buy_threshold: float = DEFAULT_BUY_THRESHOLD,
+    sell_threshold: float = DEFAULT_SELL_THRESHOLD,
+    bullish_hold_threshold: float = DEFAULT_BULLISH_HOLD_THRESHOLD,
+    bearish_hold_threshold: float = DEFAULT_BEARISH_HOLD_THRESHOLD,
+) -> tuple[str, str]:
+    """Map a composite score into an action bucket with configurable thresholds."""
+
+    if score_total >= buy_threshold:
         return "BUY / ADD", "HIGH"
-    if score_total <= -30:
+    if score_total <= sell_threshold:
         return "REDUCE / HEDGE", "HIGH"
-    if score_total >= 10:
+    if score_total >= bullish_hold_threshold:
         return "HOLD (Bullish bias)", "MED"
-    if score_total <= -10:
+    if score_total <= bearish_hold_threshold:
         return "HOLD (Bearish bias)", "MED"
     return "HOLD / WAIT", "LOW"
 
@@ -293,17 +307,41 @@ def backup_json_outputs(paths: list[str], timestamp: str | None = None) -> str |
     return backup_dir
 
 
-def run_continuously(start_year: int, enable_backup: bool, interval_hours: float):
+def run_continuously(
+    start_year: int,
+    enable_backup: bool,
+    interval_hours: float,
+    *,
+    buy_threshold: float = DEFAULT_BUY_THRESHOLD,
+    sell_threshold: float = DEFAULT_SELL_THRESHOLD,
+    bullish_hold_threshold: float = DEFAULT_BULLISH_HOLD_THRESHOLD,
+    bearish_hold_threshold: float = DEFAULT_BEARISH_HOLD_THRESHOLD,
+):
     interval = max(interval_hours, 1.0)
     while True:
-        run_once(start_year=start_year, enable_backup=enable_backup)
+        run_once(
+            start_year=start_year,
+            enable_backup=enable_backup,
+            buy_threshold=buy_threshold,
+            sell_threshold=sell_threshold,
+            bullish_hold_threshold=bullish_hold_threshold,
+            bearish_hold_threshold=bearish_hold_threshold,
+        )
         print(f"Sleeping for {interval} hours before next refresh...")
         time.sleep(interval * 3600)
 
 
 
 
-def run_once(start_year: int = HISTORICAL_START_YEAR, enable_backup: bool = True):
+def run_once(
+    start_year: int = HISTORICAL_START_YEAR,
+    enable_backup: bool = True,
+    *,
+    buy_threshold: float = DEFAULT_BUY_THRESHOLD,
+    sell_threshold: float = DEFAULT_SELL_THRESHOLD,
+    bullish_hold_threshold: float = DEFAULT_BULLISH_HOLD_THRESHOLD,
+    bearish_hold_threshold: float = DEFAULT_BEARISH_HOLD_THRESHOLD,
+):
     ensure_dir(DATA_DIR)
 
     # ---- Prices ----
@@ -338,7 +376,13 @@ def run_once(start_year: int = HISTORICAL_START_YEAR, enable_backup: bool = True
 
     # ---- Final Signal ----
     score_total = float(price_info["score_price"]) + float(cot_info.get("score_cot", 0)) + float(edgar_info.get("score_events", 0))
-    action, confidence = decide_action(score_total)
+    action, confidence = decide_action(
+        score_total,
+        buy_threshold=buy_threshold,
+        sell_threshold=sell_threshold,
+        bullish_hold_threshold=bullish_hold_threshold,
+        bearish_hold_threshold=bearish_hold_threshold,
+    )
 
     signal = {
         "updated_at_utc": utc_now_iso(),
@@ -381,13 +425,52 @@ def main():
     parser.add_argument("--no-backup", action="store_true", help="Skip copying outputs to data/backups/<timestamp>")
     parser.add_argument("--loop-daily", action="store_true", help="Run continuously with a daily refresh interval")
     parser.add_argument("--interval-hours", type=float, default=24.0, help="Refresh cadence in hours when using --loop-daily")
+    parser.add_argument(
+        "--buy-threshold",
+        type=float,
+        default=DEFAULT_BUY_THRESHOLD,
+        help="Score needed to trigger BUY / ADD",
+    )
+    parser.add_argument(
+        "--sell-threshold",
+        type=float,
+        default=DEFAULT_SELL_THRESHOLD,
+        help="Score needed to trigger REDUCE / HEDGE",
+    )
+    parser.add_argument(
+        "--bullish-hold-threshold",
+        type=float,
+        default=DEFAULT_BULLISH_HOLD_THRESHOLD,
+        help="Score that biases HOLD toward bullish stance",
+    )
+    parser.add_argument(
+        "--bearish-hold-threshold",
+        type=float,
+        default=DEFAULT_BEARISH_HOLD_THRESHOLD,
+        help="Score that biases HOLD toward bearish stance",
+    )
     args = parser.parse_args()
 
     enable_backup = not args.no_backup
     if args.loop_daily:
-        run_continuously(start_year=args.start_year, enable_backup=enable_backup, interval_hours=args.interval_hours)
+        run_continuously(
+            start_year=args.start_year,
+            enable_backup=enable_backup,
+            interval_hours=args.interval_hours,
+            buy_threshold=args.buy_threshold,
+            sell_threshold=args.sell_threshold,
+            bullish_hold_threshold=args.bullish_hold_threshold,
+            bearish_hold_threshold=args.bearish_hold_threshold,
+        )
     else:
-        run_once(start_year=args.start_year, enable_backup=enable_backup)
+        run_once(
+            start_year=args.start_year,
+            enable_backup=enable_backup,
+            buy_threshold=args.buy_threshold,
+            sell_threshold=args.sell_threshold,
+            bullish_hold_threshold=args.bullish_hold_threshold,
+            bearish_hold_threshold=args.bearish_hold_threshold,
+        )
 
 
 if __name__ == "__main__":
