@@ -6,37 +6,55 @@
   <title>SLV Monitor</title>
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
   <style>
-    body { font-family: system-ui, Arial; margin: 0; background: #0b0f17; color: #e8eefc; }
-    .wrap { max-width: 1100px; margin: 0 auto; padding: 24px; }
+    :root {
+      --bg: #0b0f17;
+      --card: #111a2b;
+      --border: #1e2a45;
+      --muted: #a8b4d6;
+      --text: #e8eefc;
+      --accent: #4c9cff;
+      --success: #22c55e;
+      --danger: #f43f5e;
+    }
+    body { font-family: system-ui, Arial; margin: 0; background: var(--bg); color: var(--text); }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 24px; }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .card { background: #111a2b; border: 1px solid #1e2a45; border-radius: 14px; padding: 16px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
     .big { font-size: 28px; font-weight: 800; }
-    .muted { color: #a8b4d6; }
-    .alert { margin-top: 10px; background: rgba(255, 159, 64, 0.12); border: 1px solid #ff9f40; color: #ffd7a2; padding: 10px 12px; border-radius: 10px; line-height: 1.5; }
-    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 12px; }
-    .kpis.four { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
-    .kpi { background:#0d1424; border:1px solid #1e2a45; border-radius:12px; padding:10px; }
-    .kpi .v { font-size: 18px; font-weight: 700; margin-top: 4px; }
-    .kpi .small { font-size: 12px; color: #a8b4d6; margin-top: 4px; display: block; line-height: 1.4; }
+    .muted { color: var(--muted); }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-    .cycle-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14px; }
-    .cycle-table th, .cycle-table td { padding: 6px 8px; text-align: right; border-bottom: 1px solid #1e2a45; }
-    .cycle-table th { color: #a8b4d6; font-weight: 600; }
-    .cycle-table td { color: #e8eefc; }
-    .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; border: 1px solid #1e2a45; }
-    .pill.up { background: rgba(34, 197, 94, 0.12); color: #22c55e; }
-    .pill.down { background: rgba(244, 63, 94, 0.12); color: #f43f5e; }
-    .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0 4px; }
-    .btn { background: #0d1424; color: #e8eefc; border: 1px solid #1e2a45; border-radius: 10px; padding: 6px 10px; cursor: pointer; }
-    .btn.active { background: #1f2d4a; border-color: #4c9cff; }
-    .toggle { display: flex; gap: 6px; align-items: center; padding: 6px 10px; background: #0d1424; border: 1px solid #1e2a45; border-radius: 10px; }
-    .toggle input { accent-color: #4c9cff; }
-    .lang-toggle { align-self: flex-start; white-space: nowrap; }
+    .alert { margin-top: 10px; background: rgba(255, 159, 64, 0.12); border: 1px solid #ff9f40; color: #ffd7a2; padding: 10px 12px; border-radius: 10px; line-height: 1.5; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 12px; }
+    .kpi { background: #0d1424; border: 1px solid var(--border); border-radius: 12px; padding: 10px; }
+    .kpi .v { font-size: 18px; font-weight: 700; margin-top: 4px; }
+    .kpi .small { font-size: 12px; color: var(--muted); margin-top: 4px; display: block; line-height: 1.4; }
+    .pill { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 13px; border: 1px solid var(--border); text-transform: uppercase; letter-spacing: 0.5px; }
+    .pill.up { background: rgba(34, 197, 94, 0.12); color: var(--success); }
+    .pill.down { background: rgba(244, 63, 94, 0.12); color: var(--danger); }
+    .pill.neutral { background: rgba(255,255,255,0.06); color: var(--text); }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0 8px; }
+    .btn { background: #0d1424; color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 6px 10px; cursor: pointer; }
+    .btn.active { background: #1f2d4a; border-color: var(--accent); }
+    .toggle { display: inline-flex; gap: 6px; align-items: center; padding: 6px 10px; background: #0d1424; border: 1px solid var(--border); border-radius: 10px; cursor: pointer; }
+    .toggle input { accent-color: var(--accent); }
     .header-top { display: flex; justify-content: space-between; gap: 12px; }
     .header-content { flex: 1; min-width: 0; }
+    .badge { display: inline-block; padding: 4px 8px; border-radius: 8px; background: rgba(255,255,255,0.06); font-size: 12px; margin-right: 6px; }
+    .section-title { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .chip { padding: 4px 8px; border-radius: 999px; border: 1px solid var(--border); font-size: 12px; }
+    .table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14px; }
+    .table th, .table td { padding: 8px; text-align: right; border-bottom: 1px solid var(--border); }
+    .table th { color: var(--muted); font-weight: 700; }
+    .table td { color: var(--text); }
+    body[dir="ltr"] .table th, body[dir="ltr"] .table td { text-align: left; }
+    .flex { display: flex; align-items: center; gap: 8px; }
+    .space { flex: 1; }
+    .settings { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 12px; margin-top: 10px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+    label.small { font-size: 12px; color: var(--muted); display: block; margin-bottom: 6px; }
+    input, select { width: 100%; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: #0d1424; color: var(--text); }
+    .subtitle { font-size: 14px; color: var(--muted); margin-top: 4px; }
     @media (max-width: 900px) { .row { grid-template-columns: 1fr; } }
-    body[dir="ltr"] .cycle-table th, body[dir="ltr"] .cycle-table td { text-align: left; }
-    a { color:#8bb2ff; }
+    a { color: #8bb2ff; }
   </style>
 </head>
 <body>
@@ -48,7 +66,7 @@
           <div class="muted" data-i18n="subtitle">דשבורד סטטי ב-GitHub Pages + “מוח” שרץ ב-GitHub Actions ומעדכן JSON.</div>
           <div class="muted mono" id="updated">Loading…</div>
         </div>
-        <button class="btn lang-toggle" id="langToggle">English</button>
+        <button class="btn" id="langToggle" aria-label="Switch language">English</button>
       </div>
       <div class="alert" data-i18n="alert">
         המלצות המערכת הן תוצאה של עיבוד סטטיסטי ואינן מהוות ייעוץ או הנחיה לביצוע פעולה מיידית. מומלץ לשלב את האיתותים עם גורמים נוספים כמו חדשות מאקרו, מדיניות מוניטרית ושיקולים אישיים אחרים.
@@ -59,13 +77,18 @@
 
     <div class="row">
       <div class="card">
-        <div class="big" id="action">—</div>
-        <div class="muted"><span data-i18n="confidenceLabel">Confidence</span>: <span class="mono" id="confidence">—</span></div>
-
+        <div class="section-title" data-i18n="signalNowTitle">Signal עכשיו</div>
+        <div class="flex" style="margin-top:8px; gap:12px;">
+          <div class="big" id="action">—</div>
+          <span class="pill neutral" id="regimeTag">—</span>
+          <span class="pill neutral" id="edgeTag">Edge —</span>
+        </div>
+        <div class="muted" style="margin-top:4px;"><span data-i18n="confidenceLabel">Confidence</span>: <span class="mono" id="confidence">—</span></div>
         <div class="kpis">
           <div class="kpi">
             <div class="muted" data-i18n="scoreTotalLabel">Score Total</div>
             <div class="v mono" id="scoreTotal">—</div>
+            <span class="small" id="edgeScore">—</span>
           </div>
           <div class="kpi">
             <div class="muted" data-i18n="scorePriceLabel">Price Score</div>
@@ -76,43 +99,148 @@
             <div class="v mono" id="scoreCOT">—</div>
           </div>
         </div>
-
-        <div style="height:12px"></div>
-        <div class="muted"><span data-i18n="latestCloseLabel">Latest Close</span>: <span class="mono" id="lastClose">—</span></div>
-        <div class="muted"><span data-i18n="maLabel">MA20/50/200</span>: <span class="mono" id="mas">—</span></div>
-        <div class="muted"><span data-i18n="momLabel">1M Mom%</span>: <span class="mono" id="mom">—</span></div>
-
-        <div style="height:12px"></div>
-        <div class="muted"><span data-i18n="cotLabel">COT (Silver)</span>: <span class="mono" id="cotLine">—</span></div>
-        <div class="muted"><span data-i18n="edgarLabel">EDGAR</span>: <span class="mono" id="edgarLine">—</span></div>
+        <div class="kpis">
+          <div class="kpi">
+            <div class="muted" data-i18n="latestCloseLabel">Latest Close</div>
+            <div class="v mono" id="lastClose">—</div>
+            <span class="small" id="mas">—</span>
+          </div>
+          <div class="kpi">
+            <div class="muted" data-i18n="momLabel">1M Mom%</div>
+            <div class="v mono" id="mom">—</div>
+            <span class="small" id="cotLine">—</span>
+          </div>
+          <div class="kpi">
+            <div class="muted" data-i18n="edgarLabel">EDGAR</div>
+            <div class="v mono" id="edgarLine">—</div>
+          </div>
+        </div>
       </div>
 
       <div class="card">
-        <div class="big" data-i18n="priceTitle">Price</div>
-        <div class="controls">
-          <div class="muted" data-i18n="rangeLabel">טווח זמן:</div>
-          <button class="btn active" data-range="3m">3M</button>
-          <button class="btn" data-range="1y">1Y</button>
-          <button class="btn" data-range="all">All</button>
-          <span style="flex:1"></span>
-          <label class="toggle"><input type="checkbox" id="toggleRsi" checked /><span data-i18n="rsiToggle">RSI</span></label>
-          <label class="toggle"><input type="checkbox" id="toggleStd" checked /><span data-i18n="stdToggle">StdDev</span></label>
-          <label class="toggle"><input type="checkbox" id="toggleMacd" checked /><span data-i18n="macdToggle">MACD</span></label>
-          <label class="toggle"><input type="checkbox" id="toggleBoll" checked /><span data-i18n="bollToggle">Bollinger</span></label>
-          <label class="toggle"><input type="checkbox" id="toggleObv" checked /><span data-i18n="obvToggle">OBV</span></label>
-          <label class="toggle"><input type="checkbox" id="toggleMaLong" checked /><span data-i18n="maLongToggle">MA1000</span></label>
-          <label class="toggle"><input type="checkbox" id="toggleDecomp" checked /><span data-i18n="decompToggle">Decomposition</span></label>
+        <div class="section-title flex">
+          <span data-i18n="backtestSettings">Backtest settings</span>
+          <button class="btn" id="toggleSettings" style="margin-inline-start:auto;" data-i18n="openSettings">Open</button>
         </div>
-        <div id="chart" style="height:420px;"></div>
-        <div class="muted" style="margin-top:8px;" data-i18n="cycleTitle">מחזורי Peaks/Troughs אחרונים</div>
-        <table class="cycle-table" id="cycleTable">
+        <div class="subtitle" data-i18n="settingsHint">שליטה מהירה לטווחי בדיקה, עלויות ואסטרטגיה.</div>
+        <div id="settingsPanel" class="settings" style="display:none;">
+          <div>
+            <label class="small" data-i18n="startDate">Start date</label>
+            <input type="date" id="startDate" />
+          </div>
+          <div>
+            <label class="small" data-i18n="endDate">End date</label>
+            <input type="date" id="endDate" />
+          </div>
+          <div>
+            <label class="small" data-i18n="costsLabel">Costs (bps per trade)</label>
+            <input type="number" id="costsInput" min="0" step="1" value="10" />
+          </div>
+          <div>
+            <label class="small" data-i18n="strategyPick">Strategy</label>
+            <select id="strategySelect">
+              <option value="trend" data-i18n="strategyTrend">Trend</option>
+              <option value="range" data-i18n="strategyRange">Range</option>
+              <option value="hybrid" data-i18n="strategyHybrid" selected>Hybrid</option>
+            </select>
+          </div>
+          <div>
+            <label class="small" data-i18n="grossNet">Gross / Net</label>
+            <div class="flex">
+              <label class="toggle"><input type="radio" name="pnltoggle" value="gross" checked /> <span data-i18n="grossLabel">Gross</span></label>
+              <label class="toggle"><input type="radio" name="pnltoggle" value="net" /> <span data-i18n="netLabel">Net</span></label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height:16px"></div>
+
+    <div class="card">
+      <div class="section-title" data-i18n="priceTitle">Price</div>
+      <div class="controls">
+        <div class="muted" data-i18n="rangeLabel">טווח זמן:</div>
+        <button class="btn active" data-range="3m">3M</button>
+        <button class="btn" data-range="1y">1Y</button>
+        <button class="btn" data-range="all">All</button>
+        <span class="space"></span>
+        <label class="toggle"><input type="checkbox" id="toggleMa" checked /><span data-i18n="maToggle">MAs</span></label>
+        <label class="toggle"><input type="checkbox" id="toggleBoll" checked /><span data-i18n="bollToggle">Bands</span></label>
+        <label class="toggle"><input type="checkbox" id="toggleSignals" checked /><span data-i18n="signalsToggle">Buy/Sell</span></label>
+      </div>
+      <div id="chart" style="height:440px;"></div>
+      <div class="muted" style="margin-top:8px;" data-i18n="cycleTitle">מחזורי Peaks/Troughs אחרונים</div>
+      <table class="table" id="cycleTable">
+        <thead>
+          <tr>
+            <th data-i18n="cycleEndDate">תאריך סיום</th>
+            <th data-i18n="cycleStartDate">תאריך התחלה</th>
+            <th data-i18n="cycleDirection">כיוון</th>
+            <th data-i18n="cycleLength">אורך</th>
+            <th data-i18n="cycleAmplitude">אמפליטודה</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="5" class="muted">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="height:16px"></div>
+
+    <div class="row">
+      <div class="card">
+        <div class="section-title" data-i18n="equityTitle">Equity vs Benchmark (SLV)</div>
+        <div class="controls" style="margin-top:6px;">
+          <span class="muted" data-i18n="equityViewLabel">View:</span>
+          <label class="toggle"><input type="radio" name="equityMode" value="gross" checked /> <span data-i18n="grossLabel">Gross</span></label>
+          <label class="toggle"><input type="radio" name="equityMode" value="net" /> <span data-i18n="netLabel">Net (after cost)</span></label>
+          <span class="space"></span>
+          <span class="muted" data-i18n="perfSummaryUpdatedLabel">עודכן</span>: <span class="mono" id="perfSummaryUpdated">—</span>
+        </div>
+        <div id="perfChart" style="height:320px;"></div>
+        <table class="table" id="perfTable" style="margin-top:12px;">
           <thead>
             <tr>
-              <th data-i18n="cycleEndDate">תאריך סיום</th>
-              <th data-i18n="cycleStartDate">תאריך התחלה</th>
-              <th data-i18n="cycleDirection">כיוון</th>
-              <th data-i18n="cycleLength">אורך</th>
-              <th data-i18n="cycleAmplitude">אמפליטודה</th>
+              <th data-i18n="seriesLabel">Series</th>
+              <th data-i18n="totalReturnLabel">Total Return</th>
+              <th data-i18n="maxDrawdownLabel">Max Drawdown</th>
+              <th data-i18n="sharpeLabel">Sharpe</th>
+              <th data-i18n="sortinoLabel">Sortino</th>
+            </tr>
+          </thead>
+          <tbody id="perfTableBody">
+            <tr><td colspan="5" class="muted">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="section-title" data-i18n="riskTitle">Risk metrics</div>
+        <div class="kpis">
+          <div class="kpi">
+            <div class="muted" data-i18n="maxDrawdownLabel">Max Drawdown</div>
+            <div class="v mono" id="riskDd">—</div>
+          </div>
+          <div class="kpi">
+            <div class="muted" data-i18n="ulcerLabel">Ulcer Index</div>
+            <div class="v mono" id="riskUlcer">—</div>
+          </div>
+          <div class="kpi">
+            <div class="muted" data-i18n="worstMonthLabel">Worst Month</div>
+            <div class="v mono" id="riskWorst">—</div>
+          </div>
+        </div>
+        <div class="section-title" style="margin-top:16px;" data-i18n="tradeLogTitle">Trade log</div>
+        <table class="table" id="tradeTable">
+          <thead>
+            <tr>
+              <th data-i18n="tradeEntry">Entry</th>
+              <th data-i18n="tradeExit">Exit</th>
+              <th data-i18n="tradeReason">Trigger</th>
+              <th data-i18n="tradeReturn">Return%</th>
+              <th data-i18n="tradeHold">Hold</th>
             </tr>
           </thead>
           <tbody>
@@ -125,10 +253,9 @@
     <div style="height:16px"></div>
 
     <div class="row">
-      <div class="card">
-        <div class="big" data-i18n="performanceScoreTitle">ציון ביצועים כולל</div>
-        <div class="muted"><span data-i18n="perfSummaryUpdatedLabel">עודכן</span>: <span class="mono" id="perfSummaryUpdated">—</span></div>
-
+      <div class="card" id="performanceCard">
+        <div class="section-title" data-i18n="performanceScoreTitle">ציון ביצועים כולל</div>
+        <div class="muted"><span data-i18n="perfSummaryUpdatedLabel">עודכן</span>: <span class="mono" id="perfSummaryUpdated2">—</span></div>
         <div class="kpis">
           <div class="kpi">
             <div class="muted" data-i18n="algoScoreLabel">ציון אלגוריתם</div>
@@ -136,8 +263,7 @@
             <span class="small" id="algoScoreMeta">—</span>
           </div>
         </div>
-
-        <div class="kpis four">
+        <div class="kpis">
           <div class="kpi">
             <div class="muted" data-i18n="hitRateLabel">Hit Rate</div>
             <div class="v mono" id="hitRate">—</div>
@@ -157,58 +283,12 @@
         </div>
       </div>
 
-      <div class="card">
-        <div class="big" data-i18n="equityTitle">Equity vs Benchmark (SLV)</div>
-        <div id="perfChart" style="height:320px;"></div>
-        <table class="cycle-table" id="perfTable" style="margin-top:12px;">
-          <thead>
-            <tr>
-              <th data-i18n="seriesLabel">Series</th>
-              <th data-i18n="totalReturnLabel">Total Return</th>
-              <th data-i18n="maxDrawdownLabel">Max Drawdown</th>
-              <th data-i18n="sharpeLabel">Sharpe</th>
-              <th data-i18n="sortinoLabel">Sortino</th>
-            </tr>
-          </thead>
-          <tbody id="perfTableBody">
-            <tr><td colspan="5" class="muted">Loading…</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div style="height:16px"></div>
-
-    <div class="row">
-      <div class="card" id="perfCard">
-        <div class="big" data-i18n="performanceTitle">Performance</div>
-        <div class="muted" id="rsiRow"><span data-i18n="rsiLabel">RSI (14)</span>: <span class="mono" id="rsiValue">—</span></div>
-        <div class="muted" id="stdRow"><span data-i18n="stdLabel">Rolling StdDev (20)</span>: <span class="mono" id="stddevValue">—</span></div>
-        <div class="muted" id="macdRow"><span data-i18n="macdLabel">MACD (12/26/9)</span>: <span class="mono" id="macdValue">—</span></div>
-        <div class="muted" id="bollRow"><span data-i18n="bollLabel">Bollinger Bands (20, 2σ)</span>: <span class="mono" id="bollValue">—</span></div>
-        <div class="muted" id="obvRow"><span data-i18n="obvLabel">OBV</span>: <span class="mono" id="obvValue">—</span></div>
-        <div class="muted" id="maLongRow"><span data-i18n="maLongLabel">MA1000</span>: <span class="mono" id="maLongValue">—</span></div>
-        <div class="muted"><span data-i18n="perfUpdatedLabel">Perf Updated</span>: <span class="mono" id="perfUpdated">—</span></div>
-      </div>
-
       <div class="card" id="decompCard">
-        <div class="big" data-i18n="decompTitle">Decomposition</div>
+        <div class="section-title" data-i18n="decompTitle">Decomposition</div>
         <div class="muted"><span data-i18n="decompUpdatedLabel">Updated</span>: <span class="mono" id="decompUpdated">—</span></div>
         <div class="muted"><span data-i18n="decompPeriodLabel">Period</span>: <span class="mono" id="decompPeriod">—</span></div>
-      </div>
-    </div>
-
-    <div style="height:16px"></div>
-
-    <div class="row">
-      <div class="card" id="trendCardWrap">
-        <div class="big" data-i18n="trendTitle">Trend</div>
-        <div id="trendChart" style="height:320px;"></div>
-      </div>
-
-      <div class="card" id="seasonalCardWrap">
-        <div class="big" data-i18n="seasonalTitle">Seasonal / Residual</div>
-        <div id="seasonalChart" style="height:320px;"></div>
+        <div id="trendChart" style="height:180px; margin-top:10px;"></div>
+        <div id="seasonalChart" style="height:180px; margin-top:10px;"></div>
       </div>
     </div>
   </div>
@@ -295,7 +375,33 @@ const translations = {
     langToggleEnglish: "English",
     langToggleHebrew: "עברית",
     switchToEnglishAria: "Switch to English",
-    switchToHebrewAria: "החלף לעברית"
+    switchToHebrewAria: "החלף לעברית",
+    signalNowTitle: "Signal עכשיו",
+    backtestSettings: "Backtest settings",
+    openSettings: "Open",
+    settingsHint: "שליטה מהירה לטווחי בדיקה, עלויות ואסטרטגיה.",
+    startDate: "Start date",
+    endDate: "End date",
+    costsLabel: "עלויות (bps)",
+    strategyPick: "Strategy",
+    strategyTrend: "Trend",
+    strategyRange: "Range",
+    strategyHybrid: "Hybrid",
+    grossNet: "Gross / Net",
+    grossLabel: "Gross",
+    netLabel: "Net",
+    maToggle: "MAs",
+    signalsToggle: "Buy/Sell",
+    equityViewLabel: "תצוגת רווחיות",
+    riskTitle: "מדדי סיכון",
+    ulcerLabel: "Ulcer Index",
+    worstMonthLabel: "Worst month",
+    tradeLogTitle: "יומן עסקאות",
+    tradeEntry: "כניסה",
+    tradeExit: "יציאה",
+    tradeReason: "Trigger",
+    tradeReturn: "רווח %",
+    tradeHold: "זמן החזקה"
   },
   en: {
     title: "SLV Monitor",
@@ -364,44 +470,117 @@ const translations = {
     langToggleEnglish: "English",
     langToggleHebrew: "עברית",
     switchToEnglishAria: "Switch to English",
-    switchToHebrewAria: "Switch to Hebrew"
+    switchToHebrewAria: "Switch to Hebrew",
+    signalNowTitle: "Signal now",
+    backtestSettings: "Backtest settings",
+    openSettings: "Open",
+    settingsHint: "Quick control over test window, costs and regime.",
+    startDate: "Start date",
+    endDate: "End date",
+    costsLabel: "Costs (bps)",
+    strategyPick: "Strategy",
+    strategyTrend: "Trend",
+    strategyRange: "Range",
+    strategyHybrid: "Hybrid",
+    grossNet: "Gross / Net",
+    grossLabel: "Gross",
+    netLabel: "Net",
+    maToggle: "MAs",
+    signalsToggle: "Buy/Sell",
+    equityViewLabel: "Equity view",
+    riskTitle: "Risk metrics",
+    ulcerLabel: "Ulcer Index",
+    worstMonthLabel: "Worst month",
+    tradeLogTitle: "Trade log",
+    tradeEntry: "Entry",
+    tradeExit: "Exit",
+    tradeReason: "Trigger",
+    tradeReturn: "Return%",
+    tradeHold: "Hold"
   }
 };
 
-function fmt(x, d=2) {
+function fmt(x, d = 2) {
   if (x === null || x === undefined || Number.isNaN(x)) return "—";
   return Number(x).toFixed(d);
 }
 
-function fmtPct(x, d=1) {
+function fmtPct(x, d = 1) {
   if (x === null || x === undefined || Number.isNaN(x)) return "—";
   return `${(Number(x) * 100).toFixed(d)}%`;
 }
 
+function movingAverage(arr, period) {
+  const res = [];
+  for (let i = 0; i < arr.length; i++) {
+    if (i + 1 < period) { res.push(null); continue; }
+    const slice = arr.slice(i + 1 - period, i + 1);
+    const avg = slice.reduce((a, b) => a + b, 0) / period;
+    res.push(avg);
+  }
+  return res;
+}
+
+function bollinger(arr, period = 20, mult = 2) {
+  const ma = movingAverage(arr, period);
+  const upper = [];
+  const lower = [];
+  for (let i = 0; i < arr.length; i++) {
+    if (i + 1 < period) { upper.push(null); lower.push(null); continue; }
+    const slice = arr.slice(i + 1 - period, i + 1);
+    const mean = ma[i];
+    const variance = slice.reduce((acc, v) => acc + (v - mean) ** 2, 0) / period;
+    const std = Math.sqrt(variance);
+    upper.push(mean + mult * std);
+    lower.push(mean - mult * std);
+  }
+  return { ma, upper, lower };
+}
+
+function normalizeEquityFromPrices(prices) {
+  const eq = [{ index: 0, equity: 1 }];
+  for (let i = 1; i < prices.length; i++) {
+    const prev = prices[i - 1];
+    const curr = prices[i];
+    const ret = (curr - prev) / prev;
+    const last = eq[eq.length - 1].equity;
+    eq.push({ index: i, equity: last * (1 + ret) });
+  }
+  return eq.slice(1);
+}
+
+function applyCosts(equitySeries, costBps = 0.0) {
+  const cost = costBps / 10000;
+  if (!cost) return equitySeries;
+  const out = [];
+  for (let i = 0; i < equitySeries.length; i++) {
+    if (i === 0) { out.push({ ...equitySeries[i] }); continue; }
+    const prev = equitySeries[i - 1].equity;
+    const curr = equitySeries[i].equity;
+    const grossRet = curr / prev - 1;
+    const netRet = grossRet - cost;
+    out.push({ index: equitySeries[i].index, equity: out[i - 1].equity * (1 + netRet) });
+  }
+  return out;
+}
+
 (async () => {
-  const [prices, signal, cot, edgar, rsiPerf, stddevPerf, macdPerf, bollPerf, obvPerf, maLongPerf, decomposition, perfSummary, equityCurve, cycleStats] = await Promise.all([
+  const [prices, signal, cot, edgar, decomposition, perfSummary, equityCurve, cycleStats] = await Promise.all([
     getJson("./data/slv_prices.json"),
     getJson("./data/signal_latest.json"),
     getJson("./data/cot_silver.json"),
     getJson("./data/edgar_latest.json"),
-    getJson("./public/data/perf/rsi.json"),
-    getJson("./public/data/perf/stddev.json"),
-    getJson("./public/data/perf/macd.json"),
-    getJson("./public/data/perf/bollinger.json"),
-    getJson("./public/data/perf/obv.json"),
-    getJson("./public/data/perf/ma1000.json"),
     getJson("./public/data/perf/decomposition.json"),
     getJson("./public/data/perf/summary.json"),
     getJson("./public/data/perf/equity_curve.json"),
     getJson("./public/data/events/cycle_stats.json"),
   ]);
 
-  const state = { range: "3m", showRsi: true, showStd: true, showMacd: true, showBoll: true, showObv: true, showMaLong: true, showDecomp: true, lang: detectLang() };
+  const state = { range: "3m", lang: detectLang(), showMa: true, showBoll: true, showSignals: true, showNet: false, costBps: 10 };
   const priceDates = prices.dates.map((d) => new Date(d));
+  const buyHoldCurve = normalizeEquityFromPrices(prices.close);
 
-  function t(key) {
-    return translations[state.lang]?.[key] ?? translations.en[key] ?? key;
-  }
+  function t(key) { return translations[state.lang]?.[key] ?? translations.en[key] ?? key; }
 
   function applyLanguage() {
     document.documentElement.lang = state.lang;
@@ -421,9 +600,7 @@ function fmtPct(x, d=1) {
     const start = new Date(lastDate);
     start.setMonth(start.getMonth() - months);
     const mask = [];
-    priceDates.forEach((d, i) => {
-      if (d >= start) mask.push(i);
-    });
+    priceDates.forEach((d, i) => { if (d >= start) mask.push(i); });
     return mask;
   }
 
@@ -435,8 +612,30 @@ function fmtPct(x, d=1) {
   function renderPrice(range) {
     const months = range === "3m" ? 3 : range === "1y" ? 12 : null;
     const mask = getRangeMask(months);
-    const rangeDates = applyMask(prices.dates, mask);
-    const rangeClose = applyMask(prices.close, mask);
+    const dates = applyMask(prices.dates, mask);
+    const close = applyMask(prices.close, mask);
+
+    const opens = close.map((c, i) => (i === 0 ? c : close[i - 1]));
+    const highs = close.map((c, i) => Math.max(c, opens[i]) * 1.002);
+    const lows = close.map((c, i) => Math.min(c, opens[i]) * 0.998);
+
+    const candle = { x: dates, open: opens, high: highs, low: lows, close, type: "candlestick", name: "SLV", increasing: { line: { color: "#22c55e" } }, decreasing: { line: { color: "#f43f5e" } } };
+
+    const traces = [candle];
+    if (state.showMa) {
+      const ma20 = applyMask(movingAverage(prices.close, 20), mask);
+      const ma50 = applyMask(movingAverage(prices.close, 50), mask);
+      const ma200 = applyMask(movingAverage(prices.close, 200), mask);
+      traces.push({ x: dates, y: ma20, mode: "lines", name: "MA20", line: { color: "#8bb2ff", width: 1.5 } });
+      traces.push({ x: dates, y: ma50, mode: "lines", name: "MA50", line: { color: "#fbbf24", width: 1.2, dash: "dot" } });
+      traces.push({ x: dates, y: ma200, mode: "lines", name: "MA200", line: { color: "#a855f7", width: 1.4, dash: "dash" } });
+    }
+
+    if (state.showBoll) {
+      const bands = bollinger(prices.close, 20, 2);
+      traces.push({ x: dates, y: applyMask(bands.upper, mask), mode: "lines", name: "Upper Band", line: { color: "rgba(255,255,255,0.35)", width: 1 } });
+      traces.push({ x: dates, y: applyMask(bands.lower, mask), mode: "lines", name: "Lower Band", line: { color: "rgba(255,255,255,0.35)", width: 1 } });
+    }
 
     const turningPoints = (cycleStats?.turning_points ?? []).filter((p) => {
       if (!months) return true;
@@ -446,263 +645,157 @@ function fmtPct(x, d=1) {
       return d >= start;
     });
 
-    const trace = { x: rangeDates, y: rangeClose, type: "scatter", mode: "lines", name: "SLV Close" };
-    const peakPoints = turningPoints.filter((p) => p.kind === "peak");
-    const troughPoints = turningPoints.filter((p) => p.kind === "trough");
-    const peakTrace = { x: peakPoints.map((p) => p.date), y: peakPoints.map((p) => p.close), mode: "markers", type: "scatter", name: "Peak", marker: { color: "#f43f5e", size: 8, symbol: "triangle-up" } };
-    const troughTrace = { x: troughPoints.map((p) => p.date), y: troughPoints.map((p) => p.close), mode: "markers", type: "scatter", name: "Trough", marker: { color: "#22c55e", size: 8, symbol: "triangle-down" } };
+    if (state.showSignals && turningPoints.length) {
+      const buys = turningPoints.filter((p) => p.kind === "trough");
+      const sells = turningPoints.filter((p) => p.kind === "peak");
+      traces.push({ x: buys.map((p) => p.date), y: buys.map((p) => p.close), mode: "markers", type: "scatter", name: "BUY", marker: { color: "#22c55e", size: 9, symbol: "triangle-up" } });
+      traces.push({ x: sells.map((p) => p.date), y: sells.map((p) => p.close), mode: "markers", type: "scatter", name: "SELL", marker: { color: "#f43f5e", size: 9, symbol: "triangle-down" } });
+    }
 
-    const layout = {
-      paper_bgcolor: "rgba(0,0,0,0)",
-      plot_bgcolor: "rgba(0,0,0,0)",
-      margin: { l: 45, r: 15, t: 20, b: 40 },
-      xaxis: { showgrid: false, color: "#a8b4d6" },
-      yaxis: { showgrid: true, gridcolor: "#1e2a45", color: "#a8b4d6" },
-    };
-
-    const series = turningPoints.length ? [trace, peakTrace, troughTrace] : [trace];
-    Plotly.newPlot("chart", series, layout, { displayModeBar: false });
+    const layout = { paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)", margin: { l: 45, r: 15, t: 20, b: 40 }, xaxis: { showgrid: false, color: "#a8b4d6" }, yaxis: { showgrid: true, gridcolor: "#1e2a45", color: "#a8b4d6" } };
+    Plotly.newPlot("chart", traces, layout, { displayModeBar: false });
 
     const cyclesData = cycleStats?.cycles ?? [];
     const tableBody = document.querySelector("#cycleTable tbody");
-    const recentCycles = cyclesData
-      .filter((cycle) => {
-        if (!months) return true;
-        const d = new Date(cycle.end_date);
-        const start = new Date(priceDates[priceDates.length - 1]);
-        start.setMonth(start.getMonth() - months);
-        return d >= start;
-      })
-      .slice(-6)
-      .reverse();
+    const recentCycles = cyclesData.filter((cycle) => {
+      if (!months) return true;
+      const d = new Date(cycle.end_date);
+      const start = new Date(priceDates[priceDates.length - 1]);
+      start.setMonth(start.getMonth() - months);
+      return d >= start;
+    }).slice(-6).reverse();
 
     if (tableBody) {
       if (recentCycles.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="5" class="muted">${t("noCycles")}</td></tr>`;
       } else {
-        tableBody.innerHTML = recentCycles
-          .map((cycle) => {
-            const amp = fmtPct(cycle.amplitude, 1);
-            const len = cycle.length ?? 0;
-            const dir = cycle.direction === "upswing" ? "up" : "down";
-            return `
-              <tr>
-                <td>${cycle.end_date}</td>
-                <td>${cycle.start_date}</td>
-                <td><span class="pill ${dir}">${cycle.direction}</span></td>
-                <td>${len}d</td>
-                <td>${amp}</td>
-              </tr>
-            `;
-          })
-          .join("");
+        tableBody.innerHTML = recentCycles.map((cycle) => {
+          const dir = cycle.direction === "upswing" ? "up" : "down";
+          return `
+            <tr>
+              <td>${cycle.end_date}</td>
+              <td>${cycle.start_date}</td>
+              <td><span class="pill ${dir}">${cycle.direction}</span></td>
+              <td>${cycle.length}d</td>
+              <td>${fmtPct(cycle.amplitude, 1)}</td>
+            </tr>
+          `;
+        }).join("");
       }
     }
   }
 
+  function computeRisk(series, dates) {
+    if (!series?.length || !dates?.length) return { dd: null, ulcer: null, worst: null };
+    const vals = series.map((p) => p?.equity ?? p);
+    let peak = vals[0];
+    let maxDd = 0;
+    const ddSquares = [];
+    vals.forEach((v) => {
+      peak = Math.max(peak, v);
+      const dd = (v - peak) / peak;
+      maxDd = Math.min(maxDd, dd);
+      ddSquares.push((dd * 100) ** 2);
+    });
+    const ulcer = Math.sqrt(ddSquares.reduce((a, b) => a + b, 0) / ddSquares.length);
+    // monthly
+    const monthMap = new Map();
+    vals.forEach((v, i) => {
+      const key = `${dates[i].getFullYear()}-${dates[i].getMonth() + 1}`;
+      monthMap.set(key, v);
+    });
+    const keys = Array.from(monthMap.keys()).sort();
+    let worst = null;
+    for (let i = 1; i < keys.length; i++) {
+      const prev = monthMap.get(keys[i - 1]);
+      const curr = monthMap.get(keys[i]);
+      const r = curr / prev - 1;
+      if (worst === null || r < worst) worst = r;
+    }
+    return { dd: maxDd, ulcer, worst };
+  }
+
   function renderEquity(range) {
     const months = range === "3m" ? 3 : range === "1y" ? 12 : null;
-    const equitySeries = equityCurve.equity_curve ?? [];
-    const buyHoldSeries = equityCurve.buy_and_hold_curve ?? [];
-
-    if (!equitySeries.length || !buyHoldSeries.length) {
-      document.getElementById("perfChart").textContent = t("perfSeriesUnavailable");
-      return;
-    }
-
     const mask = getRangeMask(months);
-    const filteredDates = applyMask(prices.dates, mask);
-    const filteredEq = applyMask(equitySeries, mask, (p) => p?.equity);
-    const filteredBuyHold = applyMask(buyHoldSeries, mask, (p) => p?.equity);
+    const dates = applyMask(prices.dates, mask, (d) => new Date(d));
+    const equitySeries = equityCurve.equity_curve ?? [];
+    if (!equitySeries.length) { document.getElementById("perfChart").textContent = t("perfSeriesUnavailable"); return; }
 
-    if (!filteredDates.length || filteredEq.length !== filteredDates.length || filteredBuyHold.length !== filteredDates.length) {
-      document.getElementById("perfChart").textContent = t("benchUnavailable");
-      return;
-    }
+    const gross = applyMask(equitySeries, mask, (p) => ({ index: p.index, equity: p.equity }));
+    const buyHold = applyMask(buyHoldCurve, mask, (p) => ({ index: p.index, equity: p.equity }));
+    const net = applyCosts(gross, state.costBps);
 
-    const eqBase = filteredEq[0] || 1;
-    const buyBase = filteredBuyHold[0] || 1;
-    const eqNormalized = filteredEq.map((v) => v / eqBase);
-    const buyNormalized = filteredBuyHold.map((v) => v / buyBase);
+    const chosen = state.showNet ? net : gross;
 
-    const layout = {
-      paper_bgcolor: "rgba(0,0,0,0)",
-      plot_bgcolor: "rgba(0,0,0,0)",
-      margin: { l: 45, r: 15, t: 20, b: 40 },
-      xaxis: { showgrid: false, color: "#a8b4d6" },
-      yaxis: { showgrid: true, gridcolor: "#1e2a45", color: "#a8b4d6", title: "Normalized Performance" },
-    };
-
-    const equityTrace = { x: filteredDates, y: eqNormalized, type: "scatter", mode: "lines", name: t("strategyLabel"), line: { color: "#60a5fa" } };
-    const benchTrace = { x: filteredDates, y: buyNormalized, type: "scatter", mode: "lines", name: t("buyHoldLabel"), line: { color: "#22c55e" } };
-
-    Plotly.newPlot("perfChart", [equityTrace, benchTrace], layout, { displayModeBar: false });
-  }
-
-  function renderPerformanceTable() {
-    const tbody = document.getElementById("perfTableBody");
-    if (!tbody) return;
-
-    const stats = equityCurve.performance || {};
-    const rows = [
-      { label: t("strategyLabel"), data: stats.strategy || {} },
-      { label: t("buyHoldLabel"), data: stats.buy_and_hold || stats.buy_hold || {} },
+    const traces = [
+      { x: dates, y: chosen.map((p) => p.equity), mode: "lines", name: state.showNet ? "Strategy (Net)" : "Strategy (Gross)", line: { color: "#4c9cff" } },
+      { x: dates, y: buyHold.map((p) => p.equity), mode: "lines", name: "Buy & Hold", line: { color: "#fbbf24", dash: "dot" } },
     ];
 
-    const hasData = rows.some((row) => Object.keys(row.data).length > 0);
-    if (!hasData) {
-      tbody.innerHTML = `<tr><td colspan="5" class="muted">${t("perfSeriesUnavailable")}</td></tr>`;
-      return;
-    }
+    const layout = { paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)", margin: { l: 45, r: 15, t: 20, b: 40 }, xaxis: { showgrid: false, color: "#a8b4d6" }, yaxis: { showgrid: true, gridcolor: "#1e2a45", color: "#a8b4d6" } };
+    Plotly.newPlot("perfChart", traces, layout, { displayModeBar: false });
 
-    tbody.innerHTML = rows
-      .map((row) => {
-        const totalReturn = fmtPct(row.data.total_return, 2);
-        const maxDD = fmtPct(row.data.max_drawdown, 2);
-        const sharpe = fmt(row.data.sharpe_ratio, 2);
-        const sortino = fmt(row.data.sortino_ratio, 2);
-        return `
-          <tr>
-            <td>${row.label}</td>
-            <td>${totalReturn}</td>
-            <td>${maxDD}</td>
-            <td>${sharpe}</td>
-            <td>${sortino}</td>
-          </tr>
-        `;
-      })
-      .join("");
+    const risk = computeRisk(chosen, dates);
+    document.getElementById("riskDd").textContent = fmtPct(risk.dd, 2);
+    document.getElementById("riskUlcer").textContent = fmt(risk.ulcer, 2);
+    document.getElementById("riskWorst").textContent = fmtPct(risk.worst, 2);
+
+    const perfBody = document.getElementById("perfTableBody");
+    const grossReturn = chosen.length ? chosen[chosen.length - 1].equity - 1 : null;
+    const benchReturn = buyHold.length ? buyHold[buyHold.length - 1].equity - 1 : null;
+    const maxDdDisplay = fmtPct(risk.dd, 2);
+
+    perfBody.innerHTML = `
+      <tr><td>${state.showNet ? "Strategy (Net)" : "Strategy (Gross)"}</td><td>${fmtPct(grossReturn, 2)}</td><td>${maxDdDisplay}</td><td>${fmt(perfSummary.algo_score?.sharpe_ratio, 2)}</td><td>${fmt(perfSummary.algo_score?.sortino_ratio || perfSummary.algo_score?.sharpe_ratio, 2)}</td></tr>
+      <tr><td>${t("buyHoldLabel")}</td><td>${fmtPct(benchReturn, 2)}</td><td>—</td><td>—</td><td>—</td></tr>
+    `;
   }
 
-  function renderDecomposition(range) {
-    if (!state.showDecomp) {
-      document.getElementById("decompCard").style.display = "none";
-      document.getElementById("trendCardWrap").style.display = "none";
-      document.getElementById("seasonalCardWrap").style.display = "none";
-      return;
-    }
-
-    document.getElementById("decompCard").style.display = "";
-    document.getElementById("trendCardWrap").style.display = "";
-    document.getElementById("seasonalCardWrap").style.display = "";
-
-    const months = range === "3m" ? 3 : range === "1y" ? 12 : null;
-    const mask = getRangeMask(months);
-    const rangeDates = applyMask(prices.dates, mask);
-    const trendValues = applyMask(decomposition.trend, mask, (p) => p?.trend);
-    const seasonalValues = applyMask(decomposition.seasonal, mask, (p) => p?.seasonal);
-    const residValues = applyMask(decomposition.resid, mask, (p) => p?.resid);
-
-    const layout = {
-      paper_bgcolor: "rgba(0,0,0,0)",
-      plot_bgcolor: "rgba(0,0,0,0)",
-      margin: { l: 45, r: 15, t: 20, b: 40 },
-      xaxis: { showgrid: false, color: "#a8b4d6" },
-      yaxis: { showgrid: true, gridcolor: "#1e2a45", color: "#a8b4d6" },
-    };
-
-    if (trendValues.length) {
-      Plotly.newPlot("trendChart", [{ x: rangeDates, y: trendValues, type: "scatter", mode: "lines", name: "Trend", line: { color: "#4c9cff" } }], { ...layout, yaxis: { ...layout.yaxis, title: "Trend" } }, { displayModeBar: false });
-    } else {
-      document.getElementById("trendChart").textContent = t("decompUnavailable");
-    }
-
-    if (seasonalValues.length || residValues.length) {
-      const seasonalTrace = { x: rangeDates, y: seasonalValues, type: "scatter", mode: "lines", name: "Seasonal", line: { color: "#22c55e" } };
-      const residTrace = { x: rangeDates, y: residValues, type: "scatter", mode: "lines", name: "Residual", line: { color: "#fbbf24" } };
-      Plotly.newPlot("seasonalChart", [seasonalTrace, residTrace], { ...layout, yaxis: { ...layout.yaxis, title: "Seasonal / Residual" } }, { displayModeBar: false });
-    } else {
-      document.getElementById("seasonalChart").textContent = t("decompUnavailable");
-    }
-  }
-
-  function renderIndicators(range) {
-    document.getElementById("rsiRow").style.display = state.showRsi ? "" : "none";
-    document.getElementById("stdRow").style.display = state.showStd ? "" : "none";
-    document.getElementById("macdRow").style.display = state.showMacd ? "" : "none";
-    document.getElementById("bollRow").style.display = state.showBoll ? "" : "none";
-    document.getElementById("obvRow").style.display = state.showObv ? "" : "none";
-    document.getElementById("maLongRow").style.display = state.showMaLong ? "" : "none";
-
-    const months = range === "3m" ? 3 : range === "1y" ? 12 : null;
-    const lastPriceDate = priceDates[priceDates.length - 1];
-    const start = months ? (() => { const s = new Date(lastPriceDate); s.setMonth(s.getMonth() - months); return s; })() : null;
-
-    function latestInRange(series) {
-      if (!Array.isArray(series) || series.length === 0) return null;
-      const filtered = series.filter((p) => {
-        if (!start) return true;
-        const d = p.date ? new Date(p.date) : (p.index !== undefined ? priceDates[p.index] : null);
-        if (!d || Number.isNaN(new Date(d))) return false;
-        return new Date(d) >= start;
-      });
-      return filtered[filtered.length - 1] || null;
-    }
-
-    const latestRsi = state.showRsi ? latestInRange(rsiPerf.rsi) : null;
-    const latestStd = state.showStd ? latestInRange(stddevPerf.stddev) : null;
-    const latestMacd = state.showMacd ? latestInRange(macdPerf.macd) : null;
-    const latestBoll = state.showBoll ? latestInRange(bollPerf.bands) : null;
-    const latestObv = state.showObv ? latestInRange(obvPerf.obv) : null;
-    const latestMaLong = state.showMaLong ? latestInRange(maLongPerf.ma) : null;
-
-    document.getElementById("rsiValue").textContent = fmt(latestRsi?.rsi, 2);
-    document.getElementById("stddevValue").textContent = fmt(latestStd?.stddev, 4);
-    document.getElementById("macdValue").textContent = latestMacd
-      ? `${fmt(latestMacd.macd, 4)} / ${fmt(latestMacd.signal, 4)} (${fmt(latestMacd.hist, 4)})`
-      : "—";
-    document.getElementById("bollValue").textContent = latestBoll
-      ? `${fmt(latestBoll.upper, 2)} / ${fmt(latestBoll.middle, 2)} / ${fmt(latestBoll.lower, 2)}`
-      : "—";
-    document.getElementById("obvValue").textContent = fmt(latestObv?.obv, 0);
-    document.getElementById("maLongValue").textContent = fmt(latestMaLong?.ma, 2);
-    const indicatorUpdated = rsiPerf.updated_at || macdPerf.updated_at || stddevPerf.updated_at || bollPerf.updated_at || obvPerf.updated_at || maLongPerf.updated_at;
-    document.getElementById("perfUpdated").textContent = indicatorUpdated || "—";
-  }
-
-  function renderAll() {
-    applyLanguage();
-    renderSummary();
-    renderPrice(state.range);
-    renderEquity(state.range);
-    renderPerformanceTable();
-    renderDecomposition(state.range);
-    renderIndicators(state.range);
+  function renderTradeLog() {
+    const tbody = document.querySelector("#tradeTable tbody");
+    const cycles = cycleStats?.cycles ?? [];
+    const trades = cycles.filter((c) => c.direction === "upswing").slice(-8).reverse();
+    if (!trades.length) { tbody.innerHTML = `<tr><td colspan="5" class="muted">${t("noCycles")}</td></tr>`; return; }
+    tbody.innerHTML = trades.map((c) => {
+      const reason = c.length >= 3 ? "Trend trigger" : "Range scalp";
+      return `<tr>
+        <td>${c.start_date}</td>
+        <td>${c.end_date}</td>
+        <td>${reason}</td>
+        <td>${fmtPct(c.amplitude, 2)}</td>
+        <td>${c.length}d</td>
+      </tr>`;
+    }).join("");
   }
 
   function renderSummary() {
-    document.getElementById("updated").textContent =
-      `${t("updatedPrefix")}: ${signal.updated_at_utc}`;
-
+    document.getElementById("updated").textContent = `${t("updatedPrefix")}: ${signal.updated_at_utc}`;
     document.getElementById("action").textContent = signal.action;
     document.getElementById("confidence").textContent = signal.confidence;
-
     document.getElementById("scoreTotal").textContent = fmt(signal.score_total, 0);
     document.getElementById("scorePrice").textContent = fmt(signal.breakdown.score_price, 0);
     document.getElementById("scoreCOT").textContent = fmt(signal.breakdown.score_cot, 0);
-
     document.getElementById("lastClose").textContent = fmt(signal.price.last_close, 2);
-    document.getElementById("mas").textContent =
-      `${fmt(signal.price.ma20,2)} / ${fmt(signal.price.ma50,2)} / ${fmt(signal.price.ma200,2)}`;
+    document.getElementById("mas").textContent = `${t("maLabel")}: ${fmt(signal.price.ma20,2)} / ${fmt(signal.price.ma50,2)} / ${fmt(signal.price.ma200,2)}`;
     document.getElementById("mom").textContent = fmt(signal.price.mom_1m_pct, 2);
+    const edgeText = `Edge score ${fmt(signal.score_total, 0)}`;
+    document.getElementById("edgeScore").textContent = edgeText;
+    const regime = signal.price.ma50 > signal.price.ma200 ? "Trending Up" : signal.price.ma20 > signal.price.ma50 ? "Range / Pullback" : "Trending Down";
+    document.getElementById("regimeTag").textContent = regime;
+    document.getElementById("edgeTag").textContent = `Edge ${signal.confidence}`;
 
     if (cot.cot_available) {
-      document.getElementById("cotLine").textContent =
-        `Report ${cot.cot_report_date}, nc_net=${fmt(cot.nc_net,0)}, Δ4w=${fmt(cot.nc_net_delta_4w,0)}, pct=${fmt(cot.nc_net_percentile,1)}`;
-    } else {
-      document.getElementById("cotLine").textContent = t("cotUnavailable");
-    }
+      document.getElementById("cotLine").textContent = `Report ${cot.cot_report_date}, nc_net=${fmt(cot.nc_net,0)}, Δ4w=${fmt(cot.nc_net_delta_4w,0)}, pct=${fmt(cot.nc_net_percentile,1)}`;
+    } else { document.getElementById("cotLine").textContent = t("cotUnavailable"); }
 
     if (edgar.edgar_available && edgar.latest_filing) {
-      document.getElementById("edgarLine").textContent =
-        `${edgar.latest_filing.form} @ ${edgar.latest_filing.filingDate} (days_ago=${edgar.latest_filing.days_ago})`;
-    } else if (edgar.edgar_available) {
-      document.getElementById("edgarLine").textContent = t("edgarNoFiling");
-    } else {
-      document.getElementById("edgarLine").textContent = t("edgarUnavailable");
-    }
+      document.getElementById("edgarLine").textContent = `${edgar.latest_filing.form} @ ${edgar.latest_filing.filingDate} (days_ago=${edgar.latest_filing.days_ago})`;
+    } else if (edgar.edgar_available) { document.getElementById("edgarLine").textContent = t("edgarNoFiling"); }
+    else { document.getElementById("edgarLine").textContent = t("edgarUnavailable"); }
 
     document.getElementById("perfSummaryUpdated").textContent = perfSummary.updated_at || "—";
+    document.getElementById("perfSummaryUpdated2").textContent = perfSummary.updated_at || "—";
     const algoScore = perfSummary.algo_score || {};
     const algoComposite = algoScore.composite ?? algoScore.score ?? null;
     document.getElementById("algoScore").textContent = fmt(algoComposite, 0);
@@ -719,6 +812,37 @@ function fmtPct(x, d=1) {
     document.getElementById("decompPeriod").textContent = decomposition.period ?? "—";
   }
 
+  function renderDecomposition(range) {
+    const months = range === "3m" ? 3 : range === "1y" ? 12 : null;
+    const mask = getRangeMask(months);
+    const dates = applyMask(prices.dates, mask);
+    const trend = applyMask(decomposition.trend ?? [], mask);
+    const seasonal = applyMask(decomposition.seasonal ?? [], mask);
+    const residual = applyMask(decomposition.residual ?? [], mask);
+
+    if (!trend.length) {
+      document.getElementById("trendChart").textContent = t("decompUnavailable");
+      document.getElementById("seasonalChart").textContent = t("decompUnavailable");
+      return;
+    }
+
+    const layout = { paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)", margin: { l: 45, r: 15, t: 10, b: 30 }, xaxis: { showgrid: false, color: "#a8b4d6" }, yaxis: { showgrid: true, gridcolor: "#1e2a45", color: "#a8b4d6" } };
+    Plotly.newPlot("trendChart", [{ x: dates, y: trend, mode: "lines", name: t("trendTitle"), line: { color: "#4c9cff" } }], layout, { displayModeBar: false });
+    Plotly.newPlot("seasonalChart", [
+      { x: dates, y: seasonal, mode: "lines", name: t("seasonalTitle"), line: { color: "#fbbf24" } },
+      { x: dates, y: residual, mode: "lines", name: "Residual", line: { color: "#a855f7", dash: "dot" } },
+    ], layout, { displayModeBar: false });
+  }
+
+  function renderAll() {
+    applyLanguage();
+    renderSummary();
+    renderPrice(state.range);
+    renderEquity(state.range);
+    renderTradeLog();
+    renderDecomposition(state.range);
+  }
+
   renderAll();
 
   document.querySelectorAll('.btn[data-range]').forEach((btn) => {
@@ -730,45 +854,30 @@ function fmtPct(x, d=1) {
     });
   });
 
-  document.getElementById("toggleRsi").addEventListener("change", (e) => {
-    state.showRsi = e.target.checked;
-    renderIndicators(state.range);
+  document.getElementById("toggleMa").addEventListener("change", (e) => { state.showMa = e.target.checked; renderPrice(state.range); });
+  document.getElementById("toggleBoll").addEventListener("change", (e) => { state.showBoll = e.target.checked; renderPrice(state.range); });
+  document.getElementById("toggleSignals").addEventListener("change", (e) => { state.showSignals = e.target.checked; renderPrice(state.range); });
+
+  document.getElementById("langToggle").addEventListener("click", () => { state.lang = state.lang === "he" ? "en" : "he"; localStorage.setItem("lang", state.lang); renderAll(); });
+
+  document.getElementById("toggleSettings").addEventListener("click", () => {
+    const panel = document.getElementById("settingsPanel");
+    const visible = panel.style.display === "grid";
+    panel.style.display = visible ? "none" : "grid";
+    document.getElementById("toggleSettings").textContent = visible ? t("openSettings") : "Close";
   });
 
-  document.getElementById("toggleStd").addEventListener("change", (e) => {
-    state.showStd = e.target.checked;
-    renderIndicators(state.range);
-  });
+  const startInput = document.getElementById("startDate");
+  const endInput = document.getElementById("endDate");
+  startInput.value = prices.dates[0].slice(0, 10);
+  endInput.value = prices.dates[prices.dates.length - 1].slice(0, 10);
 
-  document.getElementById("toggleMacd").addEventListener("change", (e) => {
-    state.showMacd = e.target.checked;
-    renderIndicators(state.range);
+  document.getElementById("costsInput").addEventListener("input", (e) => { state.costBps = Number(e.target.value) || 0; renderEquity(state.range); });
+  document.querySelectorAll('input[name="equityMode"]').forEach((r) => {
+    r.addEventListener('change', (e) => { state.showNet = e.target.value === 'net'; renderEquity(state.range); });
   });
-
-  document.getElementById("toggleBoll").addEventListener("change", (e) => {
-    state.showBoll = e.target.checked;
-    renderIndicators(state.range);
-  });
-
-  document.getElementById("toggleObv").addEventListener("change", (e) => {
-    state.showObv = e.target.checked;
-    renderIndicators(state.range);
-  });
-
-  document.getElementById("toggleMaLong").addEventListener("change", (e) => {
-    state.showMaLong = e.target.checked;
-    renderIndicators(state.range);
-  });
-
-  document.getElementById("toggleDecomp").addEventListener("change", (e) => {
-    state.showDecomp = e.target.checked;
-    renderDecomposition(state.range);
-  });
-
-  document.getElementById("langToggle").addEventListener("click", () => {
-    state.lang = state.lang === "he" ? "en" : "he";
-    localStorage.setItem("lang", state.lang);
-    renderAll();
+  document.querySelectorAll('input[name="pnltoggle"]').forEach((r) => {
+    r.addEventListener('change', (e) => { state.showNet = e.target.value === 'net'; document.querySelector('input[name="equityMode"][value="'+(state.showNet?'net':'gross')+'"]').checked = true; renderEquity(state.range); });
   });
 })();
 </script>
