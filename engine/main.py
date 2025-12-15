@@ -28,14 +28,14 @@ from engine.events.cycles import (
     turning_points_to_records,
 )
 from engine.events.detector import detect_events
-from engine.fetchers.slv import generate_slv_series
+from engine.fetchers.slv_real import fetch_slv_ohlcv
 from engine.utils.io import ensure_parent, write_json
 
 BASE_PATH = Path("public/data")
 
 
 def run_pipeline() -> None:
-    raw_data = generate_slv_series()
+    raw_data = fetch_slv_ohlcv(cache_path=str(BASE_PATH / "raw/slv_daily.json"))
     closes = [row["close"] for row in raw_data]
     opens = [row["open"] for row in raw_data]
     volumes = [row["volume"] for row in raw_data]
@@ -74,7 +74,6 @@ def run_pipeline() -> None:
     now = datetime.utcnow().isoformat()
     history_record = {"timestamp": now, **signal}
 
-    write_json(BASE_PATH / "raw/slv_daily.json", {"symbol": "SLV", "data": raw_data})
     write_json(BASE_PATH / "events/latest.json", {"as_of": now, "events": [e.to_dict() for e in latest_events]})
     write_json(
         BASE_PATH / "events/cycle_stats.json",
