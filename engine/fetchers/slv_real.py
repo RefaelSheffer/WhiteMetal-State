@@ -31,14 +31,24 @@ def fetch_slv_ohlcv(
     end_date: str | None = None,
     cache_path: str = "public/data/raw/slv_daily.json",
     source: str = "stooq",
+    refresh: bool = False,
 ) -> list[dict]:
+    """Fetch SLV OHLCV data, preferring cached data when available.
+
+    The first invocation downloads the dataset and writes it to ``cache_path``.
+    Subsequent calls reuse the cached JSON unless ``refresh`` is set to ``True``.
+    """
+    cache_file = Path(cache_path)
+
+    if cache_file.exists() and not refresh:
+        return json.loads(cache_file.read_text())
+
     if source != "stooq":
         raise ValueError("Only stooq supported in this fetcher")
 
     try:
         df = pd.read_csv(STOOQ_URL)
     except Exception:
-        cache_file = Path(cache_path)
         if cache_file.exists():
             return json.loads(cache_file.read_text())
         raise
