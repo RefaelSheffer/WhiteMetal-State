@@ -35,7 +35,11 @@ BASE_PATH = Path("public/data")
 
 
 def run_pipeline() -> None:
-    raw_data = fetch_slv_ohlcv(cache_path=str(BASE_PATH / "raw/slv_daily.json"))
+    raw_data = fetch_slv_ohlcv(
+        start_date="2008-01-01",
+        cache_path=str(BASE_PATH / "raw/slv_daily.json"),
+        source="stooq",
+    )
     closes = [row["close"] for row in raw_data]
     opens = [row["open"] for row in raw_data]
     volumes = [row["volume"] for row in raw_data]
