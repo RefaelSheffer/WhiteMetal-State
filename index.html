@@ -160,6 +160,20 @@
       <div class="card">
         <div class="big" data-i18n="equityTitle">Equity vs Benchmark (SLV)</div>
         <div id="perfChart" style="height:320px;"></div>
+        <table class="cycle-table" id="perfTable" style="margin-top:12px;">
+          <thead>
+            <tr>
+              <th data-i18n="seriesLabel">Series</th>
+              <th data-i18n="totalReturnLabel">Total Return</th>
+              <th data-i18n="maxDrawdownLabel">Max Drawdown</th>
+              <th data-i18n="sharpeLabel">Sharpe</th>
+              <th data-i18n="sortinoLabel">Sortino</th>
+            </tr>
+          </thead>
+          <tbody id="perfTableBody">
+            <tr><td colspan="5" class="muted">Loading…</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
@@ -249,6 +263,11 @@ const translations = {
     perfSeriesUnavailable: "סדרת ביצועים לא זמינה.",
     benchUnavailable: "חלון מדד חסר.",
     decompUnavailable: "פירוק לא זמין.",
+    seriesLabel: "סדרה",
+    totalReturnLabel: "תשואה כוללת",
+    sortinoLabel: "Sortino",
+    strategyLabel: "אסטרטגיה",
+    buyHoldLabel: "Buy & Hold",
     updatedPrefix: "עודכן (UTC)",
     confidenceLabel: "Confidence",
     scoreTotalLabel: "Score Total",
@@ -313,6 +332,11 @@ const translations = {
     perfSeriesUnavailable: "Performance series unavailable.",
     benchUnavailable: "Benchmark window unavailable.",
     decompUnavailable: "Decomposition unavailable.",
+    seriesLabel: "Series",
+    totalReturnLabel: "Total Return",
+    sortinoLabel: "Sortino",
+    strategyLabel: "Strategy",
+    buyHoldLabel: "Buy & Hold",
     updatedPrefix: "Updated (UTC)",
     confidenceLabel: "Confidence",
     scoreTotalLabel: "Score Total",
@@ -479,40 +503,27 @@ function fmtPct(x, d=1) {
   function renderEquity(range) {
     const months = range === "3m" ? 3 : range === "1y" ? 12 : null;
     const equitySeries = equityCurve.equity_curve ?? [];
-    const eqValues = equitySeries.map((p) => p.equity);
-    if (!eqValues.length) {
+    const buyHoldSeries = equityCurve.buy_and_hold_curve ?? [];
+
+    if (!equitySeries.length || !buyHoldSeries.length) {
       document.getElementById("perfChart").textContent = t("perfSeriesUnavailable");
       return;
     }
 
-    const eqBase = eqValues[0] || 1;
-    const eqNormalized = eqValues.map((v) => v / eqBase);
-    const sliceLen = eqNormalized.length;
-    const benchPrices = prices.close.slice(-sliceLen);
-    const benchDates = prices.dates.slice(-sliceLen);
+    const mask = getRangeMask(months);
+    const filteredDates = applyMask(prices.dates, mask);
+    const filteredEq = applyMask(equitySeries, mask, (p) => p?.equity);
+    const filteredBuyHold = applyMask(buyHoldSeries, mask, (p) => p?.equity);
 
-    if (benchPrices.length !== sliceLen || benchDates.length !== sliceLen) {
+    if (!filteredDates.length || filteredEq.length !== filteredDates.length || filteredBuyHold.length !== filteredDates.length) {
       document.getElementById("perfChart").textContent = t("benchUnavailable");
       return;
     }
 
-    const benchBase = benchPrices[0] || 1;
-    const benchNormalized = benchPrices.map((p) => p / benchBase);
-
-    const lastBenchDate = new Date(benchDates[benchDates.length - 1]);
-    const startDate = months ? (() => { const s = new Date(lastBenchDate); s.setMonth(s.getMonth() - months); return s; })() : null;
-
-    const filteredDates = [];
-    const filteredEq = [];
-    const filteredBench = [];
-    benchDates.forEach((d, idx) => {
-      const dateObj = new Date(d);
-      if (!startDate || dateObj >= startDate) {
-        filteredDates.push(d);
-        filteredEq.push(eqNormalized[idx]);
-        filteredBench.push(benchNormalized[idx]);
-      }
-    });
+    const eqBase = filteredEq[0] || 1;
+    const buyBase = filteredBuyHold[0] || 1;
+    const eqNormalized = filteredEq.map((v) => v / eqBase);
+    const buyNormalized = filteredBuyHold.map((v) => v / buyBase);
 
     const layout = {
       paper_bgcolor: "rgba(0,0,0,0)",
@@ -522,10 +533,45 @@ function fmtPct(x, d=1) {
       yaxis: { showgrid: true, gridcolor: "#1e2a45", color: "#a8b4d6", title: "Normalized Performance" },
     };
 
-    const equityTrace = { x: filteredDates, y: filteredEq, type: "scatter", mode: "lines", name: "Algo Equity", line: { color: "#60a5fa" } };
-    const benchTrace = { x: filteredDates, y: filteredBench, type: "scatter", mode: "lines", name: "SLV Benchmark", line: { color: "#22c55e" } };
+    const equityTrace = { x: filteredDates, y: eqNormalized, type: "scatter", mode: "lines", name: t("strategyLabel"), line: { color: "#60a5fa" } };
+    const benchTrace = { x: filteredDates, y: buyNormalized, type: "scatter", mode: "lines", name: t("buyHoldLabel"), line: { color: "#22c55e" } };
 
     Plotly.newPlot("perfChart", [equityTrace, benchTrace], layout, { displayModeBar: false });
+  }
+
+  function renderPerformanceTable() {
+    const tbody = document.getElementById("perfTableBody");
+    if (!tbody) return;
+
+    const stats = equityCurve.performance || {};
+    const rows = [
+      { label: t("strategyLabel"), data: stats.strategy || {} },
+      { label: t("buyHoldLabel"), data: stats.buy_and_hold || stats.buy_hold || {} },
+    ];
+
+    const hasData = rows.some((row) => Object.keys(row.data).length > 0);
+    if (!hasData) {
+      tbody.innerHTML = `<tr><td colspan="5" class="muted">${t("perfSeriesUnavailable")}</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = rows
+      .map((row) => {
+        const totalReturn = fmtPct(row.data.total_return, 2);
+        const maxDD = fmtPct(row.data.max_drawdown, 2);
+        const sharpe = fmt(row.data.sharpe_ratio, 2);
+        const sortino = fmt(row.data.sortino_ratio, 2);
+        return `
+          <tr>
+            <td>${row.label}</td>
+            <td>${totalReturn}</td>
+            <td>${maxDD}</td>
+            <td>${sharpe}</td>
+            <td>${sortino}</td>
+          </tr>
+        `;
+      })
+      .join("");
   }
 
   function renderDecomposition(range) {
@@ -619,6 +665,7 @@ function fmtPct(x, d=1) {
     renderSummary();
     renderPrice(state.range);
     renderEquity(state.range);
+    renderPerformanceTable();
     renderDecomposition(state.range);
     renderIndicators(state.range);
   }

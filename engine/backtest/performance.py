@@ -51,12 +51,30 @@ def compute_equity_curve(closes: Sequence[float]) -> List[Mapping]:
     equity = 1.0
     curve: List[Mapping] = []
 
+    if not closes:
+        return curve
+
+    curve.append({"index": 0, "equity": round(equity, 4)})
+
     for idx in range(1, len(closes)):
         ret = (closes[idx] - closes[idx - 1]) / closes[idx - 1]
         equity *= 1 + ret
         curve.append({"index": idx, "equity": round(equity, 4)})
 
     return curve
+
+
+def compute_buy_and_hold_equity(closes: Sequence[float]) -> List[Mapping]:
+    if not closes:
+        return []
+
+    base = closes[0]
+    if base == 0:
+        return []
+
+    return [
+        {"index": idx, "equity": round(close / base, 4)} for idx, close in enumerate(closes)
+    ]
 
 
 def summarize_returns(closes: Sequence[float]) -> PerformanceSummary:
@@ -209,6 +227,64 @@ def compute_algorithm_score(
         sharpe_ratio=sharpe_ratio,
         cycle_capture_rate=cycle_capture,
     )
+
+
+def _max_drawdown(equity_values: Sequence[float]) -> float:
+    if not equity_values:
+        return 0.0
+
+    peak = equity_values[0]
+    max_dd = 0.0
+
+    for value in equity_values:
+        if value > peak:
+            peak = value
+        drawdown = (value - peak) / peak if peak != 0 else 0.0
+        max_dd = min(max_dd, drawdown)
+
+    return max_dd
+
+
+def compute_performance_stats(curve: Sequence[Mapping[str, float]]) -> Mapping[str, float]:
+    if len(curve) < 2:
+        return {
+            "total_return": 0.0,
+            "max_drawdown": 0.0,
+            "sharpe_ratio": 0.0,
+            "sortino_ratio": 0.0,
+        }
+
+    equity_values = [point["equity"] for point in curve]
+    total_return = (equity_values[-1] / equity_values[0]) - 1 if equity_values[0] else 0.0
+
+    returns = [
+        (equity_values[i] - equity_values[i - 1]) / equity_values[i - 1]
+        for i in range(1, len(equity_values))
+        if equity_values[i - 1] != 0
+    ]
+
+    if not returns:
+        return {
+            "total_return": round(total_return, 4),
+            "max_drawdown": 0.0,
+            "sharpe_ratio": 0.0,
+            "sortino_ratio": 0.0,
+        }
+
+    mean_ret = mean(returns)
+    stddev = pstdev(returns) if len(returns) > 1 else 0.0
+    sharpe_ratio = mean_ret / stddev if stddev != 0 else 0.0
+
+    downside = [r for r in returns if r < 0]
+    downside_dev = pstdev(downside) if len(downside) > 1 else (abs(downside[0]) if downside else 0.0)
+    sortino_ratio = mean_ret / downside_dev if downside_dev != 0 else 0.0
+
+    return {
+        "total_return": round(total_return, 4),
+        "max_drawdown": round(_max_drawdown(equity_values), 4),
+        "sharpe_ratio": round(sharpe_ratio, 4),
+        "sortino_ratio": round(sortino_ratio, 4),
+    }
 
 
 def event_breakdown(events: Iterable[str], closes: Sequence[float]) -> List[Mapping]:
