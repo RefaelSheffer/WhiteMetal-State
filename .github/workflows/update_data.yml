@@ -3,8 +3,8 @@ name: Update SLV Dashboard Data
 on:
   workflow_dispatch:
   schedule:
-    # כל יום ב-05:20 UTC (בערך 07:20 בישראל בחורף)
-    - cron: "20 5 * * *"
+    # כל יום ב-22:30 UTC (אחרי סגירת שוק ארה"ב)
+    - cron: "30 22 * * *"
 
 permissions:
   contents: write
@@ -26,17 +26,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run updater
-        run: |
-          python scripts/update_data.py
+      - name: Run pipeline
+        run: python -m engine.main
 
       - name: Commit & push if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/*.json
+          git add public/data
           if git diff --cached --quiet; then
-            echo "No changes."
+            echo "No changes in public/data."
           else
             git commit -m "chore: update dashboard data"
             git push
