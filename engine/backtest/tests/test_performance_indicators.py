@@ -234,3 +234,36 @@ class TestComputeAlgorithmScore:
         assert score.sharpe_ratio == pytest.approx(0.3773, rel=1e-3)
         assert score.cycle_capture_rate == pytest.approx(0.7273, rel=1e-3)
         assert 50 <= score.composite <= 80  # weighted blend should land mid-range
+
+    def test_accepts_custom_weightings(self):
+        closes = [10, 11, 10.5, 12, 12.5, 11.5]
+        cycles = [
+            CycleSegment(
+                start_idx=0,
+                end_idx=3,
+                start_date="",
+                end_date="",
+                direction="upswing",
+                length=3,
+                amplitude=(12 - 10) / 10,
+                start_close=10,
+                end_close=12,
+            ),
+            CycleSegment(
+                start_idx=3,
+                end_idx=5,
+                start_date="",
+                end_date="",
+                direction="downswing",
+                length=2,
+                amplitude=(11.5 - 12) / 12,
+                start_close=12,
+                end_close=11.5,
+            ),
+        ]
+
+        weights = {"hit_rate": 0.7, "sharpe_ratio": 0.2, "cycle_capture_rate": 0.1}
+        score = compute_algorithm_score(closes, cycles, weights=weights)
+
+        assert score.hit_rate == pytest.approx(0.6)
+        assert 60 <= score.composite <= 62  # higher bias to hit rate pulls composite down slightly
