@@ -10,6 +10,7 @@ if str(ROOT) not in sys.path:
 
 from engine.backtest.performance import (
     attach_dates,
+    compute_equity_curve,
     compute_algorithm_score,
     compute_bollinger_bands,
     compute_macd,
@@ -17,6 +18,7 @@ from engine.backtest.performance import (
     compute_obv,
     compute_rsi,
     compute_rolling_stddev,
+    TradingCosts,
     decompose_closes,
 )
 from engine.events.cycles import CycleSegment
@@ -267,3 +269,29 @@ class TestComputeAlgorithmScore:
 
         assert score.hit_rate == pytest.approx(0.6)
         assert 60 <= score.composite <= 62  # higher bias to hit rate pulls composite down slightly
+
+
+class TestEquityCurveWithCosts:
+    def test_applies_round_trip_friction(self):
+        closes = [100.0, 102.0, 104.0]
+        opens = [99.0, 100.0, 102.0]
+
+        base_curve = compute_equity_curve(closes, opens=opens, costs=TradingCosts())
+        cost_curve = compute_equity_curve(
+            closes, opens=opens, costs=TradingCosts(commission_pct=0.001, slippage_pct=0.0005)
+        )
+
+        assert base_curve[-1]["equity"] == pytest.approx(1.04, rel=1e-3)
+        assert cost_curve[-1]["equity"] == pytest.approx(1.0342, rel=1e-3)
+        assert cost_curve[-1]["equity"] < base_curve[-1]["equity"]
+
+    def test_prefers_next_open_to_close_returns_when_available(self):
+        closes = [10.0, 11.0, 12.0]
+        opens = [10.0, 20.0, 5.0]
+
+        curve_with_opens = compute_equity_curve(closes, opens=opens, costs=TradingCosts())
+        curve_with_closes = compute_equity_curve(closes, costs=TradingCosts())
+
+        assert curve_with_opens[-1]["equity"] == pytest.approx(1.32, rel=1e-3)
+        assert curve_with_closes[-1]["equity"] == pytest.approx(1.2, rel=1e-3)
+        assert curve_with_opens[-1]["equity"] != curve_with_closes[-1]["equity"]

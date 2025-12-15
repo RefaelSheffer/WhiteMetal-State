@@ -4,6 +4,7 @@ from datetime import datetime
 from pathlib import Path
 
 from engine.backtest.performance import (
+    DEFAULT_TRADING_COSTS,
     attach_dates,
     compute_bollinger_bands,
     compute_buy_and_hold_equity,
@@ -36,6 +37,7 @@ BASE_PATH = Path("public/data")
 def run_pipeline() -> None:
     raw_data = generate_slv_series()
     closes = [row["close"] for row in raw_data]
+    opens = [row["open"] for row in raw_data]
     volumes = [row["volume"] for row in raw_data]
     dates = [row["date"] for row in raw_data]
 
@@ -46,7 +48,9 @@ def run_pipeline() -> None:
 
     perf_summary = summarize_returns(closes)
     algo_score = compute_algorithm_score(closes, filtered_cycles)
-    equity_curve = compute_equity_curve(closes)
+    equity_curve = compute_equity_curve(
+        closes, opens=opens, costs=DEFAULT_TRADING_COSTS, turnover=1.0
+    )
     buy_and_hold_curve = compute_buy_and_hold_equity(closes)
     strategy_stats = compute_performance_stats(equity_curve)
     buy_and_hold_stats = compute_performance_stats(buy_and_hold_curve)
@@ -104,6 +108,12 @@ def run_pipeline() -> None:
             "performance": {
                 "strategy": strategy_stats,
                 "buy_and_hold": buy_and_hold_stats,
+            },
+            "trading_costs": {
+                "commission_pct": DEFAULT_TRADING_COSTS.commission_pct,
+                "slippage_pct": DEFAULT_TRADING_COSTS.slippage_pct,
+                "turnover": 1.0,
+                "execution": "next_open_to_close",
             },
         },
     )
