@@ -6,10 +6,12 @@ from pathlib import Path
 from engine.backtest.performance import (
     attach_dates,
     compute_bollinger_bands,
+    compute_buy_and_hold_equity,
     compute_equity_curve,
     compute_macd,
     compute_moving_average,
     compute_obv,
+    compute_performance_stats,
     compute_rolling_stddev,
     compute_rsi,
     compute_algorithm_score,
@@ -45,6 +47,9 @@ def run_pipeline() -> None:
     perf_summary = summarize_returns(closes)
     algo_score = compute_algorithm_score(closes, filtered_cycles)
     equity_curve = compute_equity_curve(closes)
+    buy_and_hold_curve = compute_buy_and_hold_equity(closes)
+    strategy_stats = compute_performance_stats(equity_curve)
+    buy_and_hold_stats = compute_performance_stats(buy_and_hold_curve)
     breakdown = event_breakdown([event.name for event in latest_events], closes)
     rsi_raw = compute_rsi(closes)
     macd_raw = compute_macd(closes)
@@ -90,7 +95,18 @@ def run_pipeline() -> None:
         BASE_PATH / "perf/summary.json",
         {"updated_at": now, **perf_summary.to_dict(), "algo_score": algo_score.to_dict()},
     )
-    write_json(BASE_PATH / "perf/equity_curve.json", {"updated_at": now, "equity_curve": equity_curve})
+    write_json(
+        BASE_PATH / "perf/equity_curve.json",
+        {
+            "updated_at": now,
+            "equity_curve": equity_curve,
+            "buy_and_hold_curve": buy_and_hold_curve,
+            "performance": {
+                "strategy": strategy_stats,
+                "buy_and_hold": buy_and_hold_stats,
+            },
+        },
+    )
     write_json(BASE_PATH / "perf/by_event.json", {"updated_at": now, "breakdown": breakdown})
     write_json(
         BASE_PATH / "perf/rsi.json",
