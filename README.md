@@ -9,6 +9,10 @@ Event-driven silver market regime analysis surfaced as a static GitHub Pages sit
 - Simulates an ATR-based risk sleeve with stop-loss/take-profit sizing alongside the base equity curve.
 - Serves a minimal dashboard that reads the JSON directly from `/public/data`.
 
+Walk-forward validation is baked into the pipeline: every run writes
+`public/data/perf/walkforward.json` with a rolling 120-day train / 30-day test
+split to keep the signal honest and highlight out-of-sample drift.
+
 ## Running locally
 ```bash
 python main.py  # writes public/data/* JSON payloads
