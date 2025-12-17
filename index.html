@@ -54,6 +54,8 @@
     label.small { font-size: 12px; color: var(--muted); display: block; margin-bottom: 6px; }
     input, select { width: 100%; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: #0d1424; color: var(--text); }
     .subtitle { font-size: 14px; color: var(--muted); margin-top: 4px; }
+    .cost-impact { margin-top: 10px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 12px; padding: 10px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .cost-impact strong { color: var(--text); }
     @media (max-width: 900px) { .row { grid-template-columns: 1fr; } }
     a { color: #8bb2ff; }
   </style>
@@ -204,6 +206,11 @@
           <label class="toggle"><input type="radio" name="equityMode" value="net" /> <span data-i18n="netLabel">Net (after cost)</span></label>
           <span class="space"></span>
           <span class="muted" data-i18n="perfSummaryUpdatedLabel">עודכן</span>: <span class="mono" id="perfSummaryUpdated">—</span>
+        </div>
+        <div class="cost-impact" id="costImpact">
+          <div><span data-i18n="costsSelectedLabel">Selected costs</span>: <strong class="mono" id="costsSelected">—</strong></div>
+          <div><span data-i18n="costDragLabel">Cost drag vs gross</span>: <strong class="mono" id="costDragVal">—</strong></div>
+          <div><span data-i18n="grossNetImpactLabel">Gross → Net</span>: <span class="mono" id="grossReturnVal">—</span> → <span class="mono" id="netReturnVal">—</span></div>
         </div>
         <div id="perfChart" style="height:320px;"></div>
         <table class="table" id="perfTable" style="margin-top:12px;">
@@ -392,6 +399,9 @@ const translations = {
     startDate: "Start date",
     endDate: "End date",
     costsLabel: "עלויות (bps)",
+    costsSelectedLabel: "עלות נבחרת (bps לעסקה)",
+    costDragLabel: "שחיקה מול תשואת Gross",
+    grossNetImpactLabel: "תשואה: Gross → Net",
     strategyPick: "Strategy",
     strategyTrend: "Trend",
     strategyRange: "Range",
@@ -490,6 +500,9 @@ const translations = {
     startDate: "Start date",
     endDate: "End date",
     costsLabel: "Costs (bps)",
+    costsSelectedLabel: "Selected costs (bps per trade)",
+    costDragLabel: "Cost drag vs gross return",
+    grossNetImpactLabel: "Gross → Net return",
     strategyPick: "Strategy",
     strategyTrend: "Trend",
     strategyRange: "Range",
@@ -751,6 +764,9 @@ function applyCosts(equitySeries, costBps = 0.0) {
     const net = applyCosts(gross, state.costBps);
 
     const chosen = state.showNet ? net : gross;
+    const grossReturn = gross.length ? gross[gross.length - 1].equity - 1 : null;
+    const netReturn = net.length ? net[net.length - 1].equity - 1 : null;
+    const drag = grossReturn !== null && netReturn !== null ? netReturn - grossReturn : null;
 
     const traces = [
       { x: dates, y: chosen.map((p) => p.equity), mode: "lines", name: state.showNet ? "Strategy (Net)" : "Strategy (Gross)", line: { color: "#4c9cff" } },
@@ -765,13 +781,18 @@ function applyCosts(equitySeries, costBps = 0.0) {
     document.getElementById("riskUlcer").textContent = fmt(risk.ulcer, 2);
     document.getElementById("riskWorst").textContent = fmtPct(risk.worst, 2);
 
+    document.getElementById("costsSelected").textContent = `${state.costBps} bps (${fmt(state.costBps / 100, 2)})`;
+    document.getElementById("costDragVal").textContent = fmtPct(drag, 2);
+    document.getElementById("grossReturnVal").textContent = fmtPct(grossReturn, 2);
+    document.getElementById("netReturnVal").textContent = fmtPct(netReturn, 2);
+
     const perfBody = document.getElementById("perfTableBody");
-    const grossReturn = chosen.length ? chosen[chosen.length - 1].equity - 1 : null;
+    const chosenReturn = chosen.length ? chosen[chosen.length - 1].equity - 1 : null;
     const benchReturn = buyHold.length ? buyHold[buyHold.length - 1].equity - 1 : null;
     const maxDdDisplay = fmtPct(risk.dd, 2);
 
     perfBody.innerHTML = `
-      <tr><td>${state.showNet ? "Strategy (Net)" : "Strategy (Gross)"}</td><td>${fmtPct(grossReturn, 2)}</td><td>${maxDdDisplay}</td><td>${fmt(perfSummary.algo_score?.sharpe_ratio, 2)}</td><td>${fmt(perfSummary.algo_score?.sortino_ratio || perfSummary.algo_score?.sharpe_ratio, 2)}</td></tr>
+      <tr><td>${state.showNet ? "Strategy (Net)" : "Strategy (Gross)"}</td><td>${fmtPct(chosenReturn, 2)}</td><td>${maxDdDisplay}</td><td>${fmt(perfSummary.algo_score?.sharpe_ratio, 2)}</td><td>${fmt(perfSummary.algo_score?.sortino_ratio || perfSummary.algo_score?.sharpe_ratio, 2)}</td></tr>
       <tr><td>${t("buyHoldLabel")}</td><td>${fmtPct(benchReturn, 2)}</td><td>—</td><td>—</td><td>—</td></tr>
     `;
   }
