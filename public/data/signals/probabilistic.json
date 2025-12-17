@@ -1,0 +1,46 @@
+{
+  "asof": "2025-12-12",
+  "symbol": "SLV",
+  "scenario_id": "MIXED|HIGH|INSIDE|RSI_GT_70|FLAT",
+  "state": {
+    "bias": "BULLISH",
+    "volatility": "HIGH",
+    "regime": "UP_BIAS"
+  },
+  "confidence": 75,
+  "message": {
+    "headline": "\u05e1\u05d1\u05d9\u05e8 \u05e9\u05de\u05ea\u05d7\u05d9\u05dc \u05d2\u05dc \u05e2\u05dc\u05d9\u05d5\u05ea \u05e7\u05e6\u05e8-\u05d8\u05d5\u05d5\u05d7; \u05d1\u05ea\u05e0\u05d5\u05d3\u05ea\u05d9\u05d5\u05ea \u05d2\u05d1\u05d5\u05d4\u05d4 \u05d4\u05ea\u05d5\u05e6\u05d0\u05d5\u05ea \u05de\u05e4\u05d5\u05d6\u05e8\u05d5\u05ea \u05d9\u05d5\u05ea\u05e8 \u05de\u05d4\u05e8\u05d2\u05d9\u05dc",
+    "subtext": "\u05de\u05d1\u05d5\u05e1\u05e1 \u05e2\u05dc 1 \u05de\u05e7\u05e8\u05d9\u05dd \u05d4\u05d9\u05e1\u05d8\u05d5\u05e8\u05d9\u05d9\u05dd \u05d3\u05d5\u05de\u05d9\u05dd \u05de\u05d0\u05d6 2008. \u05de\u05e1\u05e4\u05e8 \u05de\u05e7\u05e8\u05d9\u05dd \u05d4\u05d9\u05e1\u05d8\u05d5\u05e8\u05d9\u05d9\u05dd \u05d3\u05d5\u05de\u05d4 \u05e0\u05de\u05d5\u05da; \u05d1\u05d9\u05d8\u05d7\u05d5\u05df \u05de\u05d5\u05d2\u05d1\u05dc."
+  },
+  "historical_outcomes": {
+    "horizon_days": 5,
+    "occurrences": 1,
+    "p_up": 1.0,
+    "p_down": 0.0,
+    "median_return": 0.0169,
+    "p10_return": 0.0169,
+    "p90_return": 0.0169,
+    "matches": [
+      44
+    ]
+  },
+  "evidence": [
+    {
+      "type": "ADX",
+      "text": "ADX 33.3 (Regime UP_BIAS)"
+    },
+    {
+      "type": "ATR",
+      "text": "ATR \u05d2\u05d1\u05d5\u05d4 \u05de\u05d4\u05de\u05de\u05d5\u05e6\u05e2"
+    }
+  ],
+  "disclaimer_level": "HIGH",
+  "analogs": [
+    {
+      "start_date": "2008-03-06",
+      "similarity": 1.0,
+      "forward_5d": 0.0169,
+      "forward_10d": -0.1679
+    }
+  ]
+}
