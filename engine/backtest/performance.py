@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from math import atan
 from statistics import mean, pstdev
-from typing import Iterable, List, Mapping, Sequence
+from typing import Dict, Iterable, List, Mapping, Sequence
 
 from engine.events.cycles import CycleSegment
 
@@ -348,23 +348,63 @@ def compute_performance_stats(curve: Sequence[Mapping[str, float]]) -> Mapping[s
     }
 
 
-def event_breakdown(events: Iterable[str], closes: Sequence[float]) -> List[Mapping]:
+def event_breakdown(events: Iterable[Mapping[str, int]], closes: Sequence[float]) -> List[Mapping]:
+    """Summarize forward returns for each event type.
+
+    `events` is expected to be an iterable of mappings containing an event name
+    and the index (position in `closes`) where it occurred, e.g.
+    `{ "name": "RECLAIM", "index": 42 }`. For each occurrence, the function
+    tracks the forward 5- and 10-day returns (when available) and then reports
+    the average performance and frequency per event type.
+    """
+
     breakdown: List[Mapping] = []
-    if not events:
+    if not events or not closes:
         return breakdown
 
-    last_event = events[-1]
-    ret5 = (closes[-1] - closes[-5]) / closes[-5] if len(closes) >= 6 else 0.0
-    ret10 = (closes[-1] - closes[-10]) / closes[-10] if len(closes) >= 11 else 0.0
+    stats: Dict[str, Dict[str, List[float] | int]] = {}
 
-    breakdown.append(
-        {
-            "event": last_event,
-            "avg_return_5d": round(ret5, 3),
-            "avg_return_10d": round(ret10, 3),
-            "count": 1,
-        }
-    )
+    for record in events:
+        name = record.get("name")
+        idx = record.get("index")
+
+        if name is None or idx is None or idx < 0 or idx >= len(closes):
+            continue
+
+        start_price = closes[idx]
+        if start_price == 0:
+            continue
+
+        ret5 = None
+        ret10 = None
+        if idx + 5 < len(closes):
+            ret5 = (closes[idx + 5] - start_price) / start_price
+        if idx + 10 < len(closes):
+            ret10 = (closes[idx + 10] - start_price) / start_price
+
+        if name not in stats:
+            stats[name] = {"returns_5d": [], "returns_10d": [], "count": 0}
+
+        event_stats = stats[name]
+        event_stats["count"] += 1
+        if ret5 is not None:
+            event_stats["returns_5d"].append(ret5)
+        if ret10 is not None:
+            event_stats["returns_10d"].append(ret10)
+
+    for name, event_stats in stats.items():
+        breakdown.append(
+            {
+                "event": name,
+                "avg_return_5d": round(mean(event_stats["returns_5d"]) if event_stats["returns_5d"] else 0.0, 3),
+                "avg_return_10d": round(
+                    mean(event_stats["returns_10d"]) if event_stats["returns_10d"] else 0.0, 3
+                ),
+                "count": event_stats["count"],
+            }
+        )
+
+    breakdown.sort(key=lambda item: item["event"])
 
     return breakdown
 
