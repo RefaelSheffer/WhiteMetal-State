@@ -34,6 +34,7 @@ from engine.events.cycles import (
 )
 from engine.events.detector import detect_events
 from engine.fetchers.slv_real import fetch_slv_ohlcv
+from engine.probabilistic import build_probabilistic_signal
 from engine.utils.io import ensure_parent, write_json
 from engine.validation.sanity import validate_ohlcv
 
@@ -115,6 +116,17 @@ def run_pipeline() -> None:
         regime,
         dates=dates,
     )
+    probabilistic_signal = build_probabilistic_signal(
+        closes,
+        dates,
+        regime,
+        bollinger_raw,
+        rsi_raw,
+        macd_raw,
+        adx_raw,
+        atr_raw,
+        symbol="SLV",
+    )
     now = datetime.utcnow().isoformat()
     last_updated = datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
     history_record = {"timestamp": now, **signal}
@@ -146,6 +158,7 @@ def run_pipeline() -> None:
         },
     )
     write_json(BASE_PATH / "signals/latest_signal.json", signal)
+    write_json(BASE_PATH / "signals/probabilistic.json", probabilistic_signal)
 
     events_history_path = BASE_PATH / "events/history.jsonl"
     anomaly_history_path = BASE_PATH / "anomalies/history.jsonl"

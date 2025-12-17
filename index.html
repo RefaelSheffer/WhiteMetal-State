@@ -62,6 +62,15 @@
     .subtitle { font-size: 14px; color: var(--muted); margin-top: 4px; }
     .cost-impact { margin-top: 10px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 12px; padding: 10px; color: var(--muted); font-size: 13px; line-height: 1.5; }
     .cost-impact strong { color: var(--text); }
+    .state-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-inline-end: 6px; }
+    .dot-bull { background: var(--success); }
+    .dot-bear { background: var(--danger); }
+    .dot-neutral { background: #a8b4d6; }
+    .evidence-list { margin: 10px 0 0; padding: 0 0 0 18px; color: var(--muted); line-height: 1.6; }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+    .range-chip { background: rgba(255,255,255,0.06); padding: 6px 10px; border-radius: 10px; display: inline-flex; gap: 8px; align-items: center; }
+    .analogy { background: #0d1424; border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin-top: 8px; }
+    .panel-label { font-size: 13px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); }
     @media (max-width: 900px) { .row { grid-template-columns: 1fr; } }
     a { color: #8bb2ff; }
   </style>
@@ -85,6 +94,71 @@
       <div class="alert" data-i18n="alert">
         המלצות המערכת הן תוצאה של עיבוד סטטיסטי ואינן מהוות ייעוץ או הנחיה לביצוע פעולה מיידית. מומלץ לשלב את האיתותים עם גורמים נוספים כמו חדשות מאקרו, מדיניות מוניטרית ושיקולים אישיים אחרים.
       </div>
+    </div>
+
+    <div style="height:16px"></div>
+
+    <div class="row">
+      <div class="card" id="snapshotCard">
+        <div class="section-title flex">
+          <span data-i18n="marketSnapshotTitle">Market Snapshot</span>
+          <span class="pill neutral" id="biasBadge">—</span>
+          <span class="pill neutral" id="volBadge">—</span>
+        </div>
+        <div class="muted" id="scenarioId">—</div>
+        <div class="big" id="probHeadline">—</div>
+        <div class="subtitle" id="probSubtext">—</div>
+        <div class="kpis">
+          <div class="kpi">
+            <div class="muted" data-i18n="confidenceLabel">Confidence</div>
+            <div class="v mono" id="probConfidence">—</div>
+          </div>
+          <div class="kpi">
+            <div class="muted" data-i18n="occurrencesLabel">Occurrences</div>
+            <div class="v mono" id="probOccurrences">—</div>
+            <span class="small" id="probDisclaimer">—</span>
+          </div>
+          <div class="kpi">
+            <div class="muted" data-i18n="historicalRangeLabel">Common range (5d)</div>
+            <div class="v mono" id="probRange">—</div>
+            <span class="small" id="probMedian">—</span>
+          </div>
+        </div>
+        <div class="muted" id="historicalSentence">—</div>
+        <ul class="evidence-list" id="probEvidence"></ul>
+      </div>
+
+      <div class="card" id="outcomesCard">
+        <div class="section-title" data-i18n="whatItMeansTitle">What this usually means</div>
+        <div class="kpis">
+          <div class="kpi">
+            <div class="muted">P(up 5d)</div>
+            <div class="v mono" id="probUp">—</div>
+            <span class="small" data-i18n="limitsCopy">הנתונים היסטוריים בלבד; לא התחייבות לתוצאה.</span>
+          </div>
+          <div class="kpi">
+            <div class="muted">P(down 5d)</div>
+            <div class="v mono" id="probDown">—</div>
+            <span class="small" id="probState">—</span>
+          </div>
+          <div class="kpi">
+            <div class="muted" data-i18n="medianLabel">Median 5d</div>
+            <div class="v mono" id="probMedianReturn">—</div>
+            <span class="small" id="probSpread">—</span>
+          </div>
+        </div>
+        <div class="range-chip" id="rangeChip"></div>
+      </div>
+    </div>
+
+    <div style="height:16px"></div>
+
+    <div class="card" id="analogiesCard">
+      <div class="section-title flex">
+        <span data-i18n="analogiesTitle">Analogies</span>
+        <span class="panel-label" data-i18n="analogiesNote">דומים היסטוריים · ללא הוראות</span>
+      </div>
+      <div id="analogyList" class="grid-2"></div>
     </div>
 
     <div style="height:16px"></div>
@@ -196,6 +270,18 @@
     </div>
 
     <div style="height:16px"></div>
+
+    <div class="card">
+      <div class="section-title flex">
+        <span data-i18n="advancedTitle">Advanced</span>
+        <button class="btn" id="advancedToggle" style="margin-inline-start:auto;" data-i18n="openSettings">Open</button>
+      </div>
+      <div class="subtitle" data-i18n="advancedSubtitle">Traces, trades, and backtests נשארים מאחורי כפתור “Advanced”.</div>
+    </div>
+
+    <div style="height:16px"></div>
+
+    <div id="advancedPanel" style="display:none;">
 
     <div class="card">
       <div class="section-title" data-i18n="priceTitle">Price</div>
@@ -336,6 +422,7 @@
         <div id="seasonalChart" style="height:180px; margin-top:10px;"></div>
       </div>
     </div>
+    </div>
   </div>
 
 <script>
@@ -397,6 +484,16 @@ const translations = {
     metaSourceLabel: "מקור נתונים",
     metaCoverageLabel: "טווח כיסוי",
     metaUpdatedLabel: "עדכון אחרון",
+    marketSnapshotTitle: "צילום מצב שוק",
+    occurrencesLabel: "מספר מקרים",
+    historicalRangeLabel: "טווח תוצאות נפוץ",
+    whatItMeansTitle: "מה זה בדרך כלל אומר",
+    analogiesTitle: "אנלוגיות",
+    analogiesNote: "דומים היסטוריים · ללא הוראות",
+    limitsCopy: "הנתונים היסטוריים בלבד; לא התחייבות לתוצאה.",
+    medianLabel: "חציון 5 ימים",
+    advancedTitle: "Advanced",
+    advancedSubtitle: "רכיב הטריידים והבקטסט נמצא ב-Advanced.",
     confidenceLabel: "Confidence",
     scoreTotalLabel: "Score Total",
     scorePriceLabel: "Price Score",
@@ -511,6 +608,16 @@ const translations = {
     metaSourceLabel: "Data source",
     metaCoverageLabel: "Coverage",
     metaUpdatedLabel: "Last updated",
+    marketSnapshotTitle: "Market Snapshot",
+    occurrencesLabel: "Occurrences",
+    historicalRangeLabel: "Common range (5d)",
+    whatItMeansTitle: "What this usually means",
+    analogiesTitle: "Analogies",
+    analogiesNote: "Historical peers · No instructions",
+    limitsCopy: "Historical only; not a promise.",
+    medianLabel: "Median 5d",
+    advancedTitle: "Advanced",
+    advancedSubtitle: "Trades and backtests live behind the Advanced toggle.",
     confidenceLabel: "Confidence",
     scoreTotalLabel: "Score Total",
     scorePriceLabel: "Price Score",
@@ -670,9 +777,10 @@ function applyCosts(equitySeries, costBps = 0.0) {
 }
 
 (async () => {
-  const [meta, prices, anomalies, decomposition, perfSummary, equityCurve, cycleStats] = await Promise.all([
+  const [meta, prices, probabilistic, anomalies, decomposition, perfSummary, equityCurve, cycleStats] = await Promise.all([
     getJson("./public/data/meta.json"),
     getJson("./data/slv_prices.json"),
+    getJson("./public/data/signals/probabilistic.json"),
     getJson("./public/data/anomalies/latest.json"),
     getJson("./public/data/perf/decomposition.json"),
     getJson("./public/data/perf/summary.json"),
@@ -905,6 +1013,78 @@ function applyCosts(equitySeries, costBps = 0.0) {
     return eq;
   }
 
+  function biasClassName(bias) {
+    if (!bias) return "neutral";
+    if (bias.toLowerCase().includes("bull")) return "up";
+    if (bias.toLowerCase().includes("bear")) return "down";
+    return "neutral";
+  }
+
+  function renderProbabilistic() {
+    const data = probabilistic || {};
+    const outcomes = data.historical_outcomes || {};
+    document.getElementById("scenarioId").textContent = data.scenario_id || "—";
+    document.getElementById("probHeadline").textContent = data.message?.headline || t("limitsCopy");
+    document.getElementById("probSubtext").textContent = data.message?.subtext || "";
+    document.getElementById("probConfidence").textContent = data.confidence !== undefined ? `${Number(data.confidence).toFixed(0)}%` : "—";
+    document.getElementById("probOccurrences").textContent = outcomes.occurrences ?? "—";
+    document.getElementById("probDisclaimer").textContent = data.disclaimer_level === "HIGH" ? t("limitsCopy") : "";
+
+    document.getElementById("probUp").textContent = fmtPct(outcomes.p_up, 0);
+    document.getElementById("probDown").textContent = fmtPct(outcomes.p_down, 0);
+    document.getElementById("probMedianReturn").textContent = fmtPct(outcomes.median_return, 2);
+    document.getElementById("probSpread").textContent = `${fmtPct(outcomes.p10_return, 1)} → ${fmtPct(outcomes.p90_return, 1)}`;
+    document.getElementById("probRange").textContent = `${fmtPct(outcomes.p10_return, 1)} → ${fmtPct(outcomes.p90_return, 1)}`;
+    document.getElementById("probMedian").textContent = `${t("medianLabel")}: ${fmtPct(outcomes.median_return, 1)}`;
+    const horizon = outcomes.horizon_days || 5;
+    const historicalText = outcomes.occurrences
+      ? `${fmtPct(outcomes.p_up, 0)} of ${outcomes.occurrences} matches were up after ${horizon}d (median ${fmtPct(outcomes.median_return, 1)}).`
+      : t("limitsCopy");
+    document.getElementById("historicalSentence").textContent = historicalText;
+
+    const rangeChip = document.getElementById("rangeChip");
+    rangeChip.textContent = outcomes.occurrences
+      ? `${outcomes.occurrences} cases · ${fmtPct(outcomes.p10_return, 1)} to ${fmtPct(outcomes.p90_return, 1)} after ${horizon}d`
+      : t("limitsCopy");
+
+    const evidence = data.evidence || [];
+    const evidenceList = document.getElementById("probEvidence");
+    if (!evidence.length) {
+      evidenceList.innerHTML = `<li>${t("limitsCopy")}</li>`;
+    } else {
+      evidenceList.innerHTML = evidence.map((e) => `<li>${e.text}</li>`).join("");
+    }
+
+    const biasBadge = document.getElementById("biasBadge");
+    const bias = data.state?.bias || "NEUTRAL";
+    biasBadge.className = `pill ${biasClassName(bias)}`;
+    biasBadge.textContent = bias;
+
+    const volBadge = document.getElementById("volBadge");
+    const volText = data.state?.volatility || "—";
+    volBadge.className = `pill ${volText === "HIGH" ? "up" : volText === "LOW" ? "down" : "neutral"}`;
+    volBadge.textContent = volText;
+    document.getElementById("probState").textContent = data.state?.regime ? `${data.state.regime} regime` : "";
+
+    const analogies = data.analogs || [];
+    const analogyList = document.getElementById("analogyList");
+    if (!analogies.length) {
+      analogyList.innerHTML = `<div class="muted">${t("limitsCopy")}</div>`;
+    } else {
+      analogyList.innerHTML = analogies
+        .map((a) => {
+          return `
+            <div class="analogy">
+              <div class="muted">${a.start_date} · similarity ${fmt(a.similarity, 2)}</div>
+              <div class="v mono">${fmtPct(a.forward_5d, 2)} / ${fmtPct(a.forward_10d, 2)}</div>
+              <div class="small muted">${t("medianLabel")}: ${fmtPct(outcomes.median_return, 1)}</div>
+            </div>
+          `;
+        })
+        .join("");
+    }
+  }
+
   function runBacktest(closes, dates, options) {
     const ma = movingAverage(closes, options.maWindow || 50);
     const bands = bollinger(closes, options.bandWindow || 20, options.bandStd || 2);
@@ -1052,7 +1232,7 @@ function applyCosts(equitySeries, costBps = 0.0) {
   }
 
   function renderSummary() {
-    const updatedText = anomalies.asof || anomalies.updated_at || meta?.last_updated_utc || "—";
+    const updatedText = probabilistic.asof || anomalies.asof || anomalies.updated_at || meta?.last_updated_utc || "—";
     document.getElementById("updated").textContent = `${t("updatedPrefix")}: ${updatedText}`;
     document.getElementById("anomalyUpdated").textContent = `${t("updatedPrefix")}: ${updatedText}`;
     document.getElementById("anomalyScore").textContent = fmt(anomalies.anomaly_score, 0);
@@ -1136,6 +1316,7 @@ function applyCosts(equitySeries, costBps = 0.0) {
 
   function renderAll() {
     applyLanguage();
+    renderProbabilistic();
     renderMeta();
     renderSummary();
     renderPrice(state.range);
@@ -1160,6 +1341,14 @@ function applyCosts(equitySeries, costBps = 0.0) {
   document.getElementById("toggleCycles").addEventListener("change", (e) => { state.showCycles = e.target.checked; renderPrice(state.range); });
 
   document.getElementById("langToggle").addEventListener("click", () => { state.lang = state.lang === "he" ? "en" : "he"; localStorage.setItem("lang", state.lang); renderAll(); });
+
+  const advancedToggle = document.getElementById("advancedToggle");
+  advancedToggle.addEventListener("click", () => {
+    const panel = document.getElementById("advancedPanel");
+    const visible = panel.style.display !== "none";
+    panel.style.display = visible ? "none" : "block";
+    advancedToggle.textContent = visible ? t("openSettings") : "Close";
+  });
 
   document.getElementById("toggleSettings").addEventListener("click", () => {
     const panel = document.getElementById("settingsPanel");
