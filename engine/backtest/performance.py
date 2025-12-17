@@ -632,6 +632,96 @@ def compute_rolling_stddev(closes: Sequence[float], window: int = 20) -> List[Ma
     return stddev_series
 
 
+def compute_adx(
+    highs: Sequence[float],
+    lows: Sequence[float],
+    closes: Sequence[float],
+    period: int = 14,
+) -> List[Mapping]:
+    """Average Directional Index (ADX) with directional movement components.
+
+    Returns entries containing ADX, +DI, and -DI aligned to the input price index
+    once enough data is available for the smoothing window.
+    """
+
+    if (
+        not highs
+        or not lows
+        or not closes
+        or len(highs) != len(lows)
+        or len(highs) != len(closes)
+        or len(closes) < period + 1
+    ):
+        return []
+
+    trs: List[float] = []
+    plus_dm: List[float] = []
+    minus_dm: List[float] = []
+
+    for idx in range(1, len(closes)):
+        up_move = highs[idx] - highs[idx - 1]
+        down_move = lows[idx - 1] - lows[idx]
+
+        trs.append(
+            max(
+                highs[idx] - lows[idx],
+                abs(highs[idx] - closes[idx - 1]),
+                abs(lows[idx] - closes[idx - 1]),
+            )
+        )
+
+        plus_dm.append(up_move if up_move > down_move and up_move > 0 else 0.0)
+        minus_dm.append(down_move if down_move > up_move and down_move > 0 else 0.0)
+
+    if len(trs) < period:
+        return []
+
+    smoothed_tr = sum(trs[:period])
+    smoothed_plus_dm = sum(plus_dm[:period])
+    smoothed_minus_dm = sum(minus_dm[:period])
+
+    dx_window: List[float] = []
+    adx_series: List[Mapping] = []
+    prev_adx: float | None = None
+
+    for idx in range(period, len(trs)):
+        if idx > period:
+            smoothed_tr = smoothed_tr - (smoothed_tr / period) + trs[idx]
+            smoothed_plus_dm = smoothed_plus_dm - (smoothed_plus_dm / period) + plus_dm[idx]
+            smoothed_minus_dm = smoothed_minus_dm - (smoothed_minus_dm / period) + minus_dm[idx]
+
+        plus_di = (smoothed_plus_dm / smoothed_tr * 100) if smoothed_tr else 0.0
+        minus_di = (smoothed_minus_dm / smoothed_tr * 100) if smoothed_tr else 0.0
+        di_sum = plus_di + minus_di
+        dx = abs(plus_di - minus_di) / di_sum * 100 if di_sum else 0.0
+
+        dx_window.append(dx)
+        price_index = idx
+
+        if len(dx_window) == period:
+            prev_adx = sum(dx_window) / period
+            adx_series.append(
+                {
+                    "index": price_index,
+                    "adx": round(prev_adx, 2),
+                    "plus_di": round(plus_di, 2),
+                    "minus_di": round(minus_di, 2),
+                }
+            )
+        elif len(dx_window) > period and prev_adx is not None:
+            prev_adx = ((prev_adx * (period - 1)) + dx) / period
+            adx_series.append(
+                {
+                    "index": price_index,
+                    "adx": round(prev_adx, 2),
+                    "plus_di": round(plus_di, 2),
+                    "minus_di": round(minus_di, 2),
+                }
+            )
+
+    return adx_series
+
+
 def compute_macd(
     closes: Sequence[float], fast_period: int = 12, slow_period: int = 26, signal_period: int = 9
 ) -> List[Mapping]:
