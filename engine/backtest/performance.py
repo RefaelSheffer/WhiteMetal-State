@@ -349,20 +349,22 @@ def compute_performance_stats(curve: Sequence[Mapping[str, float]]) -> Mapping[s
 
 
 def event_breakdown(events: Iterable[Mapping[str, int]], closes: Sequence[float]) -> List[Mapping]:
-    """Summarize forward returns for each event type.
+    """Summarize forward returns and frequency for each event type.
 
     `events` is expected to be an iterable of mappings containing an event name
     and the index (position in `closes`) where it occurred, e.g.
     `{ "name": "RECLAIM", "index": 42 }`. For each occurrence, the function
-    tracks the forward 5- and 10-day returns (when available) and then reports
-    the average performance and frequency per event type.
+    tracks how many times the event appeared and aggregates the forward 5- and
+    10-day returns (when available). The result reports the average performance
+    for each horizon alongside the total occurrences so event reliability can be
+    compared.
     """
 
     breakdown: List[Mapping] = []
     if not events or not closes:
         return breakdown
 
-    stats: Dict[str, Dict[str, List[float] | int]] = {}
+    stats: Dict[str, Dict[str, float | int]] = {}
 
     for record in events:
         name = record.get("name")
@@ -383,24 +385,45 @@ def event_breakdown(events: Iterable[Mapping[str, int]], closes: Sequence[float]
             ret10 = (closes[idx + 10] - start_price) / start_price
 
         if name not in stats:
-            stats[name] = {"returns_5d": [], "returns_10d": [], "count": 0}
+            stats[name] = {
+                "occurrences": 0,
+                "sum_return_5d": 0.0,
+                "sum_return_10d": 0.0,
+                "samples_5d": 0,
+                "samples_10d": 0,
+            }
 
         event_stats = stats[name]
-        event_stats["count"] += 1
+        event_stats["occurrences"] += 1
+
         if ret5 is not None:
-            event_stats["returns_5d"].append(ret5)
+            event_stats["sum_return_5d"] += ret5
+            event_stats["samples_5d"] += 1
+
         if ret10 is not None:
-            event_stats["returns_10d"].append(ret10)
+            event_stats["sum_return_10d"] += ret10
+            event_stats["samples_10d"] += 1
 
     for name, event_stats in stats.items():
+        avg_return_5d = (
+            event_stats["sum_return_5d"] / event_stats["samples_5d"]
+            if event_stats["samples_5d"]
+            else 0.0
+        )
+        avg_return_10d = (
+            event_stats["sum_return_10d"] / event_stats["samples_10d"]
+            if event_stats["samples_10d"]
+            else 0.0
+        )
+
         breakdown.append(
             {
                 "event": name,
-                "avg_return_5d": round(mean(event_stats["returns_5d"]) if event_stats["returns_5d"] else 0.0, 3),
-                "avg_return_10d": round(
-                    mean(event_stats["returns_10d"]) if event_stats["returns_10d"] else 0.0, 3
-                ),
-                "count": event_stats["count"],
+                "occurrences": event_stats["occurrences"],
+                "avg_return_5d": round(avg_return_5d, 3),
+                "avg_return_10d": round(avg_return_10d, 3),
+                "samples_5d": event_stats["samples_5d"],
+                "samples_10d": event_stats["samples_10d"],
             }
         )
 
