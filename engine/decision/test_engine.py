@@ -80,3 +80,39 @@ def test_high_amplitude_upswing_allows_sizing_up_adds():
 
     assert result["action"] == "ADD"
     assert "High-amplitude upswing" in result["rationale"]
+
+
+def test_uptrend_regime_relaxes_buy_filter_after_shakeout():
+    events = [Event(name="SHAKEOUT", confidence=0.8, rationale="pullback into trend")]
+    cycles: list[CycleSegment] = []
+    indicator_context = {
+        "latest_rsi": 44,
+        "latest_macd": 0.2,
+        "latest_macd_hist": 0.05,
+        "macd_improving": True,
+        "regime": "uptrend",
+        "regime_note": "ADX strong uptrend",
+    }
+
+    result = select_action(events, cycles, indicator_context=indicator_context)
+
+    assert result["action"] == "BUY"
+    assert "uptrend" in result["rationale"]
+
+
+def test_downtrend_regime_demands_stricter_buy_confirmation():
+    events = [Event(name="SHAKEOUT", confidence=0.85, rationale="volatility spike")]
+    cycles: list[CycleSegment] = []
+    indicator_context = {
+        "latest_rsi": 31,
+        "latest_macd": -0.05,
+        "latest_macd_hist": -0.01,
+        "macd_improving": False,
+        "regime": "downtrend",
+        "regime_note": "ADX strong downtrend",
+    }
+
+    result = select_action(events, cycles, indicator_context=indicator_context)
+
+    assert result["action"] == "WAIT"
+    assert "downtrend" in result["rationale"]

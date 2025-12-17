@@ -7,6 +7,7 @@ from engine.backtest.performance import (
     DEFAULT_TRADING_COSTS,
     attach_dates,
     compute_bollinger_bands,
+    compute_adx,
     compute_buy_and_hold_equity,
     compute_equity_curve,
     compute_atr,
@@ -86,6 +87,7 @@ def run_pipeline() -> None:
     breakdown = event_breakdown(event_timeline, closes)
     rsi_raw = compute_rsi(closes)
     macd_raw = compute_macd(closes)
+    adx_raw = compute_adx(highs, lows, closes)
     bollinger_raw = compute_bollinger_bands(closes)
     obv_raw = compute_obv(closes, volumes)
     rsi_series = attach_dates(rsi_raw, dates)
@@ -94,10 +96,11 @@ def run_pipeline() -> None:
     macd_series = attach_dates(macd_raw, dates)
     bollinger_series = attach_dates(bollinger_raw, dates)
     obv_series = attach_dates(obv_raw, dates)
+    adx_series = attach_dates(adx_raw, dates)
     ma1000_series = attach_dates(compute_moving_average(closes, window=1000), dates)
     decomposition = decompose_closes(closes, period=30)
 
-    indicator_context = build_indicator_context(rsi_raw, macd_raw)
+    indicator_context = build_indicator_context(rsi_raw, macd_raw, adx_raw)
     signal = select_action(
         latest_events, filtered_cycles, indicator_context=indicator_context
     )
@@ -190,6 +193,10 @@ def run_pipeline() -> None:
             "signal_period": 9,
             "macd": macd_series,
         },
+    )
+    write_json(
+        BASE_PATH / "perf/adx.json",
+        {"updated_at": now, "period": 14, "adx": adx_series},
     )
     write_json(
         BASE_PATH / "perf/bollinger.json",
