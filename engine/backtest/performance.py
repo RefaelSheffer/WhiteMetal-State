@@ -62,6 +62,17 @@ class TradingCosts:
 DEFAULT_TRADING_COSTS = TradingCosts(commission_pct=0.001, slippage_pct=0.0005)
 
 
+@dataclass
+class RiskManagementConfig:
+    """Configuration for ATR-based position sizing and exits."""
+
+    atr_window: int = 14
+    stop_loss_atr_multiple: float = 1.5
+    take_profit_atr_multiple: float = 3.0
+    risk_fraction_per_trade: float = 0.01
+    max_position: float = 1.0
+
+
 def _apply_trading_friction(gross_return: float, turnover: float, costs: TradingCosts) -> float:
     """Reduce returns by the expected commission + slippage hit.
 
@@ -121,6 +132,100 @@ def compute_equity_curve(
         net_return = _apply_trading_friction(gross_return, turnover, costs)
         equity *= 1 + net_return
         curve.append({"index": idx, "equity": round(equity, 4)})
+
+    return curve
+
+
+def compute_risk_managed_equity(
+    closes: Sequence[float],
+    highs: Sequence[float],
+    lows: Sequence[float],
+    opens: Sequence[float] | None = None,
+    costs: TradingCosts | None = None,
+    config: RiskManagementConfig | None = None,
+) -> List[Mapping]:
+    """Simulate an ATR-sized position with protective stops and targets.
+
+    The strategy allocates a fixed fraction of equity based on ATR-derived risk
+    (``risk_fraction_per_trade``) and exits when either a stop-loss or
+    take-profit level is touched intraday. Returns represent marked-to-market
+    equity for each bar with trading costs applied on entries/exits.
+    """
+
+    if costs is None:
+        costs = TradingCosts()
+
+    if config is None:
+        config = RiskManagementConfig()
+
+    if not closes or not highs or not lows:
+        return []
+
+    atr_series = compute_atr(highs, lows, closes, window=config.atr_window)
+    atr_lookup = {entry["index"]: entry["atr"] for entry in atr_series}
+
+    equity = 1.0
+    curve: List[Mapping] = [{"index": 0, "equity": round(equity, 4)}]
+
+    in_position = False
+    position_size = 0.0
+    stop_price = None
+    take_profit = None
+    last_mark_price = None
+
+    for idx in range(1, len(closes)):
+        turnover = 0.0
+        gross_return = 0.0
+        exit_now = False
+
+        if not in_position:
+            atr = atr_lookup.get(idx)
+            price_open = opens[idx] if opens and len(opens) > idx else closes[idx]
+            if atr and atr > 0 and price_open > 0:
+                stop_distance = atr * config.stop_loss_atr_multiple
+                if stop_distance > 0:
+                    desired_risk = equity * config.risk_fraction_per_trade
+                    position_size = desired_risk / stop_distance
+                    position_size = _clamp(position_size, 0.0, config.max_position)
+
+                    stop_price = price_open - stop_distance
+                    take_profit = price_open + (atr * config.take_profit_atr_multiple)
+                    last_mark_price = price_open
+                    in_position = position_size > 0
+                    if in_position:
+                        turnover += position_size
+
+        if in_position:
+            price_high = highs[idx]
+            price_low = lows[idx]
+            price_close = closes[idx]
+
+            exit_price = price_close
+            if stop_price is not None and price_low <= stop_price:
+                exit_price = stop_price
+                exit_now = True
+            elif take_profit is not None and price_high >= take_profit:
+                exit_price = take_profit
+                exit_now = True
+
+            if last_mark_price:
+                gross_return = position_size * ((exit_price - last_mark_price) / last_mark_price)
+
+            if exit_now:
+                turnover += position_size
+            else:
+                last_mark_price = price_close
+
+        net_return = _apply_trading_friction(gross_return, turnover, costs)
+        equity *= 1 + net_return
+        curve.append({"index": idx, "equity": round(equity, 4)})
+
+        if exit_now:
+            in_position = False
+            position_size = 0.0
+            stop_price = None
+            take_profit = None
+            last_mark_price = None
 
     return curve
 
@@ -430,6 +535,37 @@ def event_breakdown(events: Iterable[Mapping[str, int]], closes: Sequence[float]
     breakdown.sort(key=lambda item: item["event"])
 
     return breakdown
+
+
+def compute_atr(
+    highs: Sequence[float], lows: Sequence[float], closes: Sequence[float], window: int = 14
+) -> List[Mapping]:
+    """Average True Range (ATR) using Wilder's smoothing."""
+
+    if not highs or not lows or not closes or len(highs) != len(lows) or len(highs) != len(closes):
+        return []
+
+    true_ranges: List[float] = []
+    for idx in range(len(closes)):
+        high = highs[idx]
+        low = lows[idx]
+        prev_close = closes[idx - 1] if idx > 0 else closes[0]
+        tr = max(high - low, abs(high - prev_close), abs(low - prev_close))
+        true_ranges.append(tr)
+
+    if len(true_ranges) < window:
+        return []
+
+    atr_values: List[Mapping] = []
+    initial_atr = sum(true_ranges[:window]) / window
+    atr_values.append({"index": window - 1, "atr": round(initial_atr, 4)})
+
+    for idx in range(window, len(true_ranges)):
+        prev_atr = atr_values[-1]["atr"]
+        atr = ((prev_atr * (window - 1)) + true_ranges[idx]) / window
+        atr_values.append({"index": idx, "atr": round(atr, 4)})
+
+    return atr_values
 
 
 def compute_rsi(closes: Sequence[float], period: int = 14) -> List[Mapping]:

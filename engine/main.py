@@ -9,13 +9,16 @@ from engine.backtest.performance import (
     compute_bollinger_bands,
     compute_buy_and_hold_equity,
     compute_equity_curve,
+    compute_atr,
     compute_macd,
     compute_moving_average,
     compute_obv,
     compute_performance_stats,
+    compute_risk_managed_equity,
     compute_rolling_stddev,
     compute_rsi,
     compute_algorithm_score,
+    RiskManagementConfig,
     decompose_closes,
     event_breakdown,
     summarize_returns,
@@ -45,6 +48,8 @@ def run_pipeline() -> None:
     validate_ohlcv(raw_data)
     closes = [row["close"] for row in raw_data]
     opens = [row["open"] for row in raw_data]
+    highs = [row["high"] for row in raw_data]
+    lows = [row["low"] for row in raw_data]
     volumes = [row["volume"] for row in raw_data]
     dates = [row["date"] for row in raw_data]
 
@@ -65,7 +70,18 @@ def run_pipeline() -> None:
         closes, opens=opens, costs=DEFAULT_TRADING_COSTS, turnover=1.0
     )
     buy_and_hold_curve = compute_buy_and_hold_equity(closes)
+    risk_config = RiskManagementConfig()
+    atr_raw = compute_atr(highs, lows, closes, window=risk_config.atr_window)
+    risk_managed_curve = compute_risk_managed_equity(
+        closes,
+        highs,
+        lows,
+        opens=opens,
+        costs=DEFAULT_TRADING_COSTS,
+        config=risk_config,
+    )
     strategy_stats = compute_performance_stats(equity_curve)
+    risk_managed_stats = compute_performance_stats(risk_managed_curve)
     buy_and_hold_stats = compute_performance_stats(buy_and_hold_curve)
     breakdown = event_breakdown(event_timeline, closes)
     rsi_raw = compute_rsi(closes)
@@ -74,6 +90,7 @@ def run_pipeline() -> None:
     obv_raw = compute_obv(closes, volumes)
     rsi_series = attach_dates(rsi_raw, dates)
     stddev_series = attach_dates(compute_rolling_stddev(closes), dates)
+    atr_series = attach_dates(atr_raw, dates)
     macd_series = attach_dates(macd_raw, dates)
     bollinger_series = attach_dates(bollinger_raw, dates)
     obv_series = attach_dates(obv_raw, dates)
@@ -129,9 +146,11 @@ def run_pipeline() -> None:
         {
             "updated_at": now,
             "equity_curve": equity_curve,
+            "risk_managed_curve": risk_managed_curve,
             "buy_and_hold_curve": buy_and_hold_curve,
             "performance": {
                 "strategy": strategy_stats,
+                "risk_managed": risk_managed_stats,
                 "buy_and_hold": buy_and_hold_stats,
             },
             "trading_costs": {
@@ -140,12 +159,23 @@ def run_pipeline() -> None:
                 "turnover": 1.0,
                 "execution": "next_open_to_close",
             },
+            "risk_management": {
+                "atr_window": risk_config.atr_window,
+                "stop_loss_atr_multiple": risk_config.stop_loss_atr_multiple,
+                "take_profit_atr_multiple": risk_config.take_profit_atr_multiple,
+                "risk_fraction_per_trade": risk_config.risk_fraction_per_trade,
+                "max_position": risk_config.max_position,
+            },
         },
     )
     write_json(BASE_PATH / "perf/by_event.json", {"updated_at": now, "breakdown": breakdown})
     write_json(
         BASE_PATH / "perf/rsi.json",
         {"updated_at": now, "period": 14, "rsi": rsi_series},
+    )
+    write_json(
+        BASE_PATH / "perf/atr.json",
+        {"updated_at": now, "window": risk_config.atr_window, "atr": atr_series},
     )
     write_json(
         BASE_PATH / "perf/stddev.json",
