@@ -1,11 +1,45 @@
 {
-  "updated_at": "2025-12-16T22:41:13.419113",
+  "updated_at": "2025-12-17T15:55:37.945103",
   "breakdown": [
     {
+      "event": "DISTRIBUTION_RISK",
+      "occurrences": 449,
+      "avg_return_5d": 0.001,
+      "avg_return_10d": 0.002,
+      "samples_5d": 449,
+      "samples_10d": 449
+    },
+    {
+      "event": "NEUTRAL",
+      "occurrences": 1797,
+      "avg_return_5d": 0.002,
+      "avg_return_10d": 0.004,
+      "samples_5d": 1797,
+      "samples_10d": 1797
+    },
+    {
       "event": "RANGE_ACCUMULATION",
-      "avg_return_5d": 0.064,
-      "avg_return_10d": 0.068,
-      "count": 1
+      "occurrences": 2061,
+      "avg_return_5d": 0.003,
+      "avg_return_10d": 0.006,
+      "samples_5d": 2056,
+      "samples_10d": 2051
+    },
+    {
+      "event": "RECLAIM",
+      "occurrences": 241,
+      "avg_return_5d": 0.006,
+      "avg_return_10d": 0.012,
+      "samples_5d": 240,
+      "samples_10d": 239
+    },
+    {
+      "event": "SHAKEOUT",
+      "occurrences": 658,
+      "avg_return_5d": 0.001,
+      "avg_return_10d": 0.003,
+      "samples_5d": 658,
+      "samples_10d": 658
     }
   ]
 }
