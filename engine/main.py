@@ -48,7 +48,13 @@ def run_pipeline() -> None:
     volumes = [row["volume"] for row in raw_data]
     dates = [row["date"] for row in raw_data]
 
-    latest_events = detect_events(raw_data)
+    event_timeline = []
+    for idx in range(len(raw_data)):
+        daily_events = detect_events(raw_data[: idx + 1])
+        for event in daily_events:
+            event_timeline.append({"name": event.name, "index": idx})
+
+    latest_events = [event for event in detect_events(raw_data)]
     cycles, turning_points = detect_cycles(raw_data)
     filtered_cycles = filter_cycles(cycles, min_length=2)
     cycle_stats = summarize_cycles(filtered_cycles)
@@ -61,7 +67,7 @@ def run_pipeline() -> None:
     buy_and_hold_curve = compute_buy_and_hold_equity(closes)
     strategy_stats = compute_performance_stats(equity_curve)
     buy_and_hold_stats = compute_performance_stats(buy_and_hold_curve)
-    breakdown = event_breakdown([event.name for event in latest_events], closes)
+    breakdown = event_breakdown(event_timeline, closes)
     rsi_raw = compute_rsi(closes)
     macd_raw = compute_macd(closes)
     bollinger_raw = compute_bollinger_bands(closes)
