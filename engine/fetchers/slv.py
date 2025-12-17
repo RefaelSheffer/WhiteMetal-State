@@ -1,8 +1,9 @@
-"""Simple SLV data generator.
+"""SLV data generator that prefers real market data.
 
-In production this would call a market data API. For the MVP we emit a
-synthetic but stable time series so the rest of the pipeline can run in
-GitHub Actions without external credentials.
+The legacy implementation emitted synthetic random data so the pipeline could
+run without API keys. Now we default to fetching real daily OHLCV prices from
+the :mod:`engine.fetchers.slv_real` module, falling back to deterministic
+synthetic data only if the network and cache are both unavailable.
 """
 from __future__ import annotations
 
@@ -10,8 +11,36 @@ import random
 from datetime import date, timedelta
 from typing import List, Mapping
 
+from engine.fetchers.slv_real import fetch_slv_ohlcv
 
-def generate_slv_series(days: int = 180) -> List[Mapping]:
+
+def generate_slv_series(
+    days: int = 180,
+    cache_path: str = "public/data/raw/slv_daily.json",
+    *,
+    allow_synthetic_fallback: bool = True,
+) -> List[Mapping]:
+    """Return the most recent ``days`` of SLV OHLCV data.
+
+    We first attempt to load real prices (using the cached JSON if present).
+    If that fails and ``allow_synthetic_fallback`` is true, we emit a
+    deterministic synthetic series so downstream components can continue to
+    operate.
+    """
+
+    try:
+        records = fetch_slv_ohlcv(cache_path=cache_path)
+    except Exception:
+        if not allow_synthetic_fallback:
+            raise
+        records = _generate_synthetic_series(days)
+    else:
+        records = records[-days:]
+
+    return records
+
+
+def _generate_synthetic_series(days: int) -> List[Mapping]:
     rng = random.Random(42)
     today = date.today()
     base_price = 22.0
