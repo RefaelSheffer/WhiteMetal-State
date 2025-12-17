@@ -153,6 +153,30 @@
             </select>
           </div>
           <div>
+            <label class="small" data-i18n="maWindow">MA window (trend filter)</label>
+            <input type="number" id="maWindowInput" min="5" max="400" step="1" value="50" />
+          </div>
+          <div>
+            <label class="small" data-i18n="rsiPeriod">RSI period</label>
+            <input type="number" id="rsiPeriodInput" min="5" max="60" step="1" value="14" />
+          </div>
+          <div>
+            <label class="small" data-i18n="rsiOversold">RSI oversold</label>
+            <input type="number" id="rsiOversoldInput" min="1" max="60" step="1" value="35" />
+          </div>
+          <div>
+            <label class="small" data-i18n="rsiOverbought">RSI overbought</label>
+            <input type="number" id="rsiOverboughtInput" min="40" max="95" step="1" value="65" />
+          </div>
+          <div>
+            <label class="small" data-i18n="bandWindow">Bollinger window</label>
+            <input type="number" id="bandWindowInput" min="5" max="200" step="1" value="20" />
+          </div>
+          <div>
+            <label class="small" data-i18n="bandStd">Band σ (std dev)</label>
+            <input type="number" id="bandStdInput" min="1" max="4" step="0.1" value="2" />
+          </div>
+          <div>
             <label class="small" data-i18n="grossNet">Gross / Net</label>
             <div class="flex">
               <label class="toggle"><input type="radio" name="pnltoggle" value="gross" checked /> <span data-i18n="grossLabel">Gross</span></label>
@@ -396,6 +420,12 @@ const translations = {
     backtestSettings: "Backtest settings",
     openSettings: "Open",
     settingsHint: "שליטה מהירה לטווחי בדיקה, עלויות ואסטרטגיה.",
+    maWindow: "חלון MA (מסנן מגמה)",
+    rsiPeriod: "תקופת RSI",
+    rsiOversold: "RSI מכירות יתר",
+    rsiOverbought: "RSI קניות יתר",
+    bandWindow: "חלון בולינגר",
+    bandStd: "סטיית תקן",
     startDate: "Start date",
     endDate: "End date",
     costsLabel: "עלויות (bps)",
@@ -497,6 +527,12 @@ const translations = {
     backtestSettings: "Backtest settings",
     openSettings: "Open",
     settingsHint: "Quick control over test window, costs and regime.",
+    maWindow: "MA window (trend filter)",
+    rsiPeriod: "RSI period",
+    rsiOversold: "RSI oversold",
+    rsiOverbought: "RSI overbought",
+    bandWindow: "Bollinger window",
+    bandStd: "Band σ (std dev)",
     startDate: "Start date",
     endDate: "End date",
     costsLabel: "Costs (bps)",
@@ -562,6 +598,28 @@ function bollinger(arr, period = 20, mult = 2) {
   return { ma, upper, lower };
 }
 
+function computeRsi(arr, period = 14) {
+  const gains = [];
+  const losses = [];
+  for (let i = 1; i < arr.length; i++) {
+    const change = arr[i] - arr[i - 1];
+    gains.push(Math.max(change, 0));
+    losses.push(Math.max(-change, 0));
+  }
+  const rsi = [null];
+  for (let i = 1; i < arr.length; i++) {
+    if (i < period) { rsi.push(null); continue; }
+    const gainSlice = gains.slice(i - period, i);
+    const lossSlice = losses.slice(i - period, i);
+    const avgGain = gainSlice.reduce((a, b) => a + b, 0) / period;
+    const avgLoss = lossSlice.reduce((a, b) => a + b, 0) / period;
+    const rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
+    const value = 100 - 100 / (1 + rs);
+    rsi.push(value);
+  }
+  return rsi;
+}
+
 function normalizeEquityFromPrices(prices) {
   const eq = [{ index: 0, equity: 1 }];
   for (let i = 1; i < prices.length; i++) {
@@ -602,9 +660,26 @@ function applyCosts(equitySeries, costBps = 0.0) {
     getJson("./public/data/events/cycle_stats.json"),
   ]);
 
-  const state = { range: "3m", lang: detectLang(), showMa: true, showBoll: true, showSignals: true, showNet: false, costBps: 10 };
   const priceDates = prices.dates.map((d) => new Date(d));
+  const state = {
+    range: "3m",
+    lang: detectLang(),
+    showMa: true,
+    showBoll: true,
+    showSignals: true,
+    showNet: false,
+    costBps: 10,
+    startDate: prices.dates[0],
+    endDate: prices.dates[prices.dates.length - 1],
+    maWindow: 50,
+    rsiPeriod: 14,
+    rsiOversold: 35,
+    rsiOverbought: 65,
+    bandWindow: 20,
+    bandStd: 2,
+  };
   const buyHoldCurve = normalizeEquityFromPrices(prices.close);
+  let lastBacktest = null;
 
   function t(key) { return translations[state.lang]?.[key] ?? translations.en[key] ?? key; }
 
@@ -631,13 +706,24 @@ function applyCosts(equitySeries, costBps = 0.0) {
     document.getElementById("metaUpdated").textContent = meta?.last_updated_utc ?? "—";
   }
 
-  function getRangeMask(months) {
-    if (!months) return priceDates.map((_, i) => i);
-    const lastDate = priceDates[priceDates.length - 1];
-    const start = new Date(lastDate);
-    start.setMonth(start.getMonth() - months);
+  function getRangeMask(months, startDate, endDate) {
     const mask = [];
-    priceDates.forEach((d, i) => { if (d >= start) mask.push(i); });
+    const startBound = startDate ? new Date(startDate) : null;
+    const endBound = endDate ? new Date(endDate) : null;
+    const rangeStart = (() => {
+      if (!months) return null;
+      const lastDate = priceDates[priceDates.length - 1];
+      const start = new Date(lastDate);
+      start.setMonth(start.getMonth() - months);
+      return start;
+    })();
+
+    priceDates.forEach((d, i) => {
+      if (rangeStart && d < rangeStart) return;
+      if (startBound && d < startBound) return;
+      if (endBound && d > endBound) return;
+      mask.push(i);
+    });
     return mask;
   }
 
@@ -648,7 +734,7 @@ function applyCosts(equitySeries, costBps = 0.0) {
 
   function renderPrice(range) {
     const months = range === "3m" ? 3 : range === "1y" ? 12 : null;
-    const mask = getRangeMask(months);
+    const mask = getRangeMask(months, state.startDate, state.endDate);
     const dates = applyMask(prices.dates, mask);
     const close = applyMask(prices.close, mask);
 
@@ -675,8 +761,10 @@ function applyCosts(equitySeries, costBps = 0.0) {
     }
 
     const turningPoints = (cycleStats?.turning_points ?? []).filter((p) => {
-      if (!months) return true;
       const d = new Date(p.date);
+      if (state.startDate && d < new Date(state.startDate)) return false;
+      if (state.endDate && d > new Date(state.endDate)) return false;
+      if (!months) return true;
       const start = new Date(priceDates[priceDates.length - 1]);
       start.setMonth(start.getMonth() - months);
       return d >= start;
@@ -695,8 +783,10 @@ function applyCosts(equitySeries, costBps = 0.0) {
     const cyclesData = cycleStats?.cycles ?? [];
     const tableBody = document.querySelector("#cycleTable tbody");
     const recentCycles = cyclesData.filter((cycle) => {
-      if (!months) return true;
       const d = new Date(cycle.end_date);
+      if (state.startDate && d < new Date(state.startDate)) return false;
+      if (state.endDate && d > new Date(state.endDate)) return false;
+      if (!months) return true;
       const start = new Date(priceDates[priceDates.length - 1]);
       start.setMonth(start.getMonth() - months);
       return d >= start;
@@ -752,16 +842,139 @@ function applyCosts(equitySeries, costBps = 0.0) {
     return { dd: maxDd, ulcer, worst };
   }
 
+  function computeStats(series) {
+    if (!series?.length) return { totalReturn: null, maxDrawdown: null, sharpe: null, sortino: null };
+    const vals = series.map((p) => p?.equity ?? p);
+    if (!vals.length) return { totalReturn: null, maxDrawdown: null, sharpe: null, sortino: null };
+
+    const returns = [];
+    for (let i = 1; i < vals.length; i++) {
+      if (!vals[i - 1]) continue;
+      returns.push(vals[i] / vals[i - 1] - 1);
+    }
+
+    const totalReturn = vals[vals.length - 1] / vals[0] - 1;
+    let peak = vals[0];
+    let maxDd = 0;
+    vals.forEach((v) => { peak = Math.max(peak, v); maxDd = Math.min(maxDd, (v - peak) / peak); });
+
+    const mean = returns.reduce((a, b) => a + b, 0) / (returns.length || 1);
+    const variance = returns.reduce((a, b) => a + (b - mean) ** 2, 0) / (returns.length || 1);
+    const std = Math.sqrt(variance);
+    const sharpe = std ? mean / std : 0;
+    const downside = returns.filter((r) => r < 0);
+    const downsideMean = downside.reduce((a, b) => a + b, 0) / (downside.length || 1);
+    const downsideVariance = downside.reduce((a, b) => a + (b - downsideMean) ** 2, 0) / (downside.length || 1);
+    const downsideDev = Math.sqrt(downsideVariance);
+    const sortino = downsideDev ? mean / downsideDev : 0;
+
+    return {
+      totalReturn,
+      maxDrawdown: maxDd,
+      sharpe,
+      sortino,
+    };
+  }
+
+  function buildBuyHoldSeries(closes) {
+    const eq = [{ index: 0, equity: 1 }];
+    for (let i = 1; i < closes.length; i++) {
+      const ret = closes[i] / closes[i - 1] - 1;
+      eq.push({ index: i, equity: eq[i - 1].equity * (1 + ret) });
+    }
+    return eq;
+  }
+
+  function runBacktest(closes, dates, options) {
+    const ma = movingAverage(closes, options.maWindow || 50);
+    const bands = bollinger(closes, options.bandWindow || 20, options.bandStd || 2);
+    const rsi = computeRsi(closes, options.rsiPeriod || 14);
+
+    const gross = [{ index: 0, equity: 1 }];
+    const trades = [];
+    let equity = 1;
+    let inPosition = false;
+    let entryIndex = null;
+    let entryEquity = 1;
+
+    for (let i = 1; i < closes.length; i++) {
+      if (inPosition) {
+        const ret = closes[i] / closes[i - 1] - 1;
+        equity *= 1 + ret;
+      }
+
+      gross.push({ index: i, equity: Number(equity.toFixed(6)) });
+
+      const maVal = ma[i];
+      const rsiVal = rsi[i];
+      const lower = bands.lower[i];
+
+      const exitMa = inPosition && maVal !== null && closes[i] < maVal;
+      const exitRsi = inPosition && rsiVal !== null && rsiVal >= (options.rsiOverbought || 65);
+      if (exitMa || exitRsi) {
+        const ret = equity / entryEquity - 1;
+        trades.push({
+          entry: dates[entryIndex],
+          exit: dates[i],
+          reason: exitRsi ? "RSI exit" : "MA breakdown",
+          return: ret,
+          hold: i - entryIndex,
+        });
+        inPosition = false;
+        entryIndex = null;
+        entryEquity = equity;
+      }
+
+      const entryBand = lower !== null && closes[i] <= lower;
+      const entryRsi = rsiVal !== null && rsiVal <= (options.rsiOversold || 35);
+      const entryTrend = maVal !== null && closes[i] >= maVal * 0.98;
+      if (!inPosition && entryBand && entryRsi && entryTrend) {
+        inPosition = true;
+        entryIndex = i;
+        entryEquity = equity;
+      }
+    }
+
+    if (inPosition && entryIndex !== null) {
+      const ret = equity / entryEquity - 1;
+      trades.push({
+        entry: dates[entryIndex],
+        exit: dates[dates.length - 1],
+        reason: "Range timeout",
+        return: ret,
+        hold: dates.length - 1 - entryIndex,
+      });
+    }
+
+    const buyHold = buildBuyHoldSeries(closes);
+
+    return {
+      gross,
+      buyHold,
+      trades,
+      stats: {
+        strategy: computeStats(gross),
+        benchmark: computeStats(buyHold),
+      },
+    };
+  }
+
   function renderEquity(range) {
     const months = range === "3m" ? 3 : range === "1y" ? 12 : null;
-    const mask = getRangeMask(months);
+    const mask = getRangeMask(months, state.startDate, state.endDate);
     const dates = applyMask(prices.dates, mask, (d) => new Date(d));
-    const equitySeries = equityCurve.equity_curve ?? [];
-    if (!equitySeries.length) { document.getElementById("perfChart").textContent = t("perfSeriesUnavailable"); return; }
+    const close = applyMask(prices.close, mask, (v) => v);
+    if (!close.length) { document.getElementById("perfChart").textContent = t("perfSeriesUnavailable"); return; }
 
-    const gross = applyMask(equitySeries, mask, (p) => ({ index: p.index, equity: p.equity }));
-    const buyHold = applyMask(buyHoldCurve, mask, (p) => ({ index: p.index, equity: p.equity }));
+    const backtest = runBacktest(close, dates, state);
+    lastBacktest = backtest;
+    const gross = backtest.gross;
+    const buyHold = backtest.buyHold;
     const net = applyCosts(gross, state.costBps);
+    const grossStats = backtest.stats.strategy;
+    const netStats = computeStats(net);
+    const benchStats = backtest.stats.benchmark;
+    const selectedStats = state.showNet ? netStats : grossStats;
 
     const chosen = state.showNet ? net : gross;
     const grossReturn = gross.length ? gross[gross.length - 1].equity - 1 : null;
@@ -787,29 +1000,33 @@ function applyCosts(equitySeries, costBps = 0.0) {
     document.getElementById("netReturnVal").textContent = fmtPct(netReturn, 2);
 
     const perfBody = document.getElementById("perfTableBody");
-    const chosenReturn = chosen.length ? chosen[chosen.length - 1].equity - 1 : null;
-    const benchReturn = buyHold.length ? buyHold[buyHold.length - 1].equity - 1 : null;
-    const maxDdDisplay = fmtPct(risk.dd, 2);
+    const chosenReturn = selectedStats.totalReturn;
+    const benchReturn = benchStats.totalReturn;
+    const maxDdDisplay = fmtPct(selectedStats.maxDrawdown ?? risk.dd, 2);
 
     perfBody.innerHTML = `
-      <tr><td>${state.showNet ? "Strategy (Net)" : "Strategy (Gross)"}</td><td>${fmtPct(chosenReturn, 2)}</td><td>${maxDdDisplay}</td><td>${fmt(perfSummary.algo_score?.sharpe_ratio, 2)}</td><td>${fmt(perfSummary.algo_score?.sortino_ratio || perfSummary.algo_score?.sharpe_ratio, 2)}</td></tr>
-      <tr><td>${t("buyHoldLabel")}</td><td>${fmtPct(benchReturn, 2)}</td><td>—</td><td>—</td><td>—</td></tr>
+      <tr><td>${state.showNet ? "Strategy (Net)" : "Strategy (Gross)"}</td><td>${fmtPct(chosenReturn, 2)}</td><td>${maxDdDisplay}</td><td>${fmt(selectedStats.sharpe, 2)}</td><td>${fmt(selectedStats.sortino, 2)}</td></tr>
+      <tr><td>${t("buyHoldLabel")}</td><td>${fmtPct(benchReturn, 2)}</td><td>${fmtPct(benchStats.maxDrawdown, 2)}</td><td>${fmt(benchStats.sharpe, 2)}</td><td>${fmt(benchStats.sortino, 2)}</td></tr>
     `;
   }
 
   function renderTradeLog() {
     const tbody = document.querySelector("#tradeTable tbody");
-    const cycles = cycleStats?.cycles ?? [];
-    const trades = cycles.filter((c) => c.direction === "upswing").slice(-8).reverse();
+    const trades = (lastBacktest?.trades ?? []).slice(-8).reverse();
     if (!trades.length) { tbody.innerHTML = `<tr><td colspan="5" class="muted">${t("noCycles")}</td></tr>`; return; }
-    tbody.innerHTML = trades.map((c) => {
-      const reason = c.length >= 3 ? "Trend trigger" : "Range scalp";
+    const fmtDate = (d) => {
+      if (!d) return "—";
+      if (d instanceof Date) return d.toISOString().slice(0, 10);
+      return String(d).slice(0, 10);
+    };
+
+    tbody.innerHTML = trades.map((trade) => {
       return `<tr>
-        <td>${c.start_date}</td>
-        <td>${c.end_date}</td>
-        <td>${reason}</td>
-        <td>${fmtPct(c.amplitude, 2)}</td>
-        <td>${c.length}d</td>
+        <td>${fmtDate(trade.entry)}</td>
+        <td>${fmtDate(trade.exit)}</td>
+        <td>${trade.reason}</td>
+        <td>${fmtPct(trade.return, 2)}</td>
+        <td>${trade.hold}d</td>
       </tr>`;
     }).join("");
   }
@@ -859,7 +1076,7 @@ function applyCosts(equitySeries, costBps = 0.0) {
 
   function renderDecomposition(range) {
     const months = range === "3m" ? 3 : range === "1y" ? 12 : null;
-    const mask = getRangeMask(months);
+    const mask = getRangeMask(months, state.startDate, state.endDate);
     const dates = applyMask(prices.dates, mask);
     const trend = applyMask(decomposition.trend ?? [], mask);
     const seasonal = applyMask(decomposition.seasonal ?? [], mask);
@@ -915,10 +1132,25 @@ function applyCosts(equitySeries, costBps = 0.0) {
 
   const startInput = document.getElementById("startDate");
   const endInput = document.getElementById("endDate");
-  startInput.value = prices.dates[0].slice(0, 10);
-  endInput.value = prices.dates[prices.dates.length - 1].slice(0, 10);
+  startInput.value = state.startDate.slice(0, 10);
+  endInput.value = state.endDate.slice(0, 10);
+
+  const syncDates = () => {
+    const startDate = new Date(state.startDate);
+    const endDate = new Date(state.endDate);
+    if (startDate > endDate) { state.endDate = state.startDate; endInput.value = state.endDate.slice(0, 10); }
+  };
+
+  startInput.addEventListener("change", (e) => { state.startDate = e.target.value || state.startDate; syncDates(); renderAll(); });
+  endInput.addEventListener("change", (e) => { state.endDate = e.target.value || state.endDate; syncDates(); renderAll(); });
 
   document.getElementById("costsInput").addEventListener("input", (e) => { state.costBps = Number(e.target.value) || 0; renderEquity(state.range); });
+  document.getElementById("maWindowInput").addEventListener("input", (e) => { state.maWindow = Number(e.target.value) || state.maWindow; renderEquity(state.range); renderTradeLog(); });
+  document.getElementById("rsiPeriodInput").addEventListener("input", (e) => { state.rsiPeriod = Number(e.target.value) || state.rsiPeriod; renderEquity(state.range); renderTradeLog(); });
+  document.getElementById("rsiOversoldInput").addEventListener("input", (e) => { state.rsiOversold = Number(e.target.value) || state.rsiOversold; renderEquity(state.range); renderTradeLog(); });
+  document.getElementById("rsiOverboughtInput").addEventListener("input", (e) => { state.rsiOverbought = Number(e.target.value) || state.rsiOverbought; renderEquity(state.range); renderTradeLog(); });
+  document.getElementById("bandWindowInput").addEventListener("input", (e) => { state.bandWindow = Number(e.target.value) || state.bandWindow; renderEquity(state.range); renderTradeLog(); });
+  document.getElementById("bandStdInput").addEventListener("input", (e) => { state.bandStd = Number(e.target.value) || state.bandStd; renderEquity(state.range); renderTradeLog(); });
   document.querySelectorAll('input[name="equityMode"]').forEach((r) => {
     r.addEventListener('change', (e) => { state.showNet = e.target.value === 'net'; renderEquity(state.range); });
   });
