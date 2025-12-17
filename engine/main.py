@@ -5,12 +5,14 @@ from pathlib import Path
 
 from engine.backtest.performance import (
     DEFAULT_TRADING_COSTS,
+    RiskManagementConfig,
     attach_dates,
-    compute_bollinger_bands,
     compute_adx,
+    compute_algorithm_score,
+    compute_atr,
+    compute_bollinger_bands,
     compute_buy_and_hold_equity,
     compute_equity_curve,
-    compute_atr,
     compute_macd,
     compute_moving_average,
     compute_obv,
@@ -18,12 +20,11 @@ from engine.backtest.performance import (
     compute_risk_managed_equity,
     compute_rolling_stddev,
     compute_rsi,
-    compute_algorithm_score,
-    RiskManagementConfig,
     decompose_closes,
     event_breakdown,
     summarize_returns,
 )
+from engine.anomalies.detector import compute_regime, detect_anomalies
 from engine.decision.engine import build_indicator_context, select_action
 from engine.events.cycles import (
     detect_cycles,
@@ -104,6 +105,16 @@ def run_pipeline() -> None:
     signal = select_action(
         latest_events, filtered_cycles, indicator_context=indicator_context
     )
+
+    regime = compute_regime(closes, adx_raw, atr_raw)
+    anomalies = detect_anomalies(
+        closes,
+        bollinger_raw,
+        atr_raw,
+        adx_raw,
+        regime,
+        dates=dates,
+    )
     now = datetime.utcnow().isoformat()
     last_updated = datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
     history_record = {"timestamp": now, **signal}
@@ -120,6 +131,8 @@ def run_pipeline() -> None:
         },
     )
 
+    write_json(BASE_PATH / "anomalies/latest.json", anomalies)
+
     write_json(BASE_PATH / "events/latest.json", {"as_of": now, "events": [e.to_dict() for e in latest_events]})
     write_json(
         BASE_PATH / "events/cycle_stats.json",
@@ -135,9 +148,11 @@ def run_pipeline() -> None:
     write_json(BASE_PATH / "signals/latest_signal.json", signal)
 
     events_history_path = BASE_PATH / "events/history.jsonl"
+    anomaly_history_path = BASE_PATH / "anomalies/history.jsonl"
     signal_history_path = BASE_PATH / "signals/signal_history.jsonl"
 
     append_jsonl(events_history_path, {"timestamp": now, "events": [e.to_dict() for e in latest_events]})
+    append_jsonl(anomaly_history_path, {"timestamp": now, **anomalies})
     append_jsonl(signal_history_path, history_record)
 
     write_json(
