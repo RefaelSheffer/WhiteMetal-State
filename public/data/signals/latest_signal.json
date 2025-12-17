@@ -1,9 +1,9 @@
 {
-  "timestamp": "2025-12-16T22:41:13.419099",
+  "timestamp": "2025-12-17T15:55:37.854438",
   "action": "ADD",
   "market_state": "RANGE_ACCUMULATION",
   "confidence": 0.5,
-  "rationale": "Staying above the 20-day mean while basing near highs. Cycle posture is neutral; follow event guidance. Latest cycle amplitude is elevated versus average; conviction trades can be sized up. High-amplitude upswing (0.0932) above 0.014; leaning into long exposure with a larger add.",
+  "rationale": "Staying above the 20-day mean while basing near highs. ADX shows strong upside trend bias; loosen long confirmations. Regime: uptrend; loosening long triggers and delaying sells. Cycle posture is neutral; follow event guidance. Latest cycle amplitude is elevated versus average; conviction trades can be sized up. High-amplitude upswing (0.0932) above 0.014; leaning into long exposure with a larger add.",
   "cycle_context": {
     "bias": "neutral",
     "latest_direction": "upswing",
@@ -27,7 +27,12 @@
     "latest_rsi": 70.46,
     "latest_macd": 2.911,
     "latest_macd_hist": 0.5723,
-    "macd_improving": false
+    "macd_improving": false,
+    "latest_adx": 33.28,
+    "latest_plus_di": 70.46,
+    "latest_minus_di": 29.54,
+    "regime": "uptrend",
+    "regime_note": "ADX shows strong upside trend bias; loosen long confirmations."
   },
   "active_events": [
     {

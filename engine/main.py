@@ -34,6 +34,12 @@ from engine.events.cycles import (
 )
 from engine.events.detector import detect_events
 from engine.fetchers.slv_real import fetch_slv_ohlcv
+from engine.heatmap import (
+    compute_deviation_heatmap,
+    compute_momentum_heatmap,
+    compute_stats_by_band,
+    compute_volatility_heatmap,
+)
 from engine.probabilistic import build_probabilistic_signal
 from engine.utils.io import ensure_parent, write_json
 from engine.validation.sanity import validate_ohlcv
@@ -130,6 +136,11 @@ def run_pipeline() -> None:
     now = datetime.utcnow().isoformat()
     last_updated = datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
     history_record = {"timestamp": now, **signal}
+
+    deviation_payload = compute_deviation_heatmap(closes, dates)
+    volatility_payload = compute_volatility_heatmap(highs, lows, closes, dates)
+    momentum_payload = compute_momentum_heatmap(closes, dates)
+    stats_by_band = compute_stats_by_band(closes, deviation_payload["bands"])
 
     write_json(
         BASE_PATH / "meta.json",
@@ -253,6 +264,10 @@ def run_pipeline() -> None:
             "resid": decomposition["resid"],
         },
     )
+    write_json(BASE_PATH / "heatmap/deviation.json", deviation_payload)
+    write_json(BASE_PATH / "heatmap/volatility.json", volatility_payload)
+    write_json(BASE_PATH / "heatmap/momentum.json", momentum_payload)
+    write_json(BASE_PATH / "heatmap/stats_by_band.json", stats_by_band)
 
 
 def append_jsonl(path: Path, record: dict) -> None:

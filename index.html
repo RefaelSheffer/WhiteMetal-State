@@ -71,6 +71,23 @@
     .range-chip { background: rgba(255,255,255,0.06); padding: 6px 10px; border-radius: 10px; display: inline-flex; gap: 8px; align-items: center; }
     .analogy { background: #0d1424; border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin-top: 8px; }
     .panel-label { font-size: 13px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); }
+    .mini-bar { position: relative; height: 40px; margin-top: 12px; background: #0d1424; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .mini-track { position: absolute; top: 50%; left: 0; right: 0; height: 6px; background: linear-gradient(90deg, #1d4ed8, #60a5fa, #6b7280, #fb923c, #ef4444); transform: translateY(-50%); opacity: 0.8; }
+    .mini-pointer { position: absolute; top: 6px; width: 2px; height: 28px; background: #fff; border-radius: 2px; box-shadow: 0 0 6px rgba(255,255,255,0.6); transition: left 0.2s ease; }
+    .mini-label { position: absolute; top: 6px; font-size: 11px; color: var(--muted); padding: 2px 6px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 8px; }
+    .mini-label.left { left: 6px; }
+    .mini-label.right { right: 6px; }
+    .band-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin-top: 12px; }
+    .band-card { background: #0d1424; border: 1px solid var(--border); border-radius: 12px; padding: 10px; }
+    .band-card .title { font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+    .band-card .stat { font-size: 14px; line-height: 1.5; color: var(--muted); }
+    .pill.extreme-high { background: rgba(239, 68, 68, 0.16); color: #f87171; }
+    .pill.high { background: rgba(248, 180, 0, 0.16); color: #fbbf24; }
+    .pill.neutral { background: rgba(255,255,255,0.08); color: var(--text); }
+    .pill.low { background: rgba(96, 165, 250, 0.18); color: #93c5fd; }
+    .pill.extreme-low { background: rgba(37, 99, 235, 0.18); color: #bfdbfe; }
+    .heatmap-legend { display: flex; gap: 8px; align-items: center; margin-top: 8px; color: var(--muted); font-size: 12px; flex-wrap: wrap; }
+    .legend-swatch { width: 14px; height: 14px; border-radius: 4px; display: inline-block; border: 1px solid var(--border); }
     @media (max-width: 900px) { .row { grid-template-columns: 1fr; } }
     a { color: #8bb2ff; }
   </style>
@@ -159,6 +176,64 @@
         <span class="panel-label" data-i18n="analogiesNote">דומים היסטוריים · ללא הוראות</span>
       </div>
       <div id="analogyList" class="grid-2"></div>
+    </div>
+
+    <div style="height:16px"></div>
+
+    <div class="card" id="deviationPanel">
+      <div class="section-title flex">
+        <span data-i18n="deviationPanelTitle">Deviation vs history</span>
+        <span class="pill neutral" id="bandStateTag">—</span>
+      </div>
+      <div class="muted" id="deviationMeta">—</div>
+      <div class="kpis" style="margin-top:10px;">
+        <div class="kpi">
+          <div class="muted" data-i18n="zNowLabel">Z-score now</div>
+          <div class="v mono" id="zNow">—</div>
+          <span class="small" id="zWindowLabel">—</span>
+        </div>
+        <div class="kpi">
+          <div class="muted" data-i18n="pctNowLabel">Percentile now</div>
+          <div class="v mono" id="pctNow">—</div>
+          <span class="small" id="pctWindowLabel">—</span>
+        </div>
+        <div class="kpi">
+          <div class="muted" data-i18n="bandLabel">Band</div>
+          <div class="v mono" id="bandLabelNow">—</div>
+          <span class="small" id="bandHint">—</span>
+        </div>
+      </div>
+      <div class="mini-bar" aria-label="z-score position">
+        <div class="mini-track"></div>
+        <div class="mini-pointer" id="zPointer"></div>
+        <div class="mini-label left">-3σ</div>
+        <div class="mini-label right">+3σ</div>
+      </div>
+      <div class="subtitle" id="bandContext">—</div>
+    </div>
+
+    <div style="height:16px"></div>
+
+    <div class="card" id="heatmapCard">
+      <div class="section-title flex">
+        <span data-i18n="heatmapTitle">Heatmap timeline</span>
+        <span class="panel-label" data-i18n="heatmapNote">סטיות, תנודתיות, מומנטום · ללא BUY/SELL</span>
+      </div>
+      <div class="controls" style="margin-top:6px;">
+        <div class="muted" data-i18n="viewLabel">View</div>
+        <button class="btn active" data-heatmap="deviation" id="btnDeviation">Deviation</button>
+        <button class="btn" data-heatmap="volatility" id="btnVolatility">Volatility</button>
+        <button class="btn" data-heatmap="momentum" id="btnMomentum">Momentum</button>
+        <span class="space"></span>
+        <div class="muted" data-i18n="rangeLabel">טווח זמן:</div>
+        <button class="btn" data-heatmap-range="3m">3M</button>
+        <button class="btn" data-heatmap-range="1y">1Y</button>
+        <button class="btn active" data-heatmap-range="all">All</button>
+        <label class="toggle" style="margin-inline-start:8px;"><input type="checkbox" id="heatmapWeekly" /> <span data-i18n="weeklyAgg">Weekly</span></label>
+      </div>
+      <div id="heatmap" style="height:240px;"></div>
+      <div class="muted" id="heatmapNote">—</div>
+      <div class="band-grid" id="bandStats"></div>
     </div>
 
     <div style="height:16px"></div>
@@ -432,6 +507,15 @@ async function getJson(path) {
   return await r.json();
 }
 
+async function optionalJson(path) {
+  try {
+    return await getJson(path);
+  } catch (err) {
+    console.warn(`Optional JSON missing: ${path}`, err);
+    return null;
+  }
+}
+
 function detectLang() {
   const stored = localStorage.getItem("lang");
   if (stored) return stored;
@@ -490,6 +574,14 @@ const translations = {
     whatItMeansTitle: "מה זה בדרך כלל אומר",
     analogiesTitle: "אנלוגיות",
     analogiesNote: "דומים היסטוריים · ללא הוראות",
+    deviationPanelTitle: "סטייה מול היסטוריה",
+    zNowLabel: "Z-score נוכחי",
+    pctNowLabel: "אחוזון נוכחי",
+    bandLabel: "Band",
+    heatmapTitle: "מפת חום לאורך זמן",
+    heatmapNote: "צבע הוא הקשר, לא הוראה. Hover → מספרים.",
+    viewLabel: "תצוגה",
+    weeklyAgg: "שבועי",
     limitsCopy: "הנתונים היסטוריים בלבד; לא התחייבות לתוצאה.",
     medianLabel: "חציון 5 ימים",
     advancedTitle: "Advanced",
@@ -614,6 +706,14 @@ const translations = {
     whatItMeansTitle: "What this usually means",
     analogiesTitle: "Analogies",
     analogiesNote: "Historical peers · No instructions",
+    deviationPanelTitle: "Deviation vs history",
+    zNowLabel: "Z-score now",
+    pctNowLabel: "Percentile now",
+    bandLabel: "Band",
+    heatmapTitle: "Heatmap timeline",
+    heatmapNote: "Color = context only. Hover to see numbers.",
+    viewLabel: "View",
+    weeklyAgg: "Weekly",
     limitsCopy: "Historical only; not a promise.",
     medianLabel: "Median 5d",
     advancedTitle: "Advanced",
@@ -777,7 +877,7 @@ function applyCosts(equitySeries, costBps = 0.0) {
 }
 
 (async () => {
-  const [meta, prices, probabilistic, anomalies, decomposition, perfSummary, equityCurve, cycleStats] = await Promise.all([
+  const [meta, prices, probabilistic, anomalies, decomposition, perfSummary, equityCurve, cycleStats, heatmapDeviation, heatmapVolatility, heatmapMomentum, statsByBand] = await Promise.all([
     getJson("./public/data/meta.json"),
     getJson("./data/slv_prices.json"),
     getJson("./public/data/signals/probabilistic.json"),
@@ -786,6 +886,10 @@ function applyCosts(equitySeries, costBps = 0.0) {
     getJson("./public/data/perf/summary.json"),
     getJson("./public/data/perf/equity_curve.json"),
     getJson("./public/data/events/cycle_stats.json"),
+    optionalJson("./public/data/heatmap/deviation.json"),
+    optionalJson("./public/data/heatmap/volatility.json"),
+    optionalJson("./public/data/heatmap/momentum.json"),
+    optionalJson("./public/data/heatmap/stats_by_band.json"),
   ]);
 
   const priceDates = prices.dates.map((d) => new Date(d));
@@ -805,9 +909,18 @@ function applyCosts(equitySeries, costBps = 0.0) {
     rsiOverbought: 65,
     bandWindow: 20,
     bandStd: 2,
+    heatmapMode: "deviation",
+    heatmapRange: "all",
+    heatmapWeekly: false,
   };
   const buyHoldCurve = normalizeEquityFromPrices(prices.close);
   let lastBacktest = null;
+  const heatmaps = {
+    deviation: heatmapDeviation,
+    volatility: heatmapVolatility,
+    momentum: heatmapMomentum,
+    stats: statsByBand,
+  };
 
   function t(key) { return translations[state.lang]?.[key] ?? translations.en[key] ?? key; }
 
@@ -821,6 +934,234 @@ function applyCosts(equitySeries, costBps = 0.0) {
     const langBtn = document.getElementById("langToggle");
     langBtn.textContent = state.lang === "he" ? translations.en.langToggleEnglish : translations.he.langToggleHebrew;
     langBtn.setAttribute("aria-label", state.lang === "he" ? translations.en.switchToEnglishAria : translations.he.switchToHebrewAria);
+  }
+
+  function bandLabel(band) {
+    if (!band) return "—";
+    return band.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+
+  function bandClass(band) {
+    if (!band) return "neutral";
+    const key = band.toLowerCase();
+    if (key.includes("extreme_high")) return "extreme-high";
+    if (key === "high") return "high";
+    if (key === "neutral") return "neutral";
+    if (key === "low") return "low";
+    if (key.includes("extreme_low")) return "extreme-low";
+    return "neutral";
+  }
+
+  function clamp(val, min, max) {
+    return Math.min(Math.max(val, min), max);
+  }
+
+  function renderDeviationPanel() {
+    const payload = heatmaps.deviation;
+    const latest = payload?.latest;
+    const band = latest?.band;
+    const tag = document.getElementById("bandStateTag");
+    tag.textContent = bandLabel(band);
+    tag.className = `pill ${bandClass(band)}`;
+
+    document.getElementById("zNow").textContent = fmt(latest?.z, 2);
+    document.getElementById("pctNow").textContent = latest?.pct === undefined || latest?.pct === null ? "—" : `${latest.pct.toFixed(1)}p`;
+    document.getElementById("bandLabelNow").textContent = bandLabel(band);
+    document.getElementById("zWindowLabel").textContent = payload ? `${t("stdLabel")}: ${payload.std_window}` : "—";
+    document.getElementById("pctWindowLabel").textContent = payload ? `${t("pctNowLabel")}: ${payload.percentile_window}` : "—";
+    document.getElementById("bandHint").textContent = t("heatmapNote");
+
+    const baselineDesc = payload?.baseline ? `${payload.baseline.type}${payload.baseline.window}` : "—";
+    document.getElementById("deviationMeta").textContent = payload ? `${baselineDesc} · σ=${payload.std_window} · pct=${payload.percentile_window}` : "—";
+
+    const pointer = document.getElementById("zPointer");
+    const zVal = typeof latest?.z === "number" ? clamp(latest.z, -3, 3) : 0;
+    const pos = ((zVal + 3) / 6) * 100;
+    pointer.style.left = `${pos}%`;
+
+    const stats = band && heatmaps.stats?.bands ? heatmaps.stats.bands[band] : null;
+    if (stats && stats.n) {
+      const up5 = stats.p_up_5d;
+      const med5 = stats.median_5d;
+      document.getElementById("bandContext").textContent = `Among ${stats.n} days in ${bandLabel(band)}, P(up 5d)=${fmtPct(up5, 1)}, median 5d=${fmtPct(med5, 2)}.`;
+    } else {
+      document.getElementById("bandContext").textContent = t("heatmapNote");
+    }
+  }
+
+  function isoWeekKey(dateStr) {
+    const d = new Date(dateStr);
+    const day = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - day);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    const weekNo = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+    return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, "0")}`;
+  }
+
+  function aggregateWeekly(rows) {
+    const buckets = {};
+    rows.forEach((row) => {
+      const key = isoWeekKey(row.date);
+      buckets[key] = row;
+    });
+    return Object.values(buckets).sort((a, b) => new Date(a.date) - new Date(b.date));
+  }
+
+  function mapBandValue(band, mapping) {
+    if (!band) return null;
+    return mapping[band] ?? null;
+  }
+
+  function renderHeatmap() {
+    const mode = state.heatmapMode;
+    const payload = heatmaps[mode];
+    const rows = Array.isArray(payload?.rows) ? payload.rows : [];
+    const noteEl = document.getElementById("heatmapNote");
+    if (!rows.length) {
+      document.getElementById("heatmap").textContent = t("perfSeriesUnavailable");
+      noteEl.textContent = t("heatmapNote");
+      return;
+    }
+
+    const months = state.heatmapRange === "3m" ? 3 : state.heatmapRange === "1y" ? 12 : null;
+    let filtered = state.heatmapWeekly ? aggregateWeekly(rows) : rows.slice();
+    if (months) {
+      const lastDate = new Date(filtered[filtered.length - 1].date);
+      const start = new Date(lastDate);
+      start.setMonth(start.getMonth() - months);
+      filtered = filtered.filter((r) => new Date(r.date) >= start);
+    }
+
+    const mapping =
+      mode === "deviation"
+        ? { EXTREME_LOW: -2, LOW: -1, NEUTRAL: 0, HIGH: 1, EXTREME_HIGH: 2 }
+        : { LOW: -1, NORMAL: 0, HIGH: 1, BEARISH: -1, NEUTRAL: 0, BULLISH: 1 };
+
+    const x = filtered.map((r) => r.date);
+    const values = filtered.map((r) => {
+      const bandKey = mode === "deviation" ? r.band : mode === "volatility" ? r.vol_bucket : r.mom_bucket;
+      return mapBandValue(bandKey, mapping);
+    });
+    const text = filtered.map((r) => {
+      const bandKey = mode === "deviation" ? r.band : mode === "volatility" ? r.vol_bucket : r.mom_bucket;
+      const parts = [
+        `Date: ${r.date}`,
+        r.close !== undefined ? `Close: ${fmt(r.close, 2)}` : null,
+        mode === "deviation" && r.z !== undefined ? `z=${fmt(r.z, 2)}, pct=${r.pct ?? "—"}` : null,
+        mode === "volatility" && r.atr_pct !== undefined ? `ATR%=${fmtPct(r.atr_pct, 2)}` : null,
+        mode === "momentum" && r.roc_20 !== undefined ? `ROC20=${fmtPct(r.roc_20, 2)}` : null,
+        `Bucket: ${bandLabel(bandKey)}`,
+      ].filter(Boolean);
+      return parts.join("<br>");
+    });
+
+    const colorscale =
+      mode === "deviation"
+        ? [
+            [0, "#1d4ed8"],
+            [0.25, "#60a5fa"],
+            [0.5, "#6b7280"],
+            [0.75, "#fb923c"],
+            [1, "#ef4444"],
+          ]
+        : mode === "volatility"
+          ? [
+              [0, "#60a5fa"],
+              [0.5, "#6b7280"],
+              [1, "#f59e0b"],
+            ]
+          : [
+              [0, "#ef4444"],
+              [0.5, "#6b7280"],
+              [1, "#22c55e"],
+            ];
+
+    const zmin = mode === "deviation" ? -2 : -1;
+    const zmax = mode === "deviation" ? 2 : 1;
+    Plotly.newPlot(
+      "heatmap",
+      [
+        {
+          x,
+          y: [mode === "deviation" ? "Deviation" : mode === "volatility" ? "Vol" : "Momentum"],
+          z: [values],
+          text: [text],
+          type: "heatmap",
+          colorscale,
+          hovertemplate: "%{text}<extra></extra>",
+          showscale: false,
+          zmin,
+          zmax,
+        },
+      ],
+      {
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(0,0,0,0)",
+        margin: { l: 45, r: 10, t: 10, b: 40 },
+        xaxis: { showgrid: false, color: "#a8b4d6" },
+        yaxis: { showgrid: false, color: "#a8b4d6" },
+      },
+      { displayModeBar: false },
+    );
+
+    const baseline = payload?.baseline ? `${payload.baseline.type}${payload.baseline.window}` : "";
+    if (mode === "deviation") {
+      noteEl.textContent = `${t("heatmapNote")}${baseline ? ` · Baseline ${baseline}` : ""}`;
+    } else if (mode === "volatility") {
+      noteEl.textContent = `${t("heatmapNote")} · ATR% low=${fmt(payload?.thresholds?.low, 4)}, high=${fmt(payload?.thresholds?.high, 4)}`;
+    } else {
+      noteEl.textContent = `${t("heatmapNote")} · ROC20 bear=${fmtPct(payload?.thresholds?.bear, 2)}, bull=${fmtPct(payload?.thresholds?.bull, 2)}`;
+    }
+  }
+
+  function renderBandStats() {
+    const stats = heatmaps.stats;
+    const container = document.getElementById("bandStats");
+    if (!stats || !stats.bands) {
+      container.textContent = t("perfSeriesUnavailable");
+      return;
+    }
+    const order = ["EXTREME_HIGH", "HIGH", "NEUTRAL", "LOW", "EXTREME_LOW"];
+    container.innerHTML = order
+      .map((band) => {
+        const s = stats.bands[band];
+        if (!s) return "";
+        const label = bandLabel(band);
+        return `
+          <div class="band-card">
+            <div class="title"><span class="pill ${bandClass(band)}">${label}</span><span class="muted">n=${s.n}</span></div>
+            <div class="stat">P(up 5d): ${fmtPct(s.p_up_5d, 1)} · Median 5d: ${fmtPct(s.median_5d, 2)}</div>
+            <div class="stat">P(up 10d): ${fmtPct(s.p_up_10d, 1)} · Median 10d: ${fmtPct(s.median_10d, 2)}</div>
+          </div>
+        `;
+      })
+      .join("");
+  }
+
+  function attachHeatmapControls() {
+    document.querySelectorAll("[data-heatmap]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("[data-heatmap]").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        state.heatmapMode = btn.getAttribute("data-heatmap");
+        renderHeatmap();
+      });
+    });
+
+    document.querySelectorAll("[data-heatmap-range]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("[data-heatmap-range]").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        state.heatmapRange = btn.getAttribute("data-heatmap-range");
+        renderHeatmap();
+      });
+    });
+
+    const weekly = document.getElementById("heatmapWeekly");
+    weekly.addEventListener("change", (e) => {
+      state.heatmapWeekly = e.target.checked;
+      renderHeatmap();
+    });
   }
 
   function renderMeta() {
@@ -1319,6 +1660,9 @@ function applyCosts(equitySeries, costBps = 0.0) {
     renderProbabilistic();
     renderMeta();
     renderSummary();
+    renderDeviationPanel();
+    renderBandStats();
+    renderHeatmap();
     renderPrice(state.range);
     renderEquity(state.range);
     renderTradeLog();
@@ -1326,6 +1670,7 @@ function applyCosts(equitySeries, costBps = 0.0) {
   }
 
   renderAll();
+  attachHeatmapControls();
 
   document.querySelectorAll('.btn[data-range]').forEach((btn) => {
     btn.addEventListener('click', () => {
