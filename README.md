@@ -6,6 +6,7 @@ Event-driven silver market regime analysis surfaced as a static GitHub Pages sit
 - Downloads and caches real SLV price data from Stooq (no API keys required) inside GitHub Actions.
 - Detects market events (shakeout, distribution risk, reclaim, range accumulation).
 - Emits a single actionable signal plus lightweight backtest/performance JSON.
+- Simulates an ATR-based risk sleeve with stop-loss/take-profit sizing alongside the base equity curve.
 - Serves a minimal dashboard that reads the JSON directly from `/public/data`.
 
 ## Running locally
