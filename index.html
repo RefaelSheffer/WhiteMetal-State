@@ -24,6 +24,12 @@
     .muted { color: var(--muted); }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
     .alert { margin-top: 10px; background: rgba(255, 159, 64, 0.12); border: 1px solid #ff9f40; color: #ffd7a2; padding: 10px 12px; border-radius: 10px; line-height: 1.5; }
+    .alert-card { margin-top: 10px; background: #0d1424; border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; }
+    .alert-card .title { font-weight: 700; }
+    .badge-inline { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; margin-inline-end: 6px; border: 1px solid var(--border); }
+    .sev-info { background: rgba(76, 156, 255, 0.15); color: #8bb2ff; }
+    .sev-warn { background: rgba(255, 159, 64, 0.18); color: #ffb86c; }
+    .sev-critical { background: rgba(244, 63, 94, 0.2); color: #f43f5e; }
     .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 12px; }
     .kpi { background: #0d1424; border: 1px solid var(--border); border-radius: 12px; padding: 10px; }
     .kpi .v { font-size: 18px; font-weight: 700; margin-top: 4px; }
@@ -85,26 +91,31 @@
 
     <div class="row">
       <div class="card">
-        <div class="section-title" data-i18n="signalNowTitle">Signal עכשיו</div>
+        <div class="section-title" data-i18n="anomalyNowTitle">Layer 1 · Alerts</div>
+        <div class="muted" id="anomalyUpdated">—</div>
         <div class="flex" style="margin-top:8px; gap:12px;">
-          <div class="big" id="action">—</div>
-          <span class="pill neutral" id="regimeTag">—</span>
-          <span class="pill neutral" id="edgeTag">Edge —</span>
+          <div>
+            <div class="muted" data-i18n="anomalyScoreLabel">Anomaly score</div>
+            <div class="big" id="anomalyScore">—</div>
+          </div>
+          <span class="pill neutral" id="trendTag">—</span>
+          <span class="pill neutral" id="volTag">—</span>
         </div>
-        <div class="muted" style="margin-top:4px;"><span data-i18n="confidenceLabel">Confidence</span>: <span class="mono" id="confidence">—</span></div>
         <div class="kpis">
           <div class="kpi">
-            <div class="muted" data-i18n="scoreTotalLabel">Score Total</div>
-            <div class="v mono" id="scoreTotal">—</div>
-            <span class="small" id="edgeScore">—</span>
+            <div class="muted" data-i18n="adxLabel">ADX</div>
+            <div class="v mono" id="adxVal">—</div>
+            <span class="small" id="trendNote">—</span>
           </div>
           <div class="kpi">
-            <div class="muted" data-i18n="scorePriceLabel">Price Score</div>
-            <div class="v mono" id="scorePrice">—</div>
+            <div class="muted" data-i18n="atrLabel">ATR (14)</div>
+            <div class="v mono" id="atrVal">—</div>
+            <span class="small" id="volNote">—</span>
           </div>
           <div class="kpi">
-            <div class="muted" data-i18n="scoreCOTLabel">COT Score</div>
-            <div class="v mono" id="scoreCOT">—</div>
+            <div class="muted" data-i18n="alertCountLabel">Active alerts</div>
+            <div class="v mono" id="alertCount">—</div>
+            <span class="small" id="topAlert">—</span>
           </div>
         </div>
         <div class="kpis">
@@ -116,13 +127,10 @@
           <div class="kpi">
             <div class="muted" data-i18n="momLabel">1M Mom%</div>
             <div class="v mono" id="mom">—</div>
-            <span class="small" id="cotLine">—</span>
-          </div>
-          <div class="kpi">
-            <div class="muted" data-i18n="edgarLabel">EDGAR</div>
-            <div class="v mono" id="edgarLine">—</div>
           </div>
         </div>
+        <div class="section-title" style="margin-top:12px;" data-i18n="alertListTitle">What is unusual</div>
+        <div id="alertsContainer"></div>
       </div>
 
       <div class="card">
@@ -199,7 +207,7 @@
         <span class="space"></span>
         <label class="toggle"><input type="checkbox" id="toggleMa" checked /><span data-i18n="maToggle">MAs</span></label>
         <label class="toggle"><input type="checkbox" id="toggleBoll" checked /><span data-i18n="bollToggle">Bands</span></label>
-        <label class="toggle"><input type="checkbox" id="toggleSignals" checked /><span data-i18n="signalsToggle">Buy/Sell</span></label>
+        <label class="toggle"><input type="checkbox" id="toggleCycles" checked /><span data-i18n="cyclesToggle">Cycles</span></label>
       </div>
       <div id="chart" style="height:440px;"></div>
       <div class="muted" style="margin-top:8px;" data-i18n="cycleTitle">מחזורי Peaks/Troughs אחרונים</div>
@@ -416,7 +424,14 @@ const translations = {
     langToggleHebrew: "עברית",
     switchToEnglishAria: "Switch to English",
     switchToHebrewAria: "החלף לעברית",
-    signalNowTitle: "Signal עכשיו",
+    anomalyNowTitle: "התראות חריגות (Layer 1)",
+    anomalyScoreLabel: "מדד חריגות",
+    adxLabel: "ADX",
+    atrLabel: "ATR (14)",
+    alertCountLabel: "Alerts",
+    alertListTitle: "מה חריג היום",
+    cyclesToggle: "מחזורי מחיר",
+    noAlerts: "אין חריגות חזקות היום.",
     backtestSettings: "Backtest settings",
     openSettings: "Open",
     settingsHint: "שליטה מהירה לטווחי בדיקה, עלויות ואסטרטגיה.",
@@ -523,7 +538,14 @@ const translations = {
     langToggleHebrew: "עברית",
     switchToEnglishAria: "Switch to English",
     switchToHebrewAria: "Switch to Hebrew",
-    signalNowTitle: "Signal now",
+    anomalyNowTitle: "Layer 1 · Alerts",
+    anomalyScoreLabel: "Anomaly score",
+    adxLabel: "ADX",
+    atrLabel: "ATR (14)",
+    alertCountLabel: "Alerts",
+    alertListTitle: "What is unusual",
+    cyclesToggle: "Cycles",
+    noAlerts: "No strong anomalies today.",
     backtestSettings: "Backtest settings",
     openSettings: "Open",
     settingsHint: "Quick control over test window, costs and regime.",
@@ -648,12 +670,10 @@ function applyCosts(equitySeries, costBps = 0.0) {
 }
 
 (async () => {
-  const [meta, prices, signal, cot, edgar, decomposition, perfSummary, equityCurve, cycleStats] = await Promise.all([
+  const [meta, prices, anomalies, decomposition, perfSummary, equityCurve, cycleStats] = await Promise.all([
     getJson("./public/data/meta.json"),
     getJson("./data/slv_prices.json"),
-    getJson("./data/signal_latest.json"),
-    getJson("./data/cot_silver.json"),
-    getJson("./data/edgar_latest.json"),
+    getJson("./public/data/anomalies/latest.json"),
     getJson("./public/data/perf/decomposition.json"),
     getJson("./public/data/perf/summary.json"),
     getJson("./public/data/perf/equity_curve.json"),
@@ -666,7 +686,7 @@ function applyCosts(equitySeries, costBps = 0.0) {
     lang: detectLang(),
     showMa: true,
     showBoll: true,
-    showSignals: true,
+    showCycles: true,
     showNet: false,
     costBps: 10,
     startDate: prices.dates[0],
@@ -770,11 +790,11 @@ function applyCosts(equitySeries, costBps = 0.0) {
       return d >= start;
     });
 
-    if (state.showSignals && turningPoints.length) {
+    if (state.showCycles && turningPoints.length) {
       const buys = turningPoints.filter((p) => p.kind === "trough");
       const sells = turningPoints.filter((p) => p.kind === "peak");
-      traces.push({ x: buys.map((p) => p.date), y: buys.map((p) => p.close), mode: "markers", type: "scatter", name: "BUY", marker: { color: "#22c55e", size: 9, symbol: "triangle-up" } });
-      traces.push({ x: sells.map((p) => p.date), y: sells.map((p) => p.close), mode: "markers", type: "scatter", name: "SELL", marker: { color: "#f43f5e", size: 9, symbol: "triangle-down" } });
+      traces.push({ x: buys.map((p) => p.date), y: buys.map((p) => p.close), mode: "markers", type: "scatter", name: "Trough", marker: { color: "#22c55e", size: 9, symbol: "triangle-up" } });
+      traces.push({ x: sells.map((p) => p.date), y: sells.map((p) => p.close), mode: "markers", type: "scatter", name: "Peak", marker: { color: "#f43f5e", size: 9, symbol: "triangle-down" } });
     }
 
     const layout = { paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)", margin: { l: 45, r: 15, t: 20, b: 40 }, xaxis: { showgrid: false, color: "#a8b4d6" }, yaxis: { showgrid: true, gridcolor: "#1e2a45", color: "#a8b4d6" } };
@@ -1032,29 +1052,47 @@ function applyCosts(equitySeries, costBps = 0.0) {
   }
 
   function renderSummary() {
-    document.getElementById("updated").textContent = `${t("updatedPrefix")}: ${signal.updated_at_utc}`;
-    document.getElementById("action").textContent = signal.action;
-    document.getElementById("confidence").textContent = signal.confidence;
-    document.getElementById("scoreTotal").textContent = fmt(signal.score_total, 0);
-    document.getElementById("scorePrice").textContent = fmt(signal.breakdown.score_price, 0);
-    document.getElementById("scoreCOT").textContent = fmt(signal.breakdown.score_cot, 0);
-    document.getElementById("lastClose").textContent = fmt(signal.price.last_close, 2);
-    document.getElementById("mas").textContent = `${t("maLabel")}: ${fmt(signal.price.ma20,2)} / ${fmt(signal.price.ma50,2)} / ${fmt(signal.price.ma200,2)}`;
-    document.getElementById("mom").textContent = fmt(signal.price.mom_1m_pct, 2);
-    const edgeText = `Edge score ${fmt(signal.score_total, 0)}`;
-    document.getElementById("edgeScore").textContent = edgeText;
-    const regime = signal.price.ma50 > signal.price.ma200 ? "Trending Up" : signal.price.ma20 > signal.price.ma50 ? "Range / Pullback" : "Trending Down";
-    document.getElementById("regimeTag").textContent = regime;
-    document.getElementById("edgeTag").textContent = `Edge ${signal.confidence}`;
+    const updatedText = anomalies.asof || anomalies.updated_at || meta?.last_updated_utc || "—";
+    document.getElementById("updated").textContent = `${t("updatedPrefix")}: ${updatedText}`;
+    document.getElementById("anomalyUpdated").textContent = `${t("updatedPrefix")}: ${updatedText}`;
+    document.getElementById("anomalyScore").textContent = fmt(anomalies.anomaly_score, 0);
+    document.getElementById("adxVal").textContent = fmt(anomalies.regime?.adx, 1);
+    document.getElementById("atrVal").textContent = fmt(anomalies.regime?.atr, 4);
+    document.getElementById("alertCount").textContent = anomalies.alerts?.length ?? 0;
 
-    if (cot.cot_available) {
-      document.getElementById("cotLine").textContent = `Report ${cot.cot_report_date}, nc_net=${fmt(cot.nc_net,0)}, Δ4w=${fmt(cot.nc_net_delta_4w,0)}, pct=${fmt(cot.nc_net_percentile,1)}`;
-    } else { document.getElementById("cotLine").textContent = t("cotUnavailable"); }
+    const trendLabel = anomalies.regime?.trend_state ?? "—";
+    document.getElementById("trendTag").textContent = trendLabel;
+    document.getElementById("trendNote").textContent = anomalies.regime?.ma50 && anomalies.regime?.ma200
+      ? `${t("maLabel")}: ${fmt(anomalies.regime.ma50, 2)} / ${fmt(anomalies.regime.ma200, 2)}`
+      : "—";
 
-    if (edgar.edgar_available && edgar.latest_filing) {
-      document.getElementById("edgarLine").textContent = `${edgar.latest_filing.form} @ ${edgar.latest_filing.filingDate} (days_ago=${edgar.latest_filing.days_ago})`;
-    } else if (edgar.edgar_available) { document.getElementById("edgarLine").textContent = t("edgarNoFiling"); }
-    else { document.getElementById("edgarLine").textContent = t("edgarUnavailable"); }
+    const volLabel = anomalies.regime?.vol_state ?? "—";
+    document.getElementById("volTag").textContent = `Vol ${volLabel}`;
+    document.getElementById("volNote").textContent = anomalies.regime?.vol_state === "HIGH" ? "ATR elevated vs history" : anomalies.regime?.vol_state === "LOW" ? "ATR muted vs history" : "Within normal range";
+
+    const lastClose = anomalies.price?.last_close ?? prices.close?.[prices.close.length - 1];
+    document.getElementById("lastClose").textContent = fmt(lastClose, 2);
+    document.getElementById("mas").textContent = `${t("maLabel")}: ${fmt(anomalies.price?.ma20,2)} / ${fmt(anomalies.price?.ma50,2)} / ${fmt(anomalies.price?.ma200,2)}`;
+    const mom = prices.close?.length > 22 ? (prices.close[prices.close.length - 1] / prices.close[prices.close.length - 22] - 1) * 100 : null;
+    document.getElementById("mom").textContent = fmt(mom, 2);
+
+    const alerts = anomalies.alerts ?? [];
+    document.getElementById("topAlert").textContent = alerts[0]?.why ?? t("noAlerts");
+    const container = document.getElementById("alertsContainer");
+    if (!alerts.length) {
+      container.innerHTML = `<div class="muted">${t("noAlerts")}</div>`;
+    } else {
+      container.innerHTML = alerts.map((alert) => {
+        const sev = alert.severity?.toLowerCase?.() || "info";
+        return `
+          <div class="alert-card">
+            <div class="title">${alert.id} <span class="badge-inline sev-${sev}">${alert.severity}</span> <span class="badge-inline">${alert.direction}</span></div>
+            <div class="muted">${alert.why}</div>
+            <div class="muted small">z=${fmt(alert.evidence?.z,2)} · ${alert.historical_context?.occurrences || 0} past cases</div>
+          </div>
+        `;
+      }).join("");
+    }
 
     document.getElementById("perfSummaryUpdated").textContent = perfSummary.updated_at || "—";
     document.getElementById("perfSummaryUpdated2").textContent = perfSummary.updated_at || "—";
@@ -1119,7 +1157,7 @@ function applyCosts(equitySeries, costBps = 0.0) {
 
   document.getElementById("toggleMa").addEventListener("change", (e) => { state.showMa = e.target.checked; renderPrice(state.range); });
   document.getElementById("toggleBoll").addEventListener("change", (e) => { state.showBoll = e.target.checked; renderPrice(state.range); });
-  document.getElementById("toggleSignals").addEventListener("change", (e) => { state.showSignals = e.target.checked; renderPrice(state.range); });
+  document.getElementById("toggleCycles").addEventListener("change", (e) => { state.showCycles = e.target.checked; renderPrice(state.range); });
 
   document.getElementById("langToggle").addEventListener("click", () => { state.lang = state.lang === "he" ? "en" : "he"; localStorage.setItem("lang", state.lang); renderAll(); });
 
