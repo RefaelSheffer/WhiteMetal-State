@@ -1,0 +1,109 @@
+{
+  "meta": {
+    "asof": "2025-12-12",
+    "strategy": "cycle_basic"
+  },
+  "summary": {
+    "total_return_net": 625085.9,
+    "cagr_net": 1.1038,
+    "max_drawdown": -0.0043,
+    "sharpe": 0.3719,
+    "ulcer_index": 0.0007,
+    "win_rate": 0.9106,
+    "avg_trade_net": 0.0211,
+    "num_trades": 649,
+    "avg_hold_days": 2.03
+  },
+  "by_year": [
+    {
+      "year": 2008,
+      "return_net": 2.5412,
+      "max_dd": 0.0
+    },
+    {
+      "year": 2009,
+      "return_net": 2.4839,
+      "max_dd": 0.0
+    },
+    {
+      "year": 2010,
+      "return_net": 1.2868,
+      "max_dd": 0.0
+    },
+    {
+      "year": 2011,
+      "return_net": 2.0767,
+      "max_dd": 0.0
+    },
+    {
+      "year": 2012,
+      "return_net": 1.0116,
+      "max_dd": 0.0
+    },
+    {
+      "year": 2013,
+      "return_net": 0.8934,
+      "max_dd": 0.0
+    },
+    {
+      "year": 2014,
+      "return_net": 0.6003,
+      "max_dd": 0.0
+    },
+    {
+      "year": 2015,
+      "return_net": 0.7106,
+      "max_dd": 0.0
+    },
+    {
+      "year": 2016,
+      "return_net": 0.7815,
+      "max_dd": 0.0
+    },
+    {
+      "year": 2017,
+      "return_net": 0.4634,
+      "max_dd": 0.0
+    },
+    {
+      "year": 2018,
+      "return_net": 0.3156,
+      "max_dd": 0.0
+    },
+    {
+      "year": 2019,
+      "return_net": 0.6014,
+      "max_dd": 0.0
+    },
+    {
+      "year": 2020,
+      "return_net": 2.5565,
+      "max_dd": 0.0
+    },
+    {
+      "year": 2021,
+      "return_net": 1.0067,
+      "max_dd": 0.0
+    },
+    {
+      "year": 2022,
+      "return_net": 1.0718,
+      "max_dd": 0.0
+    },
+    {
+      "year": 2023,
+      "return_net": 0.944,
+      "max_dd": 0.0
+    },
+    {
+      "year": 2024,
+      "return_net": 1.1819,
+      "max_dd": 0.0
+    },
+    {
+      "year": 2025,
+      "return_net": 1.0514,
+      "max_dd": 0.0
+    }
+  ]
+}

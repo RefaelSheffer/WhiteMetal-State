@@ -1,0 +1,21 @@
+{
+  "asof": "2025-12-12",
+  "cycle_events": {
+    "trough_confirmed": 1164,
+    "peak_confirmed": 1165
+  },
+  "blocked": {
+    "cooldown": 515,
+    "already_in_position": 0,
+    "missing_exit": 0
+  },
+  "notes": [
+    "No hard filters enabled (soft sizing only)."
+  ],
+  "last_detected_trough": "2025-12-08",
+  "last_detected_peak": "2025-12-11",
+  "range": {
+    "start": "2008-01-02",
+    "end": "2025-12-12"
+  }
+}

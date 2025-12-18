@@ -28,6 +28,8 @@ from engine.anomalies.detector import compute_regime, detect_anomalies
 from engine.context import fetch_context_assets, write_context_outputs
 from engine.backtest.trade_engine import (
     TradeSettings,
+    build_fees_impact,
+    build_fees_sensitivity,
     trade_engine_cycle_basic,
     write_backtest_outputs,
 )
@@ -133,6 +135,20 @@ def run_pipeline() -> None:
         atr_raw,
         adx_raw,
         settings=trade_settings,
+    )
+    fees_impact = build_fees_impact(
+        trade_outputs.get("equity_curves"),
+        trade_outputs.get("trade_log", {}).get("trades", []),
+        trade_settings,
+        trade_outputs.get("fees", {}),
+    )
+    fees_sensitivity = build_fees_sensitivity(
+        raw_data,
+        turning_point_records,
+        atr_raw,
+        adx_raw,
+        base_settings=trade_settings,
+        base_outputs=trade_outputs,
     )
     bollinger_raw = compute_bollinger_bands(closes)
     obv_raw = compute_obv(closes, volumes)
@@ -329,7 +345,10 @@ def run_pipeline() -> None:
     write_json(BASE_PATH / "heatmap/volatility.json", volatility_payload)
     write_json(BASE_PATH / "heatmap/momentum.json", momentum_payload)
     write_json(BASE_PATH / "heatmap/stats_by_band.json", stats_by_band)
-    write_backtest_outputs(BASE_PATH / "backtest", trade_outputs)
+    write_backtest_outputs(
+        BASE_PATH / "backtest",
+        {**trade_outputs, "fees_impact": fees_impact, "fees_sensitivity": fees_sensitivity},
+    )
 
     write_decomposition_outputs(
         dates,
