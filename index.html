@@ -205,6 +205,18 @@
 
     <div style="height:16px"></div>
 
+    <div class="card" id="contextCard">
+      <div class="section-title flex">
+        <span data-i18n="contextTitle">Cross-Market Context</span>
+        <span class="chip muted" id="contextAsOf">—</span>
+      </div>
+      <div class="context-note" data-i18n="contextNote">Dollar / gold / rates framing; not a signal.</div>
+      <div id="contextItems" class="context-grid"></div>
+      <div class="context-note" id="contextFooter" data-i18n="contextFooter">Context only; not a trade idea.</div>
+    </div>
+
+    <div style="height:16px"></div>
+
     <div class="card" id="analogiesCard">
       <div class="section-title flex">
         <span data-i18n="analogiesTitle">Analogies</span>
@@ -612,6 +624,11 @@ const translations = {
     eventContextTitle: "הקשר אירועים",
     eventContextLabel: "קונטקסט אירוע",
     eventContextNone: "אין אירוע קרוב",
+    contextTitle: "הקשר שווקים חוצה",
+    contextNote: "דולר / זהב / ריביות · הקשר בלבד",
+    contextFooter: "Framing בלבד; לא איתות או הוראה.",
+    contextHistLabel: "היסטורית (5 ימים)",
+    contextHistFallback: "חסר מדגם היסטורי מספק",
     eventPhasePre: "לפני אירוע",
     eventPhaseToday: "יום אירוע",
     eventPhasePost: "אחרי אירוע",
@@ -757,6 +774,11 @@ const translations = {
     eventContextTitle: "Event Context",
     eventContextLabel: "Event Context",
     eventContextNone: "No known event window",
+    contextTitle: "Cross-Market Context",
+    contextNote: "Dollar / gold / rates framing; not a signal.",
+    contextFooter: "Context only; not a trading instruction.",
+    contextHistLabel: "Historical (5d)",
+    contextHistFallback: "Insufficient history for this bucket",
     eventPhasePre: "Pre-event",
     eventPhaseToday: "Event day",
     eventPhasePost: "Post-event",
@@ -938,7 +960,7 @@ function applyCosts(equitySeries, costBps = 0.0) {
 }
 
 (async () => {
-  const [meta, prices, probabilistic, anomalies, decomposition, perfSummary, equityCurve, cycleStats, heatmapDeviation, heatmapVolatility, heatmapMomentum, statsByBand, eventContext, eventImpactStats] = await Promise.all([
+  const [meta, prices, probabilistic, anomalies, decomposition, perfSummary, equityCurve, cycleStats, heatmapDeviation, heatmapVolatility, heatmapMomentum, statsByBand, eventContext, eventImpactStats, currentContext, conditionalContextStats] = await Promise.all([
     getJson("./public/data/meta.json"),
     getJson("./data/slv_prices.json"),
     getJson("./public/data/signals/probabilistic.json"),
@@ -953,6 +975,8 @@ function applyCosts(equitySeries, costBps = 0.0) {
     optionalJson("./public/data/heatmap/stats_by_band.json"),
     optionalJson("./public/data/events/current_event_context.json"),
     optionalJson("./public/data/events/event_impact_stats.json"),
+    optionalJson("./public/data/context/current_context.json"),
+    optionalJson("./public/data/context/conditional_stats.json"),
   ]);
 
   const priceDates = prices.dates.map((d) => new Date(d));
@@ -1047,6 +1071,40 @@ function applyCosts(equitySeries, costBps = 0.0) {
     const pieces = [description, hist, dir].filter(Boolean);
     document.getElementById("eventContextSummary").textContent = pieces.join(" · ");
     document.getElementById("eventContextFooter").textContent = t("eventContextFooter");
+  }
+
+  function renderContextPanel(currentContext, conditionalStats) {
+    const card = document.getElementById("contextCard");
+    if (!card) return;
+    if (!currentContext || !Array.isArray(currentContext.items) || !currentContext.items.length) {
+      card.style.display = "none";
+      return;
+    }
+    card.style.display = "block";
+    document.getElementById("contextAsOf").textContent = currentContext.asof ? `${t("updatedPrefix")}: ${currentContext.asof}` : "—";
+    const container = document.getElementById("contextItems");
+    container.innerHTML = currentContext.items
+      .map((item) => {
+        const bucket = item.bucket;
+        const stats = conditionalStats?.[item.key?.toLowerCase()]?.[bucket];
+        const pctText = item.pct === null || item.pct === undefined ? "—" : `${item.pct.toFixed(1)}p`;
+        const statsLine = stats
+          ? `${t("contextHistLabel")}: P(up 5d)=${fmtPct(stats.p_up_5d, 1)}, median 5d=${fmtPct(stats.median_5d, 2)}`
+          : t("contextHistFallback");
+        return `
+          <div class="kpi">
+            <div class="muted">${item.name || item.key}</div>
+            <div class="v mono">${fmt(item.value, 2)}</div>
+            <div class="small">${t("bandLabel")}: <span class="pill ${bandClass(bucket)}">${bandLabel(bucket)}</span></div>
+            <div class="small">z=${fmt(item.z, 2)} · pct=${pctText}</div>
+            <div class="context-note">${item.note || ""}</div>
+            <div class="small">${statsLine}</div>
+          </div>
+        `;
+      })
+      .join("");
+    const footer = document.getElementById("contextFooter");
+    if (footer) footer.textContent = t("contextFooter");
   }
 
   function bandLabel(band) {
@@ -1771,6 +1829,7 @@ function applyCosts(equitySeries, costBps = 0.0) {
   function renderAll() {
     applyLanguage();
     renderEventContext(eventContext);
+    renderContextPanel(currentContext, conditionalContextStats);
     renderProbabilistic();
     renderMeta();
     renderSummary();
