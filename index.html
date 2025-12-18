@@ -604,6 +604,27 @@ async function getJson(path) {
   return await r.json();
 }
 
+async function loadPrices() {
+  try {
+    const legacy = await getJson("./data/slv_prices.json");
+    if (Array.isArray(legacy?.dates) && legacy.dates.length && Array.isArray(legacy.close)) {
+      return legacy;
+    }
+  } catch (err) {
+    console.warn("Legacy price file missing, falling back to raw export", err);
+  }
+
+  const raw = await getJson("./public/data/raw/slv_daily.json");
+  if (Array.isArray(raw) && raw.length) {
+    return {
+      dates: raw.map((r) => r.date),
+      close: raw.map((r) => r.close),
+    };
+  }
+
+  throw new Error("Price data unavailable");
+}
+
 async function optionalJson(path) {
   try {
     return await getJson(path);
@@ -1145,28 +1166,30 @@ function applyCosts(equitySeries, costBps = 0.0) {
 }
 
 (async () => {
-  const [meta, prices, probabilistic, anomalies, perfSummary, equityCurve, cycleStats, heatmapDeviation, heatmapVolatility, heatmapMomentum, statsByBand, eventContextRaw, eventImpactStatsRaw, currentContextRaw, conditionalContextStatsRaw, backtestEquity, backtestFeesImpact, backtestFeesSensitivity, backtestTradeLog, backtestRiskMetrics] = await Promise.all([
-    getJson("./public/data/meta.json"),
-    getJson("./data/slv_prices.json"),
-    getJson("./public/data/signals/probabilistic.json"),
-    getJson("./public/data/anomalies/latest.json"),
-    getJson("./public/data/perf/summary.json"),
-    getJson("./public/data/perf/equity_curve.json"),
-    getJson("./public/data/events/cycle_stats.json"),
-    optionalJson("./public/data/heatmap/deviation.json"),
-      optionalJson("./public/data/heatmap/volatility.json"),
-      optionalJson("./public/data/heatmap/momentum.json"),
-      optionalJson("./public/data/heatmap/stats_by_band.json"),
-      optionalJson("./public/data/events/current_event_context.json"),
-      optionalJson("./public/data/events/event_impact_stats.json"),
-      optionalJson("./public/data/context/cross_market_current.json"),
-      optionalJson("./public/data/context/cross_market_conditional.json"),
-      optionalJson("./public/data/backtest/equity_curves.json"),
-      optionalJson("./public/data/backtest/fees_impact.json"),
-      optionalJson("./public/data/backtest/fees_sensitivity.json"),
-      optionalJson("./public/data/backtest/trade_log.json"),
-      optionalJson("./public/data/backtest/risk_metrics.json"),
-    ]);
+  try {
+    const pricePromise = loadPrices();
+    const [meta, prices, probabilistic, anomalies, perfSummary, equityCurve, cycleStats, heatmapDeviation, heatmapVolatility, heatmapMomentum, statsByBand, eventContextRaw, eventImpactStatsRaw, currentContextRaw, conditionalContextStatsRaw, backtestEquity, backtestFeesImpact, backtestFeesSensitivity, backtestTradeLog, backtestRiskMetrics] = await Promise.all([
+      getJson("./public/data/meta.json"),
+      pricePromise,
+      getJson("./public/data/signals/probabilistic.json"),
+      getJson("./public/data/anomalies/latest.json"),
+      getJson("./public/data/perf/summary.json"),
+      getJson("./public/data/perf/equity_curve.json"),
+      getJson("./public/data/events/cycle_stats.json"),
+      optionalJson("./public/data/heatmap/deviation.json"),
+        optionalJson("./public/data/heatmap/volatility.json"),
+        optionalJson("./public/data/heatmap/momentum.json"),
+        optionalJson("./public/data/heatmap/stats_by_band.json"),
+        optionalJson("./public/data/events/current_event_context.json"),
+        optionalJson("./public/data/events/event_impact_stats.json"),
+        optionalJson("./public/data/context/cross_market_current.json"),
+        optionalJson("./public/data/context/cross_market_conditional.json"),
+        optionalJson("./public/data/backtest/equity_curves.json"),
+        optionalJson("./public/data/backtest/fees_impact.json"),
+        optionalJson("./public/data/backtest/fees_sensitivity.json"),
+        optionalJson("./public/data/backtest/trade_log.json"),
+        optionalJson("./public/data/backtest/risk_metrics.json"),
+      ]);
 
     const decomposition = await loadDecomposition();
 
@@ -2363,7 +2386,12 @@ function applyCosts(equitySeries, costBps = 0.0) {
     }
 
     document.getElementById("runSimulation").addEventListener("click", () => { renderAll(); });
-  })();
+  } catch (err) {
+    console.error("Failed to initialize dashboard", err);
+    const updated = document.getElementById("updated");
+    if (updated) updated.textContent = `Error loading data: ${err.message}`;
+  }
+})();
 </script>
 </body>
 </html>
