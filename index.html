@@ -19,7 +19,9 @@
     body { font-family: system-ui, Arial; margin: 0; background: var(--bg); color: var(--text); }
     .wrap { max-width: 1200px; margin: 0 auto; padding: 24px; }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .stack { display: grid; gap: 12px; }
     .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
+    .subcard { background: #0d1424; border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
     .big { font-size: 28px; font-weight: 800; }
     .muted { color: var(--muted); }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
@@ -306,7 +308,7 @@
 
     <div style="height:16px"></div>
 
-    <div class="row">
+    <div class="stack">
       <div class="card">
         <div class="section-title" data-i18n="anomalyNowTitle">Layer 1 · Alerts</div>
         <div class="muted" id="anomalyUpdated">—</div>
@@ -349,226 +351,242 @@
         <div class="section-title" style="margin-top:12px;" data-i18n="alertListTitle">What is unusual</div>
         <div id="alertsContainer"></div>
       </div>
-
-      <div class="card">
-        <div class="section-title flex">
-          <span data-i18n="backtestSettings">Backtest settings</span>
-          <button class="btn" id="toggleSettings" style="margin-inline-start:auto;" data-i18n="openSettings">Open</button>
-        </div>
-        <div class="subtitle" data-i18n="settingsHint">שליטה מהירה לטווחי בדיקה, עלויות ואסטרטגיה.</div>
-        <div id="settingsPanel" class="settings" style="display:none;">
-          <div>
-            <label class="small" data-i18n="startDate">Start date</label>
-            <input type="date" id="startDate" />
-          </div>
-          <div>
-            <label class="small" data-i18n="endDate">End date</label>
-            <input type="date" id="endDate" />
-          </div>
-          <div>
-            <label class="small" data-i18n="costsLabel">Costs (bps per trade)</label>
-            <input type="number" id="costsInput" min="0" step="1" value="10" />
-          </div>
-          <div>
-            <label class="small" data-i18n="strategyPick">Strategy</label>
-            <select id="strategySelect">
-              <option value="trend" data-i18n="strategyTrend">Trend</option>
-              <option value="range" data-i18n="strategyRange">Range</option>
-              <option value="hybrid" data-i18n="strategyHybrid" selected>Hybrid</option>
-            </select>
-          </div>
-          <div>
-            <label class="small" data-i18n="maWindow">MA window (trend filter)</label>
-            <input type="number" id="maWindowInput" min="5" max="400" step="1" value="50" />
-          </div>
-          <div>
-            <label class="small" data-i18n="rsiPeriod">RSI period</label>
-            <input type="number" id="rsiPeriodInput" min="5" max="60" step="1" value="14" />
-          </div>
-          <div>
-            <label class="small" data-i18n="rsiOversold">RSI oversold</label>
-            <input type="number" id="rsiOversoldInput" min="1" max="60" step="1" value="35" />
-          </div>
-          <div>
-            <label class="small" data-i18n="rsiOverbought">RSI overbought</label>
-            <input type="number" id="rsiOverboughtInput" min="40" max="95" step="1" value="65" />
-          </div>
-          <div>
-            <label class="small" data-i18n="bandWindow">Bollinger window</label>
-            <input type="number" id="bandWindowInput" min="5" max="200" step="1" value="20" />
-          </div>
-          <div>
-            <label class="small" data-i18n="bandStd">Band σ (std dev)</label>
-            <input type="number" id="bandStdInput" min="1" max="4" step="0.1" value="2" />
-          </div>
-          <div>
-            <label class="small" data-i18n="grossNet">Gross / Net</label>
-            <div class="flex">
-              <label class="toggle"><input type="radio" name="pnltoggle" value="gross" checked /> <span data-i18n="grossLabel">Gross</span></label>
-              <label class="toggle"><input type="radio" name="pnltoggle" value="net" /> <span data-i18n="netLabel">Net</span></label>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
     <div style="height:16px"></div>
 
-    <div class="card">
-      <div class="section-title flex">
-        <span data-i18n="advancedTitle">Advanced</span>
-        <button class="btn" id="advancedToggle" style="margin-inline-start:auto;" data-i18n="openSettings">Open</button>
+    <div class="card" id="advancedShell">
+      <div class="flex" style="align-items:center; gap:12px;">
+        <div class="header-content">
+          <div class="section-title" id="advancedHeading" data-i18n="advancedClosedTitle">Advanced Analysis</div>
+          <div class="subtitle" id="advancedSubtitle" data-i18n="advancedClosedSubtitle">Open charts, backtests and risk diagnostics.</div>
+        </div>
+        <span class="space"></span>
+        <button class="btn" id="advancedToggle" aria-expanded="false" data-i18n="showAdvanced">Show Advanced Analysis</button>
       </div>
-      <div class="subtitle" data-i18n="advancedSubtitle">Traces, trades, and backtests נשארים מאחורי כפתור “Advanced”.</div>
     </div>
 
     <div style="height:16px"></div>
 
     <div id="advancedPanel" style="display:none;">
+      <div class="card" id="advancedAnalysisCard">
+        <div class="section-title" data-i18n="advancedAnalysisTitle">Advanced Analysis</div>
+        <div class="subtitle" data-i18n="advancedAnalysisSubtitle">Cycles, decomposition, equity vs benchmark, event context, cross-market context.</div>
 
-    <div class="card">
-      <div class="section-title" data-i18n="priceTitle">Price</div>
-      <div class="controls">
-        <div class="muted" data-i18n="rangeLabel">טווח זמן:</div>
-        <button class="btn active" data-range="3m">3M</button>
-        <button class="btn" data-range="1y">1Y</button>
-        <button class="btn" data-range="all">All</button>
-        <span class="space"></span>
-        <label class="toggle"><input type="checkbox" id="toggleMa" checked /><span data-i18n="maToggle">MAs</span></label>
-        <label class="toggle"><input type="checkbox" id="toggleBoll" checked /><span data-i18n="bollToggle">Bands</span></label>
-        <label class="toggle"><input type="checkbox" id="toggleCycles" checked /><span data-i18n="cyclesToggle">Cycles</span></label>
-      </div>
-      <div id="chart" style="height:440px;"></div>
-      <div class="muted" style="margin-top:8px;" data-i18n="cycleTitle">מחזורי Peaks/Troughs אחרונים</div>
-      <table class="table" id="cycleTable">
-        <thead>
-          <tr>
-            <th data-i18n="cycleEndDate">תאריך סיום</th>
-            <th data-i18n="cycleStartDate">תאריך התחלה</th>
-            <th data-i18n="cycleDirection">כיוון</th>
-            <th data-i18n="cycleLength">אורך</th>
-            <th data-i18n="cycleAmplitude">אמפליטודה</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td colspan="5" class="muted">Loading…</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div style="height:16px"></div>
-
-    <div class="row">
-      <div class="card">
-        <div class="section-title" data-i18n="equityTitle">Equity vs Benchmark (SLV)</div>
-        <div class="controls" style="margin-top:6px;">
-          <span class="muted" data-i18n="equityViewLabel">View:</span>
-          <label class="toggle"><input type="radio" name="equityMode" value="gross" checked /> <span data-i18n="grossLabel">Gross</span></label>
-          <label class="toggle"><input type="radio" name="equityMode" value="net" /> <span data-i18n="netLabel">Net (after cost)</span></label>
-          <span class="space"></span>
-          <span class="muted" data-i18n="perfSummaryUpdatedLabel">עודכן</span>: <span class="mono" id="perfSummaryUpdated">—</span>
-        </div>
-        <div class="cost-impact" id="costImpact">
-          <div><span data-i18n="costsSelectedLabel">Selected costs</span>: <strong class="mono" id="costsSelected">—</strong></div>
-          <div><span data-i18n="costDragLabel">Cost drag vs gross</span>: <strong class="mono" id="costDragVal">—</strong></div>
-          <div><span data-i18n="grossNetImpactLabel">Gross → Net</span>: <span class="mono" id="grossReturnVal">—</span> → <span class="mono" id="netReturnVal">—</span></div>
-        </div>
-        <div id="perfChart" style="height:320px;"></div>
-        <table class="table" id="perfTable" style="margin-top:12px;">
-          <thead>
-            <tr>
-              <th data-i18n="seriesLabel">Series</th>
-              <th data-i18n="totalReturnLabel">Total Return</th>
-              <th data-i18n="maxDrawdownLabel">Max Drawdown</th>
-              <th data-i18n="sharpeLabel">Sharpe</th>
-              <th data-i18n="sortinoLabel">Sortino</th>
-            </tr>
-          </thead>
-          <tbody id="perfTableBody">
-            <tr><td colspan="5" class="muted">Loading…</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="card">
-        <div class="section-title" data-i18n="riskTitle">Risk metrics</div>
-        <div class="kpis">
-          <div class="kpi">
-            <div class="muted" data-i18n="maxDrawdownLabel">Max Drawdown</div>
-            <div class="v mono" id="riskDd">—</div>
+        <div class="subcard">
+          <div class="section-title" data-i18n="priceTitle">Price</div>
+          <div class="controls">
+            <div class="muted" data-i18n="rangeLabel">טווח זמן:</div>
+            <button class="btn active" data-range="3m">3M</button>
+            <button class="btn" data-range="1y">1Y</button>
+            <button class="btn" data-range="all">All</button>
+            <span class="space"></span>
+            <label class="toggle"><input type="checkbox" id="toggleMa" checked /><span data-i18n="maToggle">MAs</span></label>
+            <label class="toggle"><input type="checkbox" id="toggleBoll" checked /><span data-i18n="bollToggle">Bands</span></label>
+            <label class="toggle"><input type="checkbox" id="toggleCycles" checked /><span data-i18n="cyclesToggle">Cycles</span></label>
           </div>
-          <div class="kpi">
-            <div class="muted" data-i18n="ulcerLabel">Ulcer Index</div>
-            <div class="v mono" id="riskUlcer">—</div>
-          </div>
-          <div class="kpi">
-            <div class="muted" data-i18n="worstMonthLabel">Worst Month</div>
-            <div class="v mono" id="riskWorst">—</div>
-          </div>
+          <div id="chart" style="height:440px;"></div>
+          <div class="muted" style="margin-top:8px;" data-i18n="cycleTitle">מחזורי Peaks/Troughs אחרונים</div>
+          <table class="table" id="cycleTable">
+            <thead>
+              <tr>
+                <th data-i18n="cycleEndDate">תאריך סיום</th>
+                <th data-i18n="cycleStartDate">תאריך התחלה</th>
+                <th data-i18n="cycleDirection">כיוון</th>
+                <th data-i18n="cycleLength">אורך</th>
+                <th data-i18n="cycleAmplitude">אמפליטודה</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="5" class="muted">Loading…</td></tr>
+            </tbody>
+          </table>
         </div>
-        <div class="section-title" style="margin-top:16px;" data-i18n="tradeLogTitle">Trade log</div>
-        <table class="table" id="tradeTable">
-          <thead>
-            <tr>
-              <th data-i18n="tradeEntry">Entry</th>
-              <th data-i18n="tradeExit">Exit</th>
-              <th data-i18n="tradeReason">Trigger</th>
-              <th data-i18n="tradeReturn">Return%</th>
-              <th data-i18n="tradeHold">Hold</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td colspan="5" class="muted">Loading…</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
 
-    <div style="height:16px"></div>
+        <div class="row" style="margin-top:12px;">
+          <div class="subcard">
+            <div class="section-title" data-i18n="equityTitle">Equity vs Benchmark (SLV)</div>
+            <div class="controls" style="margin-top:6px;">
+              <span class="muted" data-i18n="equityViewLabel">View:</span>
+              <label class="toggle"><input type="radio" name="equityMode" value="gross" /> <span data-i18n="grossLabel">Gross</span></label>
+              <label class="toggle"><input type="radio" name="equityMode" value="net" checked /> <span data-i18n="netLabel">Net (after cost)</span></label>
+              <span class="space"></span>
+              <span class="muted" data-i18n="perfSummaryUpdatedLabel">עודכן</span>: <span class="mono" id="perfSummaryUpdated">—</span>
+            </div>
+            <div class="cost-impact" id="costImpact">
+              <div><span data-i18n="costsSelectedLabel">Selected costs</span>: <strong class="mono" id="costsSelected">—</strong></div>
+              <div><span data-i18n="costDragLabel">Cost drag vs gross</span>: <strong class="mono" id="costDragVal">—</strong></div>
+              <div><span data-i18n="grossNetImpactLabel">Gross → Net</span>: <span class="mono" id="grossReturnVal">—</span> → <span class="mono" id="netReturnVal">—</span></div>
+            </div>
+            <div id="perfChart" style="height:320px;"></div>
+            <table class="table" id="perfTable" style="margin-top:12px;">
+              <thead>
+                <tr>
+                  <th data-i18n="seriesLabel">Series</th>
+                  <th data-i18n="totalReturnLabel">Total Return</th>
+                  <th data-i18n="maxDrawdownLabel">Max Drawdown</th>
+                  <th data-i18n="sharpeLabel">Sharpe</th>
+                  <th data-i18n="sortinoLabel">Sortino</th>
+                </tr>
+              </thead>
+              <tbody id="perfTableBody">
+                <tr><td colspan="5" class="muted">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
 
-    <div class="row">
-      <div class="card" id="performanceCard">
-        <div class="section-title" data-i18n="performanceScoreTitle">ציון ביצועים כולל</div>
-        <div class="muted"><span data-i18n="perfSummaryUpdatedLabel">עודכן</span>: <span class="mono" id="perfSummaryUpdated2">—</span></div>
-        <div class="kpis">
-          <div class="kpi">
-            <div class="muted" data-i18n="algoScoreLabel">ציון אלגוריתם</div>
-            <div class="v mono" id="algoScore">—</div>
-            <span class="small" id="algoScoreMeta">—</span>
+          <div class="subcard">
+            <div class="section-title" data-i18n="riskTitle">Risk metrics</div>
+            <div class="kpis">
+              <div class="kpi">
+                <div class="muted" data-i18n="maxDrawdownLabel">Max Drawdown</div>
+                <div class="v mono" id="riskDd">—</div>
+              </div>
+              <div class="kpi">
+                <div class="muted" data-i18n="ulcerLabel">Ulcer Index</div>
+                <div class="v mono" id="riskUlcer">—</div>
+              </div>
+              <div class="kpi">
+                <div class="muted" data-i18n="worstMonthLabel">Worst Month</div>
+                <div class="v mono" id="riskWorst">—</div>
+              </div>
+            </div>
+            <div class="section-title" style="margin-top:16px;" data-i18n="tradeLogTitle">Trade log</div>
+            <table class="table" id="tradeTable">
+              <thead>
+                <tr>
+                  <th data-i18n="tradeEntry">Entry</th>
+                  <th data-i18n="tradeExit">Exit</th>
+                  <th data-i18n="tradeReason">Trigger</th>
+                  <th data-i18n="tradeReturn">Return%</th>
+                  <th data-i18n="tradeHold">Hold</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="5" class="muted">Loading…</td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
-        <div class="kpis">
-          <div class="kpi">
-            <div class="muted" data-i18n="hitRateLabel">Hit Rate</div>
-            <div class="v mono" id="hitRate">—</div>
+
+        <div class="row" style="margin-top:12px;">
+          <div class="subcard" id="performanceCard">
+            <div class="section-title" data-i18n="performanceScoreTitle">ציון ביצועים כולל</div>
+            <div class="muted"><span data-i18n="perfSummaryUpdatedLabel">עודכן</span>: <span class="mono" id="perfSummaryUpdated2">—</span></div>
+            <div class="kpis">
+              <div class="kpi">
+                <div class="muted" data-i18n="algoScoreLabel">ציון אלגוריתם</div>
+                <div class="v mono" id="algoScore">—</div>
+                <span class="small" id="algoScoreMeta">—</span>
+              </div>
+            </div>
+            <div class="kpis">
+              <div class="kpi">
+                <div class="muted" data-i18n="hitRateLabel">Hit Rate</div>
+                <div class="v mono" id="hitRate">—</div>
+              </div>
+              <div class="kpi">
+                <div class="muted" data-i18n="avgReturn5dLabel">Avg Return 5d</div>
+                <div class="v mono" id="avgReturn5d">—</div>
+              </div>
+              <div class="kpi">
+                <div class="muted" data-i18n="avgReturn10dLabel">Avg Return 10d</div>
+                <div class="v mono" id="avgReturn10d">—</div>
+              </div>
+              <div class="kpi">
+                <div class="muted" data-i18n="maxDrawdownLabel">Max Drawdown</div>
+                <div class="v mono" id="maxDrawdown">—</div>
+              </div>
+            </div>
           </div>
-          <div class="kpi">
-            <div class="muted" data-i18n="avgReturn5dLabel">Avg Return 5d</div>
-            <div class="v mono" id="avgReturn5d">—</div>
-          </div>
-          <div class="kpi">
-            <div class="muted" data-i18n="avgReturn10dLabel">Avg Return 10d</div>
-            <div class="v mono" id="avgReturn10d">—</div>
-          </div>
-          <div class="kpi">
-            <div class="muted" data-i18n="maxDrawdownLabel">Max Drawdown</div>
-            <div class="v mono" id="maxDrawdown">—</div>
+
+          <div class="subcard" id="decompCard">
+            <div class="section-title" data-i18n="decompTitle">Decomposition</div>
+            <div class="muted"><span data-i18n="decompUpdatedLabel">Updated</span>: <span class="mono" id="decompUpdated">—</span></div>
+            <div class="muted"><span data-i18n="decompPeriodLabel">Period</span>: <span class="mono" id="decompPeriod">—</span></div>
+            <div class="muted"><span data-i18n="decompInputLabel">Input</span>: <span class="mono" id="decompInput">—</span></div>
+            <div class="muted" id="decompParams">—</div>
+            <div class="alert-card" id="decompStatus" style="display:none"></div>
+            <div id="trendChart" style="height:180px; margin-top:10px;"></div>
+            <div id="seasonalChart" style="height:180px; margin-top:10px;"></div>
+            <div id="residualChart" style="height:180px; margin-top:10px;"></div>
           </div>
         </div>
       </div>
 
-      <div class="card" id="decompCard">
-        <div class="section-title" data-i18n="decompTitle">Decomposition</div>
-        <div class="muted"><span data-i18n="decompUpdatedLabel">Updated</span>: <span class="mono" id="decompUpdated">—</span></div>
-        <div class="muted"><span data-i18n="decompPeriodLabel">Period</span>: <span class="mono" id="decompPeriod">—</span></div>
-        <div class="muted"><span data-i18n="decompInputLabel">Input</span>: <span class="mono" id="decompInput">—</span></div>
-        <div class="muted" id="decompParams">—</div>
-        <div class="alert-card" id="decompStatus" style="display:none"></div>
-        <div id="trendChart" style="height:180px; margin-top:10px;"></div>
-        <div id="seasonalChart" style="height:180px; margin-top:10px;"></div>
-        <div id="residualChart" style="height:180px; margin-top:10px;"></div>
+      <div style="height:16px"></div>
+
+      <div class="card" id="backtestSettingsCard">
+        <div class="section-title flex">
+          <span data-i18n="backtestSettings">Backtest Settings</span>
+        </div>
+        <div class="subtitle" data-i18n="backtestSettingsSubtitle">Adjust the backtest simulation parameters (not advice).</div>
+        <div class="muted" data-i18n="simulationDisclaimer">Simulation only · Historical data · Not financial advice</div>
+        <div class="settings" style="margin-top:10px;">
+          <div>
+            <label class="small" data-i18n="dateRangeLabel">Date range</label>
+            <select id="dateRangeSelect">
+              <option value="all" selected data-i18n="rangeAll">All</option>
+              <option value="1y" data-i18n="range1Y">Last 1Y</option>
+              <option value="3y" data-i18n="range3Y">Last 3Y</option>
+              <option value="5y" data-i18n="range5Y">Last 5Y</option>
+              <option value="custom" data-i18n="rangeCustom">Custom</option>
+            </select>
+          </div>
+          <div id="customDateFields" class="stack" style="display:none;">
+            <div>
+              <label class="small" data-i18n="startDate">Start date</label>
+              <input type="date" id="startDate" />
+            </div>
+            <div>
+              <label class="small" data-i18n="endDate">End date</label>
+              <input type="date" id="endDate" />
+            </div>
+          </div>
+          <div>
+            <label class="small" data-i18n="strategyPick">Strategy</label>
+            <select id="strategySelect">
+              <option value="cycle_basic" selected data-i18n="strategyCycleBasic">cycle_basic</option>
+              <option value="risk_managed" data-i18n="strategyRiskManaged">risk_managed</option>
+              <option value="buy_hold" data-i18n="strategyBuyHold">buy_hold</option>
+            </select>
+            <div class="small muted" data-i18n="strategyNote">Backtest uses confirmed signals only (no lookahead).</div>
+          </div>
+          <div>
+            <label class="small" data-i18n="costsLabel">Costs (bps)</label>
+            <input type="number" id="costsInput" min="0" step="1" value="10" />
+          </div>
+          <div>
+            <label class="small" data-i18n="slippageLabel">Slippage (bps)</label>
+            <input type="number" id="slippageInput" min="0" step="1" value="5" />
+          </div>
+          <div>
+            <label class="small" data-i18n="grossNet">Gross / Net</label>
+            <div class="flex">
+              <label class="toggle"><input type="radio" name="pnlMode" value="gross" /> <span data-i18n="grossLabel">Gross</span></label>
+              <label class="toggle"><input type="radio" name="pnlMode" value="net" checked /> <span data-i18n="netLabel">Net</span></label>
+            </div>
+          </div>
+          <div>
+            <label class="small" data-i18n="riskControlsLabel">Risk controls</label>
+            <div class="stack">
+              <label class="toggle"><input type="checkbox" id="useAtrSizing" /> <span data-i18n="useAtrSizing">Use ATR sizing</span></label>
+              <div>
+                <label class="small" data-i18n="targetDailyVol">Target daily vol (%)</label>
+                <input type="number" id="targetDailyVol" step="0.1" value="1.0" min="0" />
+              </div>
+              <label class="toggle"><input type="checkbox" id="useStopLoss" /> <span data-i18n="useStopLoss">Use stop-loss</span></label>
+              <div>
+                <label class="small" data-i18n="stopAtrMult">Stop ATR multiple</label>
+                <input type="number" id="stopAtrMult" step="0.1" value="2.5" min="0" />
+              </div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:flex-end;">
+            <button class="btn" id="runSimulation" style="width:100%;" data-i18n="runSimulation">Run Simulation</button>
+          </div>
+        </div>
       </div>
-    </div>
     </div>
   </div>
 
@@ -728,7 +746,14 @@ const translations = {
     limitsCopy: "הנתונים היסטוריים בלבד; לא התחייבות לתוצאה.",
     medianLabel: "חציון 5 ימים",
     advancedTitle: "Advanced",
-    advancedSubtitle: "רכיב הטריידים והבקטסט נמצא ב-Advanced.",
+    advancedClosedTitle: "ניתוח מתקדם",
+    advancedOpenTitle: "Advanced פתוח",
+    advancedClosedSubtitle: "פתיחת גרפים, בקטסט ומדדי סיכון.",
+    advancedOpenSubtitle: "Advanced פתוח. השתמשו ב-Backtest Settings להתאמות.",
+    showAdvanced: "פתח ניתוח מתקדם",
+    hideAdvanced: "סגור ניתוח מתקדם",
+    advancedAnalysisTitle: "Advanced Analysis",
+    advancedAnalysisSubtitle: "מחזורי מחיר, פירוק, Equity מול בנצ'מרק, הקשר אירועי והקשר בין-שוקי.",
     confidenceLabel: "Confidence",
     scoreTotalLabel: "Score Total",
     scorePriceLabel: "Price Score",
@@ -767,18 +792,37 @@ const translations = {
     backtestSettings: "Backtest settings",
     openSettings: "Open",
     settingsHint: "שליטה מהירה לטווחי בדיקה, עלויות ואסטרטגיה.",
+    backtestSettingsSubtitle: "התאמת פרמטרי הסימולציה (לא ייעוץ).",
+    simulationDisclaimer: "Simulation only · נתונים היסטוריים · לא ייעוץ פיננסי",
+    dateRangeLabel: "טווח תאריכים",
+    rangeAll: "All",
+    range1Y: "Last 1Y",
+    range3Y: "Last 3Y",
+    range5Y: "Last 5Y",
+    rangeCustom: "Custom",
     maWindow: "חלון MA (מסנן מגמה)",
     rsiPeriod: "תקופת RSI",
     rsiOversold: "RSI מכירות יתר",
     rsiOverbought: "RSI קניות יתר",
     bandWindow: "חלון בולינגר",
     bandStd: "סטיית תקן",
+    strategyCycleBasic: "cycle_basic",
+    strategyRiskManaged: "risk_managed",
+    strategyBuyHold: "buy_hold",
+    strategyNote: "הבקטסט משתמש רק בסיגנלים מאושרים (ללא lookahead).",
     startDate: "Start date",
     endDate: "End date",
     costsLabel: "עלויות (bps)",
+    slippageLabel: "Slippage (bps)",
     costsSelectedLabel: "עלות נבחרת (bps לעסקה)",
     costDragLabel: "שחיקה מול תשואת Gross",
     grossNetImpactLabel: "תשואה: Gross → Net",
+    riskControlsLabel: "ניהול סיכונים",
+    useAtrSizing: "שימוש ב-ATR sizing",
+    targetDailyVol: "יעד סטיית תקן יומית (%)",
+    useStopLoss: "שימוש ב-Stop-loss",
+    stopAtrMult: "מקדם ATR ל-Stop",
+    runSimulation: "Run Simulation",
     strategyPick: "Strategy",
     strategyTrend: "Trend",
     strategyRange: "Range",
@@ -894,7 +938,14 @@ const translations = {
     limitsCopy: "Historical only; not a promise.",
     medianLabel: "Median 5d",
     advancedTitle: "Advanced",
-    advancedSubtitle: "Trades and backtests live behind the Advanced toggle.",
+    advancedClosedTitle: "Advanced Analysis",
+    advancedOpenTitle: "Advanced is open",
+    advancedClosedSubtitle: "Open advanced charts, backtest, risk metrics, and diagnostics.",
+    advancedOpenSubtitle: "Advanced is open. Use Backtest Settings to customize the simulation.",
+    showAdvanced: "Show Advanced Analysis",
+    hideAdvanced: "Hide Advanced Analysis",
+    advancedAnalysisTitle: "Advanced Analysis",
+    advancedAnalysisSubtitle: "Cycles, decomposition, equity vs benchmark, event context, cross-market context.",
     confidenceLabel: "Confidence",
     scoreTotalLabel: "Score Total",
     scorePriceLabel: "Price Score",
@@ -933,18 +984,37 @@ const translations = {
     backtestSettings: "Backtest settings",
     openSettings: "Open",
     settingsHint: "Quick control over test window, costs and regime.",
+    backtestSettingsSubtitle: "Adjust the backtest simulation parameters (not advice).",
+    simulationDisclaimer: "Simulation only · Historical data · Not financial advice",
+    dateRangeLabel: "Date range",
+    rangeAll: "All",
+    range1Y: "Last 1Y",
+    range3Y: "Last 3Y",
+    range5Y: "Last 5Y",
+    rangeCustom: "Custom",
     maWindow: "MA window (trend filter)",
     rsiPeriod: "RSI period",
     rsiOversold: "RSI oversold",
     rsiOverbought: "RSI overbought",
     bandWindow: "Bollinger window",
     bandStd: "Band σ (std dev)",
+    strategyCycleBasic: "cycle_basic",
+    strategyRiskManaged: "risk_managed",
+    strategyBuyHold: "buy_hold",
+    strategyNote: "Backtest uses confirmed signals only (no lookahead).",
     startDate: "Start date",
     endDate: "End date",
     costsLabel: "Costs (bps)",
+    slippageLabel: "Slippage (bps)",
     costsSelectedLabel: "Selected costs (bps per trade)",
     costDragLabel: "Cost drag vs gross return",
     grossNetImpactLabel: "Gross → Net return",
+    riskControlsLabel: "Risk controls",
+    useAtrSizing: "Use ATR sizing",
+    targetDailyVol: "Target daily vol (%)",
+    useStopLoss: "Use stop-loss",
+    stopAtrMult: "Stop ATR multiple",
+    runSimulation: "Run Simulation",
     strategyPick: "Strategy",
     strategyTrend: "Trend",
     strategyRange: "Range",
@@ -1086,19 +1156,27 @@ function applyCosts(equitySeries, costBps = 0.0) {
     showMa: true,
     showBoll: true,
     showCycles: true,
-    showNet: false,
+    showNet: true,
     costBps: 10,
+    slippageBps: 5,
     startDate: prices.dates[0],
     endDate: prices.dates[prices.dates.length - 1],
+    dateRangePreset: "all",
     maWindow: 50,
     rsiPeriod: 14,
     rsiOversold: 35,
     rsiOverbought: 65,
     bandWindow: 20,
     bandStd: 2,
+    strategy: "cycle_basic",
+    useAtrSizing: false,
+    targetDailyVol: 1.0,
+    useStopLoss: false,
+    stopAtrMult: 2.5,
     heatmapMode: "deviation",
     heatmapRange: "all",
     heatmapWeekly: false,
+    isAdvancedOpen: false,
   };
   const buyHoldCurve = normalizeEquityFromPrices(prices.close);
   let lastBacktest = null;
@@ -1121,6 +1199,35 @@ function applyCosts(equitySeries, costBps = 0.0) {
     const langBtn = document.getElementById("langToggle");
     langBtn.textContent = state.lang === "he" ? translations.en.langToggleEnglish : translations.he.langToggleHebrew;
     langBtn.setAttribute("aria-label", state.lang === "he" ? translations.en.switchToEnglishAria : translations.he.switchToHebrewAria);
+  }
+
+  function updateAdvancedCopy() {
+    const heading = document.getElementById("advancedHeading");
+    const subtitle = document.getElementById("advancedSubtitle");
+    const toggle = document.getElementById("advancedToggle");
+    const panel = document.getElementById("advancedPanel");
+    if (!heading || !subtitle || !toggle || !panel) return;
+    heading.textContent = state.isAdvancedOpen ? t("advancedOpenTitle") : t("advancedClosedTitle");
+    subtitle.textContent = state.isAdvancedOpen ? t("advancedOpenSubtitle") : t("advancedClosedSubtitle");
+    toggle.textContent = state.isAdvancedOpen ? t("hideAdvanced") : t("showAdvanced");
+    toggle.setAttribute("aria-expanded", state.isAdvancedOpen ? "true" : "false");
+    panel.style.display = state.isAdvancedOpen ? "block" : "none";
+  }
+
+  function updateDateRangeUi() {
+    const select = document.getElementById("dateRangeSelect");
+    const custom = document.getElementById("customDateFields");
+    if (select) select.value = state.dateRangePreset;
+    if (custom) custom.style.display = state.dateRangePreset === "custom" ? "grid" : "none";
+  }
+
+  function syncPnlModeRadios() {
+    document.querySelectorAll('input[name="equityMode"]').forEach((r) => {
+      r.checked = state.showNet ? r.value === "net" : r.value === "gross";
+    });
+    document.querySelectorAll('input[name="pnlMode"]').forEach((r) => {
+      r.checked = state.showNet ? r.value === "net" : r.value === "gross";
+    });
   }
 
   function eventPhaseLabel(status) {
@@ -2031,6 +2138,7 @@ function applyCosts(equitySeries, costBps = 0.0) {
 
   function renderAll() {
     applyLanguage();
+    updateAdvancedCopy();
     renderEventContext(eventContext, eventImpactStats);
     renderContextPanel(currentContext, conditionalContextStats);
     renderProbabilistic();
@@ -2043,6 +2151,8 @@ function applyCosts(equitySeries, costBps = 0.0) {
     renderEquity(state.range);
     renderTradeLog();
     renderDecomposition(state.range);
+    syncPnlModeRadios();
+    updateDateRangeUi();
   }
 
   renderAll();
@@ -2063,48 +2173,66 @@ function applyCosts(equitySeries, costBps = 0.0) {
 
   document.getElementById("langToggle").addEventListener("click", () => { state.lang = state.lang === "he" ? "en" : "he"; localStorage.setItem("lang", state.lang); renderAll(); });
 
-  const advancedToggle = document.getElementById("advancedToggle");
-  advancedToggle.addEventListener("click", () => {
-    const panel = document.getElementById("advancedPanel");
-    const visible = panel.style.display !== "none";
-    panel.style.display = visible ? "none" : "block";
-    advancedToggle.textContent = visible ? t("openSettings") : "Close";
-  });
+    const advancedToggle = document.getElementById("advancedToggle");
+    advancedToggle.addEventListener("click", () => {
+      state.isAdvancedOpen = !state.isAdvancedOpen;
+      updateAdvancedCopy();
+    });
 
-  document.getElementById("toggleSettings").addEventListener("click", () => {
-    const panel = document.getElementById("settingsPanel");
-    const visible = panel.style.display === "grid";
-    panel.style.display = visible ? "none" : "grid";
-    document.getElementById("toggleSettings").textContent = visible ? t("openSettings") : "Close";
-  });
+    const startInput = document.getElementById("startDate");
+    const endInput = document.getElementById("endDate");
+    const dateRangeSelect = document.getElementById("dateRangeSelect");
 
-  const startInput = document.getElementById("startDate");
-  const endInput = document.getElementById("endDate");
-  startInput.value = state.startDate.slice(0, 10);
-  endInput.value = state.endDate.slice(0, 10);
+    startInput.value = state.startDate.slice(0, 10);
+    endInput.value = state.endDate.slice(0, 10);
 
-  const syncDates = () => {
-    const startDate = new Date(state.startDate);
-    const endDate = new Date(state.endDate);
-    if (startDate > endDate) { state.endDate = state.startDate; endInput.value = state.endDate.slice(0, 10); }
-  };
+    const syncDates = () => {
+      const startDate = new Date(state.startDate);
+      const endDate = new Date(state.endDate);
+      if (startDate > endDate) { state.endDate = state.startDate; endInput.value = state.endDate.slice(0, 10); }
+    };
 
-  startInput.addEventListener("change", (e) => { state.startDate = e.target.value || state.startDate; syncDates(); renderAll(); });
-  endInput.addEventListener("change", (e) => { state.endDate = e.target.value || state.endDate; syncDates(); renderAll(); });
+    const applyDateRangePreset = (preset) => {
+      state.dateRangePreset = preset;
+      const lastDateStr = prices.dates[prices.dates.length - 1];
+      const firstDateStr = prices.dates[0];
+      if (preset === "custom") { updateDateRangeUi(); return; }
+      const months = preset === "1y" ? 12 : preset === "3y" ? 36 : preset === "5y" ? 60 : null;
+      if (months) {
+        const start = new Date(lastDateStr);
+        start.setMonth(start.getMonth() - months);
+        state.startDate = start.toISOString().slice(0, 10);
+        state.endDate = lastDateStr;
+      } else {
+        state.startDate = firstDateStr;
+        state.endDate = lastDateStr;
+      }
+      startInput.value = state.startDate.slice(0, 10);
+      endInput.value = state.endDate.slice(0, 10);
+      updateDateRangeUi();
+      renderAll();
+    };
 
-  document.getElementById("costsInput").addEventListener("input", (e) => { state.costBps = Number(e.target.value) || 0; renderEquity(state.range); });
-  document.getElementById("maWindowInput").addEventListener("input", (e) => { state.maWindow = Number(e.target.value) || state.maWindow; renderEquity(state.range); renderTradeLog(); });
-  document.getElementById("rsiPeriodInput").addEventListener("input", (e) => { state.rsiPeriod = Number(e.target.value) || state.rsiPeriod; renderEquity(state.range); renderTradeLog(); });
-  document.getElementById("rsiOversoldInput").addEventListener("input", (e) => { state.rsiOversold = Number(e.target.value) || state.rsiOversold; renderEquity(state.range); renderTradeLog(); });
-  document.getElementById("rsiOverboughtInput").addEventListener("input", (e) => { state.rsiOverbought = Number(e.target.value) || state.rsiOverbought; renderEquity(state.range); renderTradeLog(); });
-  document.getElementById("bandWindowInput").addEventListener("input", (e) => { state.bandWindow = Number(e.target.value) || state.bandWindow; renderEquity(state.range); renderTradeLog(); });
-  document.getElementById("bandStdInput").addEventListener("input", (e) => { state.bandStd = Number(e.target.value) || state.bandStd; renderEquity(state.range); renderTradeLog(); });
-  document.querySelectorAll('input[name="equityMode"]').forEach((r) => {
-    r.addEventListener('change', (e) => { state.showNet = e.target.value === 'net'; renderEquity(state.range); });
-  });
-  document.querySelectorAll('input[name="pnltoggle"]').forEach((r) => {
-    r.addEventListener('change', (e) => { state.showNet = e.target.value === 'net'; document.querySelector('input[name="equityMode"][value="'+(state.showNet?'net':'gross')+'"]').checked = true; renderEquity(state.range); });
-  });
+    dateRangeSelect.addEventListener("change", (e) => applyDateRangePreset(e.target.value));
+    startInput.addEventListener("change", (e) => { state.startDate = e.target.value || state.startDate; state.dateRangePreset = "custom"; dateRangeSelect.value = "custom"; syncDates(); renderAll(); });
+    endInput.addEventListener("change", (e) => { state.endDate = e.target.value || state.endDate; state.dateRangePreset = "custom"; dateRangeSelect.value = "custom"; syncDates(); renderAll(); });
+
+    document.getElementById("costsInput").addEventListener("input", (e) => { state.costBps = Number(e.target.value) || 0; renderEquity(state.range); });
+    document.getElementById("slippageInput").addEventListener("input", (e) => { state.slippageBps = Number(e.target.value) || 0; });
+    document.getElementById("strategySelect").addEventListener("change", (e) => { state.strategy = e.target.value; });
+    document.getElementById("useAtrSizing").addEventListener("change", (e) => { state.useAtrSizing = e.target.checked; });
+    document.getElementById("targetDailyVol").addEventListener("input", (e) => { state.targetDailyVol = Number(e.target.value) || state.targetDailyVol; });
+    document.getElementById("useStopLoss").addEventListener("change", (e) => { state.useStopLoss = e.target.checked; });
+    document.getElementById("stopAtrMult").addEventListener("input", (e) => { state.stopAtrMult = Number(e.target.value) || state.stopAtrMult; });
+
+    document.querySelectorAll('input[name="equityMode"]').forEach((r) => {
+      r.addEventListener('change', (e) => { state.showNet = e.target.value === 'net'; syncPnlModeRadios(); renderEquity(state.range); });
+    });
+    document.querySelectorAll('input[name="pnlMode"]').forEach((r) => {
+      r.addEventListener('change', (e) => { state.showNet = e.target.value === 'net'; syncPnlModeRadios(); renderEquity(state.range); });
+    });
+
+    document.getElementById("runSimulation").addEventListener("click", () => { renderAll(); });
 })();
 </script>
 </body>
