@@ -25,6 +25,12 @@ from engine.backtest.performance import (
     summarize_returns,
 )
 from engine.anomalies.detector import compute_regime, detect_anomalies
+from engine.events.calendar import (
+    align_events_to_history,
+    build_event_context,
+    compute_event_impact_stats,
+    load_events_calendar,
+)
 from engine.decision.engine import build_indicator_context, select_action
 from engine.events.cycles import (
     detect_cycles,
@@ -61,6 +67,10 @@ def run_pipeline() -> None:
     lows = [row["low"] for row in raw_data]
     volumes = [row["volume"] for row in raw_data]
     dates = [row["date"] for row in raw_data]
+
+    calendar_path = Path("data/events_calendar.json")
+    known_events = load_events_calendar(calendar_path)
+    aligned_events = align_events_to_history(known_events, dates)
 
     event_timeline = []
     for idx in range(len(raw_data)):
@@ -133,6 +143,12 @@ def run_pipeline() -> None:
         atr_raw,
         symbol="SLV",
     )
+    event_impact_stats = compute_event_impact_stats(
+        closes, atr_raw, aligned_events, sample_threshold=3
+    )
+    event_context = build_event_context(
+        aligned_events, event_impact_stats, as_of=dates[-1]
+    )
     now = datetime.utcnow().isoformat()
     last_updated = datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
     history_record = {"timestamp": now, **signal}
@@ -157,6 +173,12 @@ def run_pipeline() -> None:
     write_json(BASE_PATH / "anomalies/latest.json", anomalies)
 
     write_json(BASE_PATH / "events/latest.json", {"as_of": now, "events": [e.to_dict() for e in latest_events]})
+    write_json(
+        BASE_PATH / "events/calendar.json",
+        {"updated_at": now, "events": [e.to_dict() for e in known_events]},
+    )
+    write_json(BASE_PATH / "events/event_impact_stats.json", event_impact_stats)
+    write_json(BASE_PATH / "events/current_event_context.json", event_context)
     write_json(
         BASE_PATH / "events/cycle_stats.json",
         {

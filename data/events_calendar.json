@@ -1,0 +1,130 @@
+[
+  {
+    "date": "2024-09-18",
+    "event": "FOMC",
+    "category": "macro",
+    "priority": "high",
+    "known_time": "18:00 UTC",
+    "description": "Federal Reserve rate decision"
+  },
+  {
+    "date": "2024-10-10",
+    "event": "CPI",
+    "category": "macro",
+    "priority": "high",
+    "known_time": "12:30 UTC",
+    "description": "US Consumer Price Index release"
+  },
+  {
+    "date": "2024-12-18",
+    "event": "FOMC",
+    "category": "macro",
+    "priority": "high",
+    "known_time": "19:00 UTC",
+    "description": "Federal Reserve rate decision"
+  },
+  {
+    "date": "2025-01-03",
+    "event": "NFP",
+    "category": "macro",
+    "priority": "high",
+    "known_time": "13:30 UTC",
+    "description": "US Non-Farm Payrolls"
+  },
+  {
+    "date": "2025-01-14",
+    "event": "CPI",
+    "category": "macro",
+    "priority": "high",
+    "known_time": "13:30 UTC",
+    "description": "US Consumer Price Index release"
+  },
+  {
+    "date": "2025-03-19",
+    "event": "FOMC",
+    "category": "macro",
+    "priority": "high",
+    "known_time": "18:00 UTC",
+    "description": "Federal Reserve rate decision"
+  },
+  {
+    "date": "2025-04-04",
+    "event": "NFP",
+    "category": "macro",
+    "priority": "high",
+    "known_time": "12:30 UTC",
+    "description": "US Non-Farm Payrolls"
+  },
+  {
+    "date": "2025-04-10",
+    "event": "CPI",
+    "category": "macro",
+    "priority": "high",
+    "known_time": "12:30 UTC",
+    "description": "US Consumer Price Index release"
+  },
+  {
+    "date": "2025-06-11",
+    "event": "FOMC",
+    "category": "macro",
+    "priority": "high",
+    "known_time": "18:00 UTC",
+    "description": "Federal Reserve rate decision"
+  },
+  {
+    "date": "2025-07-11",
+    "event": "CPI",
+    "category": "macro",
+    "priority": "high",
+    "known_time": "13:30 UTC",
+    "description": "US Consumer Price Index release"
+  },
+  {
+    "date": "2025-07-31",
+    "event": "FOMC",
+    "category": "macro",
+    "priority": "high",
+    "known_time": "18:00 UTC",
+    "description": "Federal Reserve rate decision"
+  },
+  {
+    "date": "2025-09-05",
+    "event": "NFP",
+    "category": "macro",
+    "priority": "high",
+    "known_time": "12:30 UTC",
+    "description": "US Non-Farm Payrolls"
+  },
+  {
+    "date": "2025-09-17",
+    "event": "FOMC",
+    "category": "macro",
+    "priority": "high",
+    "known_time": "18:00 UTC",
+    "description": "Federal Reserve rate decision"
+  },
+  {
+    "date": "2025-09-19",
+    "event": "Options Expiration",
+    "category": "market",
+    "priority": "medium",
+    "known_time": null,
+    "description": "Monthly equity and ETF options expiration"
+  },
+  {
+    "date": "2025-11-14",
+    "event": "CPI",
+    "category": "macro",
+    "priority": "high",
+    "known_time": "13:30 UTC",
+    "description": "US Consumer Price Index release"
+  },
+  {
+    "date": "2025-11-26",
+    "event": "Thanksgiving Early Close",
+    "category": "holiday",
+    "priority": "low",
+    "known_time": "18:00 UTC",
+    "description": "US equity market early close"
+  }
+]

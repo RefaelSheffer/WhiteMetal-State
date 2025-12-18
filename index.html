@@ -47,8 +47,11 @@
     .header-content { flex: 1; min-width: 0; }
     .meta-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
     .badge { display: inline-block; padding: 4px 8px; border-radius: 8px; background: rgba(255,255,255,0.06); font-size: 12px; margin-right: 6px; }
+    .badge.soft { background: rgba(99, 102, 241, 0.12); color: #c7d2fe; border: 1px solid var(--border); }
     .section-title { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
     .chip { padding: 4px 8px; border-radius: 999px; border: 1px solid var(--border); font-size: 12px; }
+    .chip.muted { background: rgba(255,255,255,0.06); color: var(--muted); }
+    .chip.info { background: rgba(76, 156, 255, 0.15); color: #8bb2ff; }
     .table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14px; }
     .table th, .table td { padding: 8px; text-align: right; border-bottom: 1px solid var(--border); }
     .table th { color: var(--muted); font-weight: 700; }
@@ -88,6 +91,8 @@
     .pill.extreme-low { background: rgba(37, 99, 235, 0.18); color: #bfdbfe; }
     .heatmap-legend { display: flex; gap: 8px; align-items: center; margin-top: 8px; color: var(--muted); font-size: 12px; flex-wrap: wrap; }
     .legend-swatch { width: 14px; height: 14px; border-radius: 4px; display: inline-block; border: 1px solid var(--border); }
+    .context-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-top: 10px; }
+    .context-note { color: var(--muted); font-size: 13px; line-height: 1.5; margin-top: 6px; }
     @media (max-width: 900px) { .row { grid-template-columns: 1fr; } }
     a { color: #8bb2ff; }
   </style>
@@ -104,6 +109,7 @@
             <span class="badge"><span data-i18n="metaSourceLabel">Data source</span>: <span class="mono" id="metaSource">—</span></span>
             <span class="badge"><span data-i18n="metaCoverageLabel">Coverage</span>: <span class="mono" id="metaCoverage">—</span></span>
             <span class="badge"><span data-i18n="metaUpdatedLabel">Last updated</span>: <span class="mono" id="metaUpdated">—</span></span>
+            <span class="badge soft" id="eventContextBadge">—</span>
           </div>
         </div>
         <button class="btn" id="langToggle" aria-label="Switch language">English</button>
@@ -122,9 +128,9 @@
           <span class="pill neutral" id="biasBadge">—</span>
           <span class="pill neutral" id="volBadge">—</span>
         </div>
-        <div class="muted" id="scenarioId">—</div>
-        <div class="big" id="probHeadline">—</div>
-        <div class="subtitle" id="probSubtext">—</div>
+          <div class="muted" id="scenarioId">—</div>
+          <div class="big" id="probHeadline">—</div>
+          <div class="subtitle" id="probSubtext">—</div>
         <div class="kpis">
           <div class="kpi">
             <div class="muted" data-i18n="confidenceLabel">Confidence</div>
@@ -166,6 +172,35 @@
         </div>
         <div class="range-chip" id="rangeChip"></div>
       </div>
+    </div>
+
+    <div style="height:16px"></div>
+
+    <div class="card" id="eventContextCard">
+      <div class="section-title flex">
+        <span data-i18n="eventContextTitle">Event Context</span>
+        <span class="chip muted" id="eventPhaseChip">—</span>
+        <span class="chip info" id="eventPriorityChip">—</span>
+      </div>
+      <div class="context-note" id="eventContextSummary">—</div>
+      <div class="context-grid">
+        <div class="kpi">
+          <div class="muted" data-i18n="eventNameLabel">Event</div>
+          <div class="v mono" id="eventName">—</div>
+          <span class="small" id="eventTiming">—</span>
+        </div>
+        <div class="kpi">
+          <div class="muted" data-i18n="volImpactLabel">Volatility context</div>
+          <div class="v mono" id="eventVolNote">—</div>
+          <span class="small" id="eventSampleSize">—</span>
+        </div>
+        <div class="kpi">
+          <div class="muted" data-i18n="directionalNoteLabel">Directional note</div>
+          <div class="v mono" id="eventDirection">—</div>
+          <span class="small" id="eventConfidence">—</span>
+        </div>
+      </div>
+      <div class="context-note" id="eventContextFooter">—</div>
     </div>
 
     <div style="height:16px"></div>
@@ -574,6 +609,19 @@ const translations = {
     whatItMeansTitle: "מה זה בדרך כלל אומר",
     analogiesTitle: "אנלוגיות",
     analogiesNote: "דומים היסטוריים · ללא הוראות",
+    eventContextTitle: "הקשר אירועים",
+    eventContextLabel: "קונטקסט אירוע",
+    eventContextNone: "אין אירוע קרוב",
+    eventPhasePre: "לפני אירוע",
+    eventPhaseToday: "יום אירוע",
+    eventPhasePost: "אחרי אירוע",
+    eventPhaseUpcoming: "אירוע מתוזמן",
+    eventNameLabel: "אירוע",
+    volImpactLabel: "הקשר תנודתיות",
+    directionalNoteLabel: "כיוון היסטורי",
+    sampleSizeLabel: "מדגם",
+    eventContextFooter: "הקשר בלבד; לא סיגנל או תחזית.",
+    eventTimingLabel: "מרחק ליום אירוע",
     deviationPanelTitle: "סטייה מול היסטוריה",
     zNowLabel: "Z-score נוכחי",
     pctNowLabel: "אחוזון נוכחי",
@@ -706,6 +754,19 @@ const translations = {
     whatItMeansTitle: "What this usually means",
     analogiesTitle: "Analogies",
     analogiesNote: "Historical peers · No instructions",
+    eventContextTitle: "Event Context",
+    eventContextLabel: "Event Context",
+    eventContextNone: "No known event window",
+    eventPhasePre: "Pre-event",
+    eventPhaseToday: "Event day",
+    eventPhasePost: "Post-event",
+    eventPhaseUpcoming: "Scheduled",
+    eventNameLabel: "Event",
+    volImpactLabel: "Volatility context",
+    directionalNoteLabel: "Directional note",
+    sampleSizeLabel: "Sample size",
+    eventContextFooter: "Context only; not a trigger or forecast.",
+    eventTimingLabel: "Distance to event",
     deviationPanelTitle: "Deviation vs history",
     zNowLabel: "Z-score now",
     pctNowLabel: "Percentile now",
@@ -877,7 +938,7 @@ function applyCosts(equitySeries, costBps = 0.0) {
 }
 
 (async () => {
-  const [meta, prices, probabilistic, anomalies, decomposition, perfSummary, equityCurve, cycleStats, heatmapDeviation, heatmapVolatility, heatmapMomentum, statsByBand] = await Promise.all([
+  const [meta, prices, probabilistic, anomalies, decomposition, perfSummary, equityCurve, cycleStats, heatmapDeviation, heatmapVolatility, heatmapMomentum, statsByBand, eventContext, eventImpactStats] = await Promise.all([
     getJson("./public/data/meta.json"),
     getJson("./data/slv_prices.json"),
     getJson("./public/data/signals/probabilistic.json"),
@@ -890,6 +951,8 @@ function applyCosts(equitySeries, costBps = 0.0) {
     optionalJson("./public/data/heatmap/volatility.json"),
     optionalJson("./public/data/heatmap/momentum.json"),
     optionalJson("./public/data/heatmap/stats_by_band.json"),
+    optionalJson("./public/data/events/current_event_context.json"),
+    optionalJson("./public/data/events/event_impact_stats.json"),
   ]);
 
   const priceDates = prices.dates.map((d) => new Date(d));
@@ -934,6 +997,56 @@ function applyCosts(equitySeries, costBps = 0.0) {
     const langBtn = document.getElementById("langToggle");
     langBtn.textContent = state.lang === "he" ? translations.en.langToggleEnglish : translations.he.langToggleHebrew;
     langBtn.setAttribute("aria-label", state.lang === "he" ? translations.en.switchToEnglishAria : translations.he.switchToHebrewAria);
+  }
+
+  function eventPhaseLabel(status) {
+    if (status === "PRE_EVENT") return t("eventPhasePre");
+    if (status === "EVENT_DAY") return t("eventPhaseToday");
+    if (status === "POST_EVENT") return t("eventPhasePost");
+    if (status === "UPCOMING") return t("eventPhaseUpcoming");
+    return t("eventContextNone");
+  }
+
+  function eventTimingText(context) {
+    if (!context || typeof context.days_to_event !== "number") return "—";
+    if (context.days_to_event === 0) return t("eventPhaseToday");
+    const days = Math.abs(context.days_to_event);
+    return context.days_to_event > 0 ? `${days}d ${t("eventTimingLabel")}` : `${days}d ${t("eventPhasePost")}`;
+  }
+
+  function renderEventContext(context) {
+    const badge = document.getElementById("eventContextBadge");
+    const card = document.getElementById("eventContextCard");
+    if (!context || context.status === "NO_EVENT") {
+      badge.textContent = t("eventContextNone");
+      card.style.display = "none";
+      return;
+    }
+
+    const phaseText = eventPhaseLabel(context.status);
+    const timing = eventTimingText(context);
+    badge.textContent = `${t("eventContextLabel")}: ${context.event ?? "—"} • ${phaseText}${timing ? ` (${timing})` : ""}`;
+    card.style.display = "block";
+    document.getElementById("eventPhaseChip").textContent = phaseText;
+    document.getElementById("eventPriorityChip").textContent = context.priority ? context.priority.toUpperCase() : "—";
+    document.getElementById("eventName").textContent = context.event ?? "—";
+    document.getElementById("eventTiming").textContent = eventTimingText(context);
+    document.getElementById("eventVolNote").textContent = context.historical_note ?? "—";
+    document.getElementById("eventDirection").textContent = context.directional_note ?? "—";
+    document.getElementById("eventSampleSize").textContent = context.sample_size
+      ? `${t("sampleSizeLabel")}: n=${context.sample_size}`
+      : t("sampleSizeLabel");
+    const conf = context.confidence ? context.confidence : "";
+    document.getElementById("eventConfidence").textContent = conf
+      ? `${t("confidenceLabel")}: ${conf}`
+      : t("confidenceLabel");
+
+    const description = [phaseText, context.description].filter(Boolean).join(" · ");
+    const hist = context.historical_note || "";
+    const dir = context.directional_note || "";
+    const pieces = [description, hist, dir].filter(Boolean);
+    document.getElementById("eventContextSummary").textContent = pieces.join(" · ");
+    document.getElementById("eventContextFooter").textContent = t("eventContextFooter");
   }
 
   function bandLabel(band) {
@@ -1657,6 +1770,7 @@ function applyCosts(equitySeries, costBps = 0.0) {
 
   function renderAll() {
     applyLanguage();
+    renderEventContext(eventContext);
     renderProbabilistic();
     renderMeta();
     renderSummary();
