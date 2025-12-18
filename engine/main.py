@@ -26,6 +26,11 @@ from engine.backtest.performance import (
 )
 from engine.anomalies.detector import compute_regime, detect_anomalies
 from engine.context import fetch_context_assets, write_context_outputs
+from engine.backtest.trade_engine import (
+    TradeSettings,
+    trade_engine_cycle_basic,
+    write_backtest_outputs,
+)
 from engine.diagnostics.decomposition import DecompositionConfig, write_decomposition_outputs
 from engine.events.calendar import (
     align_events_to_history,
@@ -118,6 +123,17 @@ def run_pipeline() -> None:
     rsi_raw = compute_rsi(closes)
     macd_raw = compute_macd(closes)
     adx_raw = compute_adx(highs, lows, closes)
+    turning_point_records = [
+        {"index": tp.index, "kind": tp.kind} for tp in turning_points
+    ]
+    trade_settings = TradeSettings(strategy_id="cycle_basic")
+    trade_outputs = trade_engine_cycle_basic(
+        raw_data,
+        turning_point_records,
+        atr_raw,
+        adx_raw,
+        settings=trade_settings,
+    )
     bollinger_raw = compute_bollinger_bands(closes)
     obv_raw = compute_obv(closes, volumes)
     rsi_series = attach_dates(rsi_raw, dates)
@@ -313,6 +329,7 @@ def run_pipeline() -> None:
     write_json(BASE_PATH / "heatmap/volatility.json", volatility_payload)
     write_json(BASE_PATH / "heatmap/momentum.json", momentum_payload)
     write_json(BASE_PATH / "heatmap/stats_by_band.json", stats_by_band)
+    write_backtest_outputs(BASE_PATH / "backtest", trade_outputs)
 
     write_decomposition_outputs(
         dates,
