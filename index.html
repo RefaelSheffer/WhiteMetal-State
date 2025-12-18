@@ -410,13 +410,20 @@
               <span class="muted" data-i18n="equityViewLabel">View:</span>
               <label class="toggle"><input type="radio" name="equityMode" value="gross" /> <span data-i18n="grossLabel">Gross</span></label>
               <label class="toggle"><input type="radio" name="equityMode" value="net" checked /> <span data-i18n="netLabel">Net (after cost)</span></label>
+              <label class="toggle"><input type="checkbox" id="toggleFeesSensitivity" /> <span data-i18n="feesSensitivityLabel">Fees sensitivity</span></label>
               <span class="space"></span>
               <span class="muted" data-i18n="perfSummaryUpdatedLabel">עודכן</span>: <span class="mono" id="perfSummaryUpdated">—</span>
             </div>
             <div class="cost-impact" id="costImpact">
-              <div><span data-i18n="costsSelectedLabel">Selected costs</span>: <strong class="mono" id="costsSelected">—</strong></div>
-              <div><span data-i18n="costDragLabel">Cost drag vs gross</span>: <strong class="mono" id="costDragVal">—</strong></div>
-              <div><span data-i18n="grossNetImpactLabel">Gross → Net</span>: <span class="mono" id="grossReturnVal">—</span> → <span class="mono" id="netReturnVal">—</span></div>
+              <div class="muted" data-i18n="feesImpactTitle">Fees impact</div>
+              <div id="feesImpactBody">
+                <div><span data-i18n="roundTripLabel">Round-trip</span>: <strong class="mono" id="roundTripBps">—</strong></div>
+                <div><span data-i18n="tradesLabel">Trades</span>: <strong class="mono" id="numTrades">—</strong></div>
+                <div><span data-i18n="feesTotalLabel">Total fees</span>: <strong class="mono" id="feesTotal">—</strong></div>
+                <div><span data-i18n="feeDragLabel">Fee drag vs gross</span>: <strong class="mono" id="feeDragVal">—</strong></div>
+                <div><span data-i18n="grossNetImpactLabel">Gross → Net</span>: <span class="mono" id="grossReturnVal">—</span> → <span class="mono" id="netReturnVal">—</span></div>
+              </div>
+              <div class="muted" id="feesNote"></div>
             </div>
             <div id="perfChart" style="height:320px;"></div>
             <table class="table" id="perfTable" style="margin-top:12px;">
@@ -667,6 +674,13 @@ const translations = {
     perfSummaryUpdatedLabel: "עודכן",
     equityTitle: "תשואת אלגו מול SLV",
     performanceTitle: "ביצועים",
+    feesImpactTitle: "השפעת עמלות",
+    feesSensitivityLabel: "רגישות לעמלות",
+    roundTripLabel: "Round-trip (bps)",
+    tradesLabel: "מס' עסקאות",
+    feesTotalLabel: "סה""כ עמלות",
+    feeDragLabel: "שחיקה מול תשואת Gross",
+    noTradesFees: "אין טריידים → אין עמלות",
     algoScoreLabel: "ציון אלגוריתם",
     sharpeLabel: "Sharpe Ratio",
     cycleCaptureLabel: "ציון מחזורי",
@@ -859,6 +873,13 @@ const translations = {
     perfSummaryUpdatedLabel: "Updated",
     equityTitle: "Equity vs Benchmark (SLV)",
     performanceTitle: "Performance",
+    feesImpactTitle: "Fees impact",
+    feesSensitivityLabel: "Fees sensitivity",
+    roundTripLabel: "Round-trip (bps)",
+    tradesLabel: "Trades",
+    feesTotalLabel: "Total fees",
+    feeDragLabel: "Fee drag vs gross return",
+    noTradesFees: "No trades → fees impact = 0",
     algoScoreLabel: "Algorithm Score",
     sharpeLabel: "Sharpe Ratio",
     cycleCaptureLabel: "Cycle Capture",
@@ -1124,7 +1145,7 @@ function applyCosts(equitySeries, costBps = 0.0) {
 }
 
 (async () => {
-  const [meta, prices, probabilistic, anomalies, perfSummary, equityCurve, cycleStats, heatmapDeviation, heatmapVolatility, heatmapMomentum, statsByBand, eventContextRaw, eventImpactStatsRaw, currentContextRaw, conditionalContextStatsRaw] = await Promise.all([
+  const [meta, prices, probabilistic, anomalies, perfSummary, equityCurve, cycleStats, heatmapDeviation, heatmapVolatility, heatmapMomentum, statsByBand, eventContextRaw, eventImpactStatsRaw, currentContextRaw, conditionalContextStatsRaw, backtestEquity, backtestFeesImpact, backtestFeesSensitivity, backtestTradeLog, backtestRiskMetrics] = await Promise.all([
     getJson("./public/data/meta.json"),
     getJson("./data/slv_prices.json"),
     getJson("./public/data/signals/probabilistic.json"),
@@ -1140,6 +1161,11 @@ function applyCosts(equitySeries, costBps = 0.0) {
       optionalJson("./public/data/events/event_impact_stats.json"),
       optionalJson("./public/data/context/cross_market_current.json"),
       optionalJson("./public/data/context/cross_market_conditional.json"),
+      optionalJson("./public/data/backtest/equity_curves.json"),
+      optionalJson("./public/data/backtest/fees_impact.json"),
+      optionalJson("./public/data/backtest/fees_sensitivity.json"),
+      optionalJson("./public/data/backtest/trade_log.json"),
+      optionalJson("./public/data/backtest/risk_metrics.json"),
     ]);
 
     const decomposition = await loadDecomposition();
@@ -1157,6 +1183,7 @@ function applyCosts(equitySeries, costBps = 0.0) {
     showBoll: true,
     showCycles: true,
     showNet: true,
+    showSensitivity: false,
     costBps: 10,
     slippageBps: 5,
     startDate: prices.dates[0],
@@ -1179,7 +1206,11 @@ function applyCosts(equitySeries, costBps = 0.0) {
     isAdvancedOpen: false,
   };
   const buyHoldCurve = normalizeEquityFromPrices(prices.close);
-  let lastBacktest = null;
+  if (backtestEquity?.fees) {
+    state.costBps = backtestEquity.fees.cost_bps ?? state.costBps;
+    state.slippageBps = backtestEquity.fees.slippage_bps ?? state.slippageBps;
+  }
+  let lastBacktest = { trades: backtestTradeLog?.trades || [] };
   const heatmaps = {
     deviation: heatmapDeviation,
     volatility: heatmapVolatility,
@@ -1933,6 +1964,94 @@ function applyCosts(equitySeries, costBps = 0.0) {
     const close = applyMask(prices.close, mask, (v) => v);
     if (!close.length) { document.getElementById("perfChart").textContent = t("perfSeriesUnavailable"); return; }
 
+    const seriesReturn = (series) => series?.length ? series[series.length - 1].equity / (series[0].equity || 1) - 1 : null;
+    const hasPrecomputed = Array.isArray(backtestEquity?.rows) && backtestEquity.rows.length;
+    const tradesCount = backtestFeesImpact?.totals?.num_trades ?? (backtestTradeLog?.trades?.length ?? 0);
+    const sensitivityAvailable = (backtestFeesSensitivity?.rows?.length ?? 0) > 0 && tradesCount > 0;
+    if (!sensitivityAvailable) state.showSensitivity = false;
+    const sensToggle = document.getElementById("toggleFeesSensitivity");
+    if (sensToggle) {
+      sensToggle.checked = state.showSensitivity && sensitivityAvailable;
+      sensToggle.disabled = !sensitivityAvailable;
+    }
+
+    if (hasPrecomputed) {
+      const equityRows = backtestEquity.rows;
+      const datesMasked = applyMask(equityRows, mask, (r) => new Date(r.date));
+      const gross = applyMask(equityRows, mask, (r) => ({ equity: r.strategy_gross }));
+      const net = applyMask(equityRows, mask, (r) => ({ equity: r.strategy_net }));
+      const buyHold = applyMask(equityRows, mask, (r) => ({ equity: r.buy_hold }));
+
+      const useSensitivity = state.showSensitivity && sensitivityAvailable;
+      const baseNetSeries = net;
+      const grossReturn = seriesReturn(gross);
+      const netReturn = seriesReturn(baseNetSeries);
+      const drag = netReturn !== null && grossReturn !== null ? netReturn - grossReturn : null;
+
+      let chosen = state.showNet ? baseNetSeries : gross;
+      let traces = [
+        { x: datesMasked, y: chosen.map((p) => p.equity), mode: "lines", name: state.showNet ? "Strategy (Net)" : "Strategy (Gross)", line: { color: "#4c9cff" } },
+      ];
+
+      if (useSensitivity) {
+        const sensMasked = applyMask(backtestFeesSensitivity.rows, mask, (r) => r);
+        const seriesFor = (key) => sensMasked.map((row) => ({ equity: row?.[key] ?? 0 }));
+        const netLow = seriesFor("net_low");
+        const netBase = seriesFor("net_base");
+        const netHigh = seriesFor("net_high");
+        chosen = netBase;
+        traces = [
+          { x: datesMasked, y: netLow.map((p) => p.equity), mode: "lines", name: "Net (low fees)", line: { color: "#10b981", dash: "dot" } },
+          { x: datesMasked, y: netBase.map((p) => p.equity), mode: "lines", name: "Net (base)", line: { color: "#4c9cff" } },
+          { x: datesMasked, y: netHigh.map((p) => p.equity), mode: "lines", name: "Net (high fees)", line: { color: "#f43f5e", dash: "dash" } },
+        ];
+      }
+
+      traces.push({ x: datesMasked, y: buyHold.map((p) => p.equity), mode: "lines", name: "Buy & Hold", line: { color: "#fbbf24", dash: "dot" } });
+
+      const layout = { paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)", margin: { l: 45, r: 15, t: 20, b: 40 }, xaxis: { showgrid: false, color: "#a8b4d6" }, yaxis: { showgrid: true, gridcolor: "#1e2a45", color: "#a8b4d6" } };
+      Plotly.newPlot("perfChart", traces, layout, { displayModeBar: false });
+
+      const selectedStats = computeStats(chosen);
+      const benchStats = computeStats(buyHold);
+      const risk = computeRisk(chosen, datesMasked);
+      document.getElementById("riskDd").textContent = fmtPct(risk.dd, 2);
+      document.getElementById("riskUlcer").textContent = fmt(risk.ulcer, 2);
+      document.getElementById("riskWorst").textContent = fmtPct(risk.worst, 2);
+
+      const perfBody = document.getElementById("perfTableBody");
+      const chosenReturn = selectedStats.totalReturn;
+      const benchReturn = benchStats.totalReturn;
+      const maxDdDisplay = fmtPct(selectedStats.maxDrawdown ?? risk.dd, 2);
+
+      perfBody.innerHTML = `
+        <tr><td>${state.showSensitivity ? "Strategy (net scenarios)" : state.showNet ? "Strategy (Net)" : "Strategy (Gross)"}</td><td>${fmtPct(chosenReturn, 2)}</td><td>${maxDdDisplay}</td><td>${fmt(selectedStats.sharpe, 2)}</td><td>${fmt(selectedStats.sortino, 2)}</td></tr>
+        <tr><td>${t("buyHoldLabel")}</td><td>${fmtPct(benchReturn, 2)}</td><td>${fmtPct(benchStats.maxDrawdown, 2)}</td><td>${fmt(benchStats.sharpe, 2)}</td><td>${fmt(benchStats.sortino, 2)}</td></tr>
+      `;
+
+      const roundTrip = backtestEquity.fees?.round_trip_bps ?? null;
+      document.getElementById("roundTripBps").textContent = roundTrip !== null ? `${roundTrip} bps` : "—";
+      document.getElementById("numTrades").textContent = tradesCount || 0;
+      const feesTotal = backtestFeesImpact?.totals?.total_fees_currency;
+      const feesPct = backtestFeesImpact?.totals?.total_fees_pct;
+      document.getElementById("feesTotal").textContent = feesTotal !== undefined ? `${fmt(feesTotal, 4)} (${fmtPct(feesPct, 3)})` : "—";
+      document.getElementById("feeDragVal").textContent = fmtPct(backtestFeesImpact?.totals?.fee_drag_pct_points, 3);
+      document.getElementById("grossReturnVal").textContent = fmtPct(backtestFeesImpact?.totals?.gross_total_return ?? grossReturn, 2);
+      document.getElementById("netReturnVal").textContent = fmtPct(backtestFeesImpact?.totals?.net_total_return ?? netReturn, 2);
+
+      const feesNote = document.getElementById("feesNote");
+      const feesBody = document.getElementById("feesImpactBody");
+      if (!tradesCount) {
+        feesNote.textContent = t("noTradesFees");
+        feesBody.style.opacity = 0.6;
+      } else {
+        feesNote.textContent = "";
+        feesBody.style.opacity = 1;
+      }
+
+      return;
+    }
+
     const backtest = runBacktest(close, dates, state);
     lastBacktest = backtest;
     const gross = backtest.gross;
@@ -1961,8 +2080,7 @@ function applyCosts(equitySeries, costBps = 0.0) {
     document.getElementById("riskUlcer").textContent = fmt(risk.ulcer, 2);
     document.getElementById("riskWorst").textContent = fmtPct(risk.worst, 2);
 
-    document.getElementById("costsSelected").textContent = `${state.costBps} bps (${fmt(state.costBps / 100, 2)})`;
-    document.getElementById("costDragVal").textContent = fmtPct(drag, 2);
+    document.getElementById("feeDragVal").textContent = fmtPct(drag, 2);
     document.getElementById("grossReturnVal").textContent = fmtPct(grossReturn, 2);
     document.getElementById("netReturnVal").textContent = fmtPct(netReturn, 2);
 
@@ -1979,7 +2097,7 @@ function applyCosts(equitySeries, costBps = 0.0) {
 
   function renderTradeLog() {
     const tbody = document.querySelector("#tradeTable tbody");
-    const trades = (lastBacktest?.trades ?? []).slice(-8).reverse();
+    const trades = (backtestTradeLog?.trades ?? lastBacktest?.trades ?? []).slice(-8).reverse();
     if (!trades.length) { tbody.innerHTML = `<tr><td colspan="5" class="muted">${t("noCycles")}</td></tr>`; return; }
     const fmtDate = (d) => {
       if (!d) return "—";
@@ -1988,12 +2106,17 @@ function applyCosts(equitySeries, costBps = 0.0) {
     };
 
     tbody.innerHTML = trades.map((trade) => {
+      const entry = trade.entry_date || trade.entry;
+      const exit = trade.exit_date || trade.exit;
+      const reason = trade.exit_reason || trade.reason;
+      const ret = trade.net_return ?? trade.return;
+      const hold = trade.hold_days ?? trade.hold;
       return `<tr>
-        <td>${fmtDate(trade.entry)}</td>
-        <td>${fmtDate(trade.exit)}</td>
-        <td>${trade.reason}</td>
-        <td>${fmtPct(trade.return, 2)}</td>
-        <td>${trade.hold}d</td>
+        <td>${fmtDate(entry)}</td>
+        <td>${fmtDate(exit)}</td>
+        <td>${reason}</td>
+        <td>${fmtPct(ret, 2)}</td>
+        <td>${hold}d</td>
       </tr>`;
     }).join("");
   }
@@ -2185,6 +2308,8 @@ function applyCosts(equitySeries, costBps = 0.0) {
 
     startInput.value = state.startDate.slice(0, 10);
     endInput.value = state.endDate.slice(0, 10);
+    document.getElementById("costsInput").value = state.costBps;
+    document.getElementById("slippageInput").value = state.slippageBps;
 
     const syncDates = () => {
       const startDate = new Date(state.startDate);
@@ -2232,8 +2357,13 @@ function applyCosts(equitySeries, costBps = 0.0) {
       r.addEventListener('change', (e) => { state.showNet = e.target.value === 'net'; syncPnlModeRadios(); renderEquity(state.range); });
     });
 
+    const sensToggle = document.getElementById("toggleFeesSensitivity");
+    if (sensToggle) {
+      sensToggle.addEventListener('change', (e) => { state.showSensitivity = e.target.checked; renderEquity(state.range); });
+    }
+
     document.getElementById("runSimulation").addEventListener("click", () => { renderAll(); });
-})();
+  })();
 </script>
 </body>
 </html>

@@ -1,0 +1,19 @@
+{
+  "meta": {
+    "asof": "2025-12-12",
+    "strategy": "cycle_basic"
+  },
+  "totals": {
+    "num_trades": 649,
+    "num_transactions": 1298,
+    "total_fees_currency": 7595109.468069,
+    "total_fees_pct": 75951.094681,
+    "gross_total_return": 3372875.276687,
+    "net_total_return": 625085.899998,
+    "fee_drag_pct_points": 2747789.376689
+  },
+  "per_trade_avg": {
+    "avg_fee_rt_bps": 30,
+    "avg_fee_rt_pct": 0.003
+  }
+}

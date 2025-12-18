@@ -71,6 +71,16 @@ def _compute_ulcer_index(equity: Sequence[float]) -> float:
     return (sum(peaks) / len(peaks)) ** 0.5 if peaks else 0.0
 
 
+def _total_return(series: Sequence[Mapping], key: str) -> float:
+    if not series:
+        return 0.0
+    start = series[0].get(key, 0) or 0
+    end = series[-1].get(key, 0) or 0
+    if start == 0:
+        return 0.0
+    return (end / start) - 1
+
+
 def _year_fraction(start: str, end: str) -> float:
     start_dt = datetime.fromisoformat(start)
     end_dt = datetime.fromisoformat(end)
@@ -138,6 +148,7 @@ def trade_engine_cycle_basic(
     min_close = 0.0
     equity_path: List[float] = []
     intraday_equity = 1.0
+    fees_paid = 0.0
 
     for idx, close in enumerate(closes):
         event = cycle_events.get(idx)
@@ -175,14 +186,21 @@ def trade_engine_cycle_basic(
 
             if exit_reason:
                 gross_return = (close - entry_price) / entry_price if entry_price else 0.0
-                net_return = (gross_return * position_size) - (cost_rate * 2 * position_size)
+                entry_effective = entry_price * (1 + cost_rate)
+                exit_effective = close * (1 - cost_rate)
+                net_unscaled = (
+                    (exit_effective - entry_effective) / entry_effective if entry_effective else 0.0
+                )
+                net_return = net_unscaled * position_size
                 hold_days = idx - entry_idx
                 mfe = (max_close - entry_price) / entry_price if entry_price else 0.0
                 mae = (min_close - entry_price) / entry_price if entry_price else 0.0
                 max_dd_trade = _max_drawdown(equity_path)
 
-                equity_strategy_net *= 1 - (cost_rate * position_size)
-                equity_risk *= 1 - (cost_rate * position_size)
+                fee_out = equity_strategy_net * position_size * cost_rate
+                equity_strategy_net -= fee_out
+                equity_risk -= fee_out
+                fees_paid += fee_out
 
                 trades.append(
                     {
@@ -196,6 +214,7 @@ def trade_engine_cycle_basic(
                         "exit_reason": exit_reason,
                         "gross_return": round(gross_return, 4),
                         "net_return": round(net_return, 4),
+                        "fees_paid": round(fee_out, 6),
                         "hold_days": hold_days,
                         "mfe": round(mfe, 4),
                         "mae": round(mae, 4),
@@ -226,8 +245,10 @@ def trade_engine_cycle_basic(
                 max_close = close
                 min_close = close
                 intraday_equity = 1.0
-                equity_strategy_net *= 1 - (cost_rate * position_size)
-                equity_risk *= 1 - (cost_rate * position_size)
+                fee_in = equity_strategy_net * position_size * cost_rate
+                equity_strategy_net -= fee_in
+                equity_risk -= fee_in
+                fees_paid += fee_in
                 equity_path = [1.0]
         elif in_position and event == "TROUGH":
             diagnostics["blocked"]["already_in_position"] += 1
@@ -246,11 +267,21 @@ def trade_engine_cycle_basic(
     if in_position and entry_idx is not None:
         diagnostics["blocked"]["missing_exit"] += 1
         gross_return = (closes[-1] - entry_price) / entry_price if entry_price else 0.0
-        net_return = (gross_return * position_size) - (cost_rate * 2 * position_size)
+        entry_effective = entry_price * (1 + cost_rate)
+        exit_effective = closes[-1] * (1 - cost_rate)
+        net_unscaled = (
+            (exit_effective - entry_effective) / entry_effective if entry_effective else 0.0
+        )
+        net_return = net_unscaled * position_size
         hold_days = len(closes) - entry_idx - 1
         mfe = (max_close - entry_price) / entry_price if entry_price else 0.0
         mae = (min_close - entry_price) / entry_price if entry_price else 0.0
         max_dd_trade = _max_drawdown(equity_path)
+
+        fee_out = equity_strategy_net * position_size * cost_rate
+        equity_strategy_net -= fee_out
+        equity_risk -= fee_out
+        fees_paid += fee_out
 
         trades.append(
             {
@@ -264,6 +295,7 @@ def trade_engine_cycle_basic(
                 "exit_reason": "FORCED_EXIT_END_OF_DATA",
                 "gross_return": round(gross_return, 4),
                 "net_return": round(net_return, 4),
+                "fees_paid": round(fee_out, 6),
                 "hold_days": hold_days,
                 "mfe": round(mfe, 4),
                 "mae": round(mae, 4),
@@ -326,9 +358,26 @@ def trade_engine_cycle_basic(
                 }
             )
 
+    fees_payload = {
+        "total_paid": round(fees_paid, 6),
+        "cost_bps": settings.cost_bps,
+        "slippage_bps": settings.slippage_bps,
+        "round_trip_bps": 2 * (settings.cost_bps + settings.slippage_bps),
+    }
+
     equity_payload = {
-        "meta": {"asof": dates[-1], "base": "100", "net": "includes costs"},
+        "meta": {
+            "asof": dates[-1],
+            "base": "100",
+            "net": "includes costs",
+            "strategy": settings.strategy_id,
+        },
         "rows": equity_rows,
+        "fees": {
+            "cost_bps": settings.cost_bps,
+            "slippage_bps": settings.slippage_bps,
+            "round_trip_bps": fees_payload["round_trip_bps"],
+        },
     }
 
     risk_payload = {
@@ -345,6 +394,7 @@ def trade_engine_cycle_basic(
             "cost_bps": settings.cost_bps,
             "slippage_bps": settings.slippage_bps,
             "cooldown_days": settings.cooldown_days,
+            "round_trip_bps": fees_payload["round_trip_bps"],
         },
         "trades": trades,
     }
@@ -357,7 +407,91 @@ def trade_engine_cycle_basic(
         "trade_log": trade_log,
         "equity_curves": equity_payload,
         "risk_metrics": risk_payload,
+        "fees": fees_payload,
         "diagnostics": diagnostics_payload,
+    }
+
+
+def build_fees_impact(
+    equity_payload: Mapping, trades: Sequence[Mapping], settings: TradeSettings, fees_payload: Mapping
+) -> Mapping:
+    rows = equity_payload.get("rows", []) if equity_payload else []
+    base_equity = rows[0]["strategy_net"] if rows else 100.0
+    gross_total_return = _total_return(rows, "strategy_gross")
+    net_total_return = _total_return(rows, "strategy_net")
+    total_fees_paid = fees_payload.get("total_paid", 0.0) if fees_payload else 0.0
+    total_fees_pct = (total_fees_paid / base_equity) if base_equity else 0.0
+    fee_drag = gross_total_return - net_total_return
+
+    return {
+        "meta": {"asof": rows[-1]["date"] if rows else None, "strategy": settings.strategy_id},
+        "totals": {
+            "num_trades": len(trades),
+            "num_transactions": len(trades) * 2,
+            "total_fees_currency": round(total_fees_paid, 6),
+            "total_fees_pct": round(total_fees_pct, 6),
+            "gross_total_return": round(gross_total_return, 6),
+            "net_total_return": round(net_total_return, 6),
+            "fee_drag_pct_points": round(fee_drag, 6),
+        },
+        "per_trade_avg": {
+            "avg_fee_rt_bps": 2 * (settings.cost_bps + settings.slippage_bps),
+            "avg_fee_rt_pct": round((2 * (settings.cost_bps + settings.slippage_bps)) / 10000, 6),
+        },
+    }
+
+
+def build_fees_sensitivity(
+    prices: Sequence[Mapping],
+    turning_points: Sequence[Mapping],
+    atr_series: Sequence[Mapping],
+    adx_series: Sequence[Mapping],
+    base_settings: TradeSettings,
+    base_outputs: Mapping | None = None,
+) -> Mapping:
+    scenarios = [
+        {"name": "low", "cost_bps": 3, "slippage_bps": 2},
+        {"name": "base", "cost_bps": 10, "slippage_bps": 5},
+        {"name": "high", "cost_bps": 30, "slippage_bps": 20},
+    ]
+
+    rows_by_idx: list[Mapping[str, float | str]] = []
+    summary: list[Mapping[str, float | int | str]] = []
+    base_kwargs = base_settings.__dict__.copy()
+
+    scenario_results = {}
+    for scenario in scenarios:
+        settings_kwargs = {**base_kwargs, **{k: scenario[k] for k in ("cost_bps", "slippage_bps")}}
+        scenario_settings = TradeSettings(**settings_kwargs)
+        if scenario["name"] == "base" and base_outputs:
+            scenario_results[scenario["name"]] = base_outputs
+        else:
+            scenario_results[scenario["name"]] = trade_engine_cycle_basic(
+                prices, turning_points, atr_series, adx_series, settings=scenario_settings
+            )
+
+    for name, result in scenario_results.items():
+        eq_rows = result.get("equity_curves", {}).get("rows", [])
+        net_values = [row.get("strategy_net", 0.0) for row in eq_rows]
+        for idx, row in enumerate(eq_rows):
+            if len(rows_by_idx) <= idx:
+                rows_by_idx.append({"date": row.get("date")})
+            rows_by_idx[idx][f"net_{name}"] = round(row.get("strategy_net", 0.0), 4)
+
+        summary.append(
+            {
+                "name": name,
+                "net_total_return": round(_total_return(eq_rows, "strategy_net"), 6),
+                "max_dd": round(_max_drawdown(net_values), 6),
+                "num_trades": len(result.get("trade_log", {}).get("trades", [])),
+            }
+        )
+
+    return {
+        "meta": {"asof": prices[-1]["date"] if prices else None, "strategy": base_settings.strategy_id},
+        "scenarios": scenarios,
+        "rows": rows_by_idx,
+        "summary": summary,
     }
 
 
@@ -371,6 +505,14 @@ def write_backtest_outputs(base_path, outputs: Mapping) -> None:
     ensure_parent(base_path / "risk_metrics.json").write_text(
         __import__("json").dumps(outputs["risk_metrics"], indent=2)
     )
+    if "fees_impact" in outputs:
+        ensure_parent(base_path / "fees_impact.json").write_text(
+            __import__("json").dumps(outputs["fees_impact"], indent=2)
+        )
+    if "fees_sensitivity" in outputs:
+        ensure_parent(base_path / "fees_sensitivity.json").write_text(
+            __import__("json").dumps(outputs["fees_sensitivity"], indent=2)
+        )
     ensure_parent(base_path / "trade_diagnostics.json").write_text(
         __import__("json").dumps(outputs["diagnostics"], indent=2)
     )
