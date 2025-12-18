@@ -26,6 +26,7 @@ from engine.backtest.performance import (
 )
 from engine.anomalies.detector import compute_regime, detect_anomalies
 from engine.context import fetch_context_assets, write_context_outputs
+from engine.diagnostics.decomposition import DecompositionConfig, write_decomposition_outputs
 from engine.events.calendar import (
     align_events_to_history,
     compute_current_event_context,
@@ -127,7 +128,7 @@ def run_pipeline() -> None:
     obv_series = attach_dates(obv_raw, dates)
     adx_series = attach_dates(adx_raw, dates)
     ma1000_series = attach_dates(compute_moving_average(closes, window=1000), dates)
-    decomposition = decompose_closes(closes, period=30)
+    decomposition = decompose_closes(closes, period=21)
 
     indicator_context = build_indicator_context(rsi_raw, macd_raw, adx_raw)
     signal = select_action(
@@ -302,7 +303,7 @@ def run_pipeline() -> None:
         BASE_PATH / "perf/decomposition.json",
         {
             "updated_at": now,
-            "period": 30,
+            "period": 21,
             "trend": decomposition["trend"],
             "seasonal": decomposition["seasonal"],
             "resid": decomposition["resid"],
@@ -312,6 +313,13 @@ def run_pipeline() -> None:
     write_json(BASE_PATH / "heatmap/volatility.json", volatility_payload)
     write_json(BASE_PATH / "heatmap/momentum.json", momentum_payload)
     write_json(BASE_PATH / "heatmap/stats_by_band.json", stats_by_band)
+
+    write_decomposition_outputs(
+        dates,
+        closes,
+        output_dir=BASE_PATH / "diagnostics",
+        config=DecompositionConfig(period_mode="monthly", robust=True),
+    )
 
 
 def append_jsonl(path: Path, record: dict) -> None:
