@@ -1,0 +1,177 @@
+{
+  "updated_at": "2025-12-18T22:42:15.885884",
+  "version": "1.0",
+  "timezone": "UTC",
+  "events": [
+    {
+      "date": "2024-09-18",
+      "type": "FOMC",
+      "category": "macro",
+      "priority": "high",
+      "time_utc": "18:00",
+      "title": "FOMC rate decision",
+      "source": "fed_calendar",
+      "notes": "Known scheduled event"
+    },
+    {
+      "date": "2024-10-10",
+      "type": "CPI",
+      "category": "macro",
+      "priority": "high",
+      "time_utc": "12:30",
+      "title": "US CPI release",
+      "source": "bls_calendar",
+      "notes": null
+    },
+    {
+      "date": "2024-12-18",
+      "type": "FOMC",
+      "category": "macro",
+      "priority": "high",
+      "time_utc": "19:00",
+      "title": "FOMC rate decision",
+      "source": "fed_calendar",
+      "notes": "Known scheduled event"
+    },
+    {
+      "date": "2025-01-03",
+      "type": "NFP",
+      "category": "macro",
+      "priority": "high",
+      "time_utc": "13:30",
+      "title": "US Non-Farm Payrolls",
+      "source": "bls_calendar",
+      "notes": null
+    },
+    {
+      "date": "2025-01-14",
+      "type": "CPI",
+      "category": "macro",
+      "priority": "high",
+      "time_utc": "13:30",
+      "title": "US CPI release",
+      "source": "bls_calendar",
+      "notes": null
+    },
+    {
+      "date": "2025-03-19",
+      "type": "FOMC",
+      "category": "macro",
+      "priority": "high",
+      "time_utc": "18:00",
+      "title": "FOMC rate decision",
+      "source": "fed_calendar",
+      "notes": null
+    },
+    {
+      "date": "2025-04-04",
+      "type": "NFP",
+      "category": "macro",
+      "priority": "high",
+      "time_utc": "12:30",
+      "title": "US Non-Farm Payrolls",
+      "source": "bls_calendar",
+      "notes": null
+    },
+    {
+      "date": "2025-04-10",
+      "type": "CPI",
+      "category": "macro",
+      "priority": "high",
+      "time_utc": "12:30",
+      "title": "US CPI release",
+      "source": "bls_calendar",
+      "notes": null
+    },
+    {
+      "date": "2025-06-11",
+      "type": "FOMC",
+      "category": "macro",
+      "priority": "high",
+      "time_utc": "18:00",
+      "title": "FOMC rate decision",
+      "source": "fed_calendar",
+      "notes": "Known scheduled event"
+    },
+    {
+      "date": "2025-07-11",
+      "type": "CPI",
+      "category": "macro",
+      "priority": "high",
+      "time_utc": "13:30",
+      "title": "US CPI release",
+      "source": "bls_calendar",
+      "notes": null
+    },
+    {
+      "date": "2025-07-31",
+      "type": "FOMC",
+      "category": "macro",
+      "priority": "high",
+      "time_utc": "18:00",
+      "title": "FOMC rate decision",
+      "source": "fed_calendar",
+      "notes": null
+    },
+    {
+      "date": "2025-09-05",
+      "type": "NFP",
+      "category": "macro",
+      "priority": "high",
+      "time_utc": "12:30",
+      "title": "US Non-Farm Payrolls",
+      "source": "bls_calendar",
+      "notes": null
+    },
+    {
+      "date": "2025-09-17",
+      "type": "FOMC",
+      "category": "macro",
+      "priority": "high",
+      "time_utc": "18:00",
+      "title": "FOMC rate decision",
+      "source": "fed_calendar",
+      "notes": null
+    },
+    {
+      "date": "2025-09-19",
+      "type": "Options Expiration",
+      "category": "market",
+      "priority": "medium",
+      "time_utc": null,
+      "title": "Monthly equity and ETF options expiration",
+      "source": "options_calendar",
+      "notes": null
+    },
+    {
+      "date": "2025-11-14",
+      "type": "CPI",
+      "category": "macro",
+      "priority": "high",
+      "time_utc": "13:30",
+      "title": "US CPI release",
+      "source": "bls_calendar",
+      "notes": null
+    },
+    {
+      "date": "2025-11-26",
+      "type": "Thanksgiving Early Close",
+      "category": "holiday",
+      "priority": "low",
+      "time_utc": "18:00",
+      "title": "US equity market early close",
+      "source": "nyse_calendar",
+      "notes": null
+    },
+    {
+      "date": "2025-12-18",
+      "type": "FOMC",
+      "category": "macro",
+      "priority": "high",
+      "time_utc": "19:00",
+      "title": "FOMC rate decision",
+      "source": "fed_calendar",
+      "notes": "Known scheduled event"
+    }
+  ]
+}

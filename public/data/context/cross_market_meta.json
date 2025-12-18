@@ -1,0 +1,48 @@
+{
+  "asof": "2025-12-12",
+  "last_updated_utc": "2025-12-18T22:42:14Z",
+  "baseline": {
+    "window_z": 252,
+    "window_pct": 2520,
+    "min_occurrences": 80
+  },
+  "assets": {
+    "preferred_source": "stooq",
+    "symbols": {
+      "GLD": "GLD",
+      "DXY": "UUP",
+      "US10Y": "IEF"
+    },
+    "SLV": {
+      "start": "2008-01-02",
+      "end": "2025-12-12",
+      "rows": 4516,
+      "source": "stooq"
+    },
+    "GLD": {
+      "start": "2008-01-02",
+      "end": "2025-12-18",
+      "rows": 4520,
+      "source": "stooq",
+      "fetched_symbol": "GLD"
+    },
+    "DXY": {
+      "start": "2008-01-02",
+      "end": "2025-12-18",
+      "rows": 4520,
+      "source": "stooq",
+      "fetched_symbol": "UUP"
+    },
+    "US10Y": {
+      "start": "2008-01-02",
+      "end": "2025-12-18",
+      "rows": 4520,
+      "source": "stooq",
+      "fetched_symbol": "IEF"
+    }
+  },
+  "notes": [
+    "Historical context only; not a promise.",
+    "Conditional stats on SLV based on similar cross-market regimes."
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "asof": "2025-12-12",
+  "asset": "SLV",
+  "input": "log_close",
+  "stl": {
+    "period_mode": "monthly",
+    "period": 21,
+    "robust": true
+  },
+  "range": {
+    "start": "2008-01-02",
+    "end": "2025-12-12",
+    "n": 4516
+  },
+  "status": "ok",
+  "error": null
+}

@@ -1,0 +1,59 @@
+{
+  "asof": "2025-12-12",
+  "baseline": {
+    "window_z": 252,
+    "window_pct": 2520,
+    "min_occurrences": 80
+  },
+  "items": [
+    {
+      "key": "GSR",
+      "name": "Gold/Silver Ratio",
+      "value": 7.048841354723708,
+      "z": -2.796938004338945,
+      "pct": 9.285714285714286,
+      "band": "LOW",
+      "n_band": 187,
+      "p_up_5d": 0.6157894736842106,
+      "median_5d": 0.017848759919421267,
+      "p_up_10d": 0.5882352941176471,
+      "median_10d": 0.02977963073257892,
+      "confidence": "high",
+      "note": "Relative: silver richer vs gold than usual",
+      "as_of": "2025-12-12"
+    },
+    {
+      "key": "DXY",
+      "name": "Dollar Index (proxy)",
+      "value": 27.95,
+      "z": -0.1633587937099145,
+      "pct": 85.35714285714285,
+      "band": "HIGH",
+      "n_band": 1328,
+      "p_up_5d": 0.5431357839459865,
+      "median_5d": 0.0038167938931296893,
+      "p_up_10d": 0.536144578313253,
+      "median_10d": 0.005505852573502948,
+      "confidence": "high",
+      "note": "Dollar strength often coincides with pressure on metals",
+      "as_of": "2025-12-12"
+    },
+    {
+      "key": "US10Y",
+      "name": "US 10Y (proxy)",
+      "value": 96.19,
+      "z": 0.7982375067198478,
+      "pct": 23.53174603174603,
+      "band": "NEUTRAL",
+      "n_band": 1702,
+      "p_up_5d": 0.5061511423550088,
+      "median_5d": 0.0009367681498828839,
+      "p_up_10d": 0.5070505287896592,
+      "median_10d": 0.0014274152532110234,
+      "confidence": "high",
+      "note": "Rates context is neutral relative to its history",
+      "as_of": "2025-12-12"
+    }
+  ],
+  "note": "Historical context only; not a promise."
+}
