@@ -91,8 +91,17 @@
     .pill.extreme-low { background: rgba(37, 99, 235, 0.18); color: #bfdbfe; }
     .heatmap-legend { display: flex; gap: 8px; align-items: center; margin-top: 8px; color: var(--muted); font-size: 12px; flex-wrap: wrap; }
     .legend-swatch { width: 14px; height: 14px; border-radius: 4px; display: inline-block; border: 1px solid var(--border); }
-    .context-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-top: 10px; }
+    .context-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 10px; }
+    .context-item-card { background: #0d1424; border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+    .context-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    .context-name { font-weight: 700; }
+    .stat-block { flex: 1; min-width: 120px; }
+    .stat-label { font-size: 12px; color: var(--muted); }
+    .stat-value { font-size: 16px; font-family: monospace; }
+    .stat-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; width: 100%; }
+    .context-low-confidence { opacity: 0.82; }
     .context-note { color: var(--muted); font-size: 13px; line-height: 1.5; margin-top: 6px; }
+    .context-warning { color: #fbbf24; font-size: 12px; }
     @media (max-width: 900px) { .row { grid-template-columns: 1fr; } }
     a { color: #8bb2ff; }
   </style>
@@ -624,11 +633,20 @@ const translations = {
     eventContextTitle: "הקשר אירועים",
     eventContextLabel: "קונטקסט אירוע",
     eventContextNone: "אין אירוע קרוב",
-    contextTitle: "הקשר שווקים חוצה",
-    contextNote: "דולר / זהב / ריביות · הקשר בלבד",
-    contextFooter: "Framing בלבד; לא איתות או הוראה.",
-    contextHistLabel: "היסטורית (5 ימים)",
-    contextHistFallback: "חסר מדגם היסטורי מספק",
+      contextTitle: "הקשר שווקים חוצה",
+      contextNote: "דולר / זהב / ריביות · הקשר היסטורי בלבד",
+      contextFooter: "הקשר בלבד; לא הבטחה או הנחיה.",
+      contextHistLabel: "היסטורית (5 ימים)",
+      contextHistFallback: "חסר מדגם היסטורי מספק",
+      contextDisclaimer: "הקשר היסטורי בלבד; לא הבטחה.",
+      contextLowSample: "מדגם קטן; הסקה חלשה.",
+      contextValueLabel: "ערך נוכחי",
+      contextZLabel: "Z-score",
+      contextPctLabel: "אחוזון",
+      contextPUp5d: "P(up 5d)",
+      contextMedian5d: "חציון 5 ימים",
+      contextPUp10d: "P(up 10d)",
+      contextMedian10d: "חציון 10 ימים",
     eventPhasePre: "לפני אירוע",
     eventPhaseToday: "יום אירוע",
     eventPhasePost: "אחרי אירוע",
@@ -774,11 +792,20 @@ const translations = {
     eventContextTitle: "Event Context",
     eventContextLabel: "Event Context",
     eventContextNone: "No known event window",
-    contextTitle: "Cross-Market Context",
-    contextNote: "Dollar / gold / rates framing; not a signal.",
-    contextFooter: "Context only; not a trading instruction.",
-    contextHistLabel: "Historical (5d)",
-    contextHistFallback: "Insufficient history for this bucket",
+      contextTitle: "Cross-Market Context",
+      contextNote: "Dollar / gold / rates framing; historical only.",
+      contextFooter: "Context only; not a trading instruction.",
+      contextHistLabel: "Historical (5d)",
+      contextHistFallback: "Insufficient history for this bucket",
+      contextDisclaimer: "Historical context only; not a promise.",
+      contextLowSample: "Low sample size; weak context.",
+      contextValueLabel: "Value",
+      contextZLabel: "Z-score",
+      contextPctLabel: "Percentile",
+      contextPUp5d: "P(up 5d)",
+      contextMedian5d: "Median 5d",
+      contextPUp10d: "P(up 10d)",
+      contextMedian10d: "Median 10d",
     eventPhasePre: "Pre-event",
     eventPhaseToday: "Event day",
     eventPhasePost: "Post-event",
@@ -960,7 +987,7 @@ function applyCosts(equitySeries, costBps = 0.0) {
 }
 
 (async () => {
-  const [meta, prices, probabilistic, anomalies, decomposition, perfSummary, equityCurve, cycleStats, heatmapDeviation, heatmapVolatility, heatmapMomentum, statsByBand, eventContext, eventImpactStats, currentContext, conditionalContextStats] = await Promise.all([
+  const [meta, prices, probabilistic, anomalies, decomposition, perfSummary, equityCurve, cycleStats, heatmapDeviation, heatmapVolatility, heatmapMomentum, statsByBand, eventContext, eventImpactStats, currentContextRaw, conditionalContextStatsRaw] = await Promise.all([
     getJson("./public/data/meta.json"),
     getJson("./data/slv_prices.json"),
     getJson("./public/data/signals/probabilistic.json"),
@@ -973,13 +1000,16 @@ function applyCosts(equitySeries, costBps = 0.0) {
     optionalJson("./public/data/heatmap/volatility.json"),
     optionalJson("./public/data/heatmap/momentum.json"),
     optionalJson("./public/data/heatmap/stats_by_band.json"),
-    optionalJson("./public/data/events/current_event_context.json"),
-    optionalJson("./public/data/events/event_impact_stats.json"),
-    optionalJson("./public/data/context/current_context.json"),
-    optionalJson("./public/data/context/conditional_stats.json"),
-  ]);
+      optionalJson("./public/data/events/current_event_context.json"),
+      optionalJson("./public/data/events/event_impact_stats.json"),
+      optionalJson("./public/data/context/cross_market_current.json"),
+      optionalJson("./public/data/context/cross_market_conditional.json"),
+    ]);
 
-  const priceDates = prices.dates.map((d) => new Date(d));
+    const currentContext = currentContextRaw || (await optionalJson("./public/data/context/current_context.json"));
+    const conditionalContextStats = conditionalContextStatsRaw || (await optionalJson("./public/data/context/conditional_stats.json"));
+
+    const priceDates = prices.dates.map((d) => new Date(d));
   const state = {
     range: "3m",
     lang: detectLang(),
@@ -1081,24 +1111,51 @@ function applyCosts(equitySeries, costBps = 0.0) {
       return;
     }
     card.style.display = "block";
-    document.getElementById("contextAsOf").textContent = currentContext.asof ? `${t("updatedPrefix")}: ${currentContext.asof}` : "—";
+    const baseline = currentContext.baseline;
+    const baselineText = baseline ? `z=${baseline.window_z} · pct=${baseline.window_pct}` : "";
+    document.getElementById("contextAsOf").textContent = currentContext.asof
+      ? `${t("updatedPrefix")}: ${currentContext.asof}${baselineText ? ` (${baselineText})` : ""}`
+      : "—";
     const container = document.getElementById("contextItems");
     container.innerHTML = currentContext.items
       .map((item) => {
-        const bucket = item.bucket;
-        const stats = conditionalStats?.[item.key?.toLowerCase()]?.[bucket];
+        const bucket = item.band || item.bucket;
+        const stats = bucket ? conditionalStats?.[item.key]?.[bucket] || item.stats : null;
         const pctText = item.pct === null || item.pct === undefined ? "—" : `${item.pct.toFixed(1)}p`;
-        const statsLine = stats
-          ? `${t("contextHistLabel")}: P(up 5d)=${fmtPct(stats.p_up_5d, 1)}, median 5d=${fmtPct(stats.median_5d, 2)}`
-          : t("contextHistFallback");
+        const confidence = stats?.confidence || item.confidence || "low";
+        const sampleSize = stats?.n ?? item.n_band ?? 0;
+        const lowSample = confidence === "low" || (baseline && sampleSize < baseline.min_occurrences);
+        const statBlock = (label, value, formatter = (v) => fmt(v, 2)) => `
+          <div class="stat-block">
+            <div class="stat-label">${label}</div>
+            <div class="stat-value">${formatter(value)}</div>
+          </div>`;
         return `
-          <div class="kpi">
-            <div class="muted">${item.name || item.key}</div>
-            <div class="v mono">${fmt(item.value, 2)}</div>
-            <div class="small">${t("bandLabel")}: <span class="pill ${bandClass(bucket)}">${bandLabel(bucket)}</span></div>
-            <div class="small">z=${fmt(item.z, 2)} · pct=${pctText}</div>
-            <div class="context-note">${item.note || ""}</div>
-            <div class="small">${statsLine}</div>
+          <div class="context-item-card ${lowSample ? "context-low-confidence" : ""}">
+            <div class="context-row">
+              <div class="context-name">${item.name || item.key}</div>
+              <span class="pill ${bandClass(bucket)}">${bandLabel(bucket)}</span>
+            </div>
+            <div class="context-row stat-pair">
+              ${statBlock(t("contextValueLabel"), item.value)}
+              ${statBlock(t("contextZLabel"), item.z)}
+              ${statBlock(t("contextPctLabel"), pctText, (v) => v)}
+            </div>
+            <div class="context-row stat-pair">
+              ${statBlock(t("contextPUp5d"), stats?.p_up_5d, (v) => fmtPct(v, 1))}
+              ${statBlock(t("contextMedian5d"), stats?.median_5d, (v) => fmtPct(v, 2))}
+            </div>
+            <div class="context-row stat-pair">
+              ${statBlock(t("contextPUp10d"), stats?.p_up_10d, (v) => fmtPct(v, 1))}
+              ${statBlock(t("contextMedian10d"), stats?.median_10d, (v) => fmtPct(v, 2))}
+            </div>
+            <div class="context-row">
+              <div class="stat-label">n=${sampleSize}</div>
+              <span class="chip muted">${t("confidenceLabel")}: ${confidence}</span>
+            </div>
+            ${lowSample ? `<div class="context-warning">${t("contextLowSample")}</div>` : ""}
+            <div class="context-note">${item.note || t("contextFooter")}</div>
+            <div class="context-note">${t("contextDisclaimer")}</div>
           </div>
         `;
       })
