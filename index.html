@@ -200,13 +200,25 @@
         </div>
         <div class="kpi">
           <div class="muted" data-i18n="volImpactLabel">Volatility context</div>
-          <div class="v mono" id="eventVolNote">—</div>
-          <span class="small" id="eventSampleSize">—</span>
+          <div class="v mono" id="eventVolLabel">—</div>
+          <span class="small" id="eventVolStats">—</span>
         </div>
         <div class="kpi">
           <div class="muted" data-i18n="directionalNoteLabel">Directional note</div>
           <div class="v mono" id="eventDirection">—</div>
-          <span class="small" id="eventConfidence">—</span>
+          <span class="small" id="eventDirStats">—</span>
+        </div>
+      </div>
+      <div class="context-grid">
+        <div class="kpi">
+          <div class="muted" data-i18n="eventProb1dLabel">1d outcomes</div>
+          <div class="v mono" id="eventProb1d">—</div>
+          <span class="small" id="eventMedian1d">—</span>
+        </div>
+        <div class="kpi">
+          <div class="muted" data-i18n="eventProb5dLabel">5d outcomes</div>
+          <div class="v mono" id="eventProb5d">—</div>
+          <span class="small" id="eventMedian5d">—</span>
         </div>
       </div>
       <div class="context-note" id="eventContextFooter">—</div>
@@ -654,7 +666,10 @@ const translations = {
     eventNameLabel: "אירוע",
     volImpactLabel: "הקשר תנודתיות",
     directionalNoteLabel: "כיוון היסטורי",
+    eventProb1dLabel: "תוצאות יום אירוע",
+    eventProb5dLabel: "תוצאות 5 ימים",
     sampleSizeLabel: "מדגם",
+    medianShortLabel: "חציון",
     eventContextFooter: "הקשר בלבד; לא סיגנל או תחזית.",
     eventTimingLabel: "מרחק ליום אירוע",
     deviationPanelTitle: "סטייה מול היסטוריה",
@@ -813,7 +828,10 @@ const translations = {
     eventNameLabel: "Event",
     volImpactLabel: "Volatility context",
     directionalNoteLabel: "Directional note",
+    eventProb1dLabel: "Event-day outcomes",
+    eventProb5dLabel: "5-day outcomes",
     sampleSizeLabel: "Sample size",
+    medianShortLabel: "Median",
     eventContextFooter: "Context only; not a trigger or forecast.",
     eventTimingLabel: "Distance to event",
     deviationPanelTitle: "Deviation vs history",
@@ -987,7 +1005,7 @@ function applyCosts(equitySeries, costBps = 0.0) {
 }
 
 (async () => {
-  const [meta, prices, probabilistic, anomalies, decomposition, perfSummary, equityCurve, cycleStats, heatmapDeviation, heatmapVolatility, heatmapMomentum, statsByBand, eventContext, eventImpactStats, currentContextRaw, conditionalContextStatsRaw] = await Promise.all([
+  const [meta, prices, probabilistic, anomalies, decomposition, perfSummary, equityCurve, cycleStats, heatmapDeviation, heatmapVolatility, heatmapMomentum, statsByBand, eventContextRaw, eventImpactStatsRaw, currentContextRaw, conditionalContextStatsRaw] = await Promise.all([
     getJson("./public/data/meta.json"),
     getJson("./data/slv_prices.json"),
     getJson("./public/data/signals/probabilistic.json"),
@@ -997,15 +1015,17 @@ function applyCosts(equitySeries, costBps = 0.0) {
     getJson("./public/data/perf/equity_curve.json"),
     getJson("./public/data/events/cycle_stats.json"),
     optionalJson("./public/data/heatmap/deviation.json"),
-    optionalJson("./public/data/heatmap/volatility.json"),
-    optionalJson("./public/data/heatmap/momentum.json"),
-    optionalJson("./public/data/heatmap/stats_by_band.json"),
+      optionalJson("./public/data/heatmap/volatility.json"),
+      optionalJson("./public/data/heatmap/momentum.json"),
+      optionalJson("./public/data/heatmap/stats_by_band.json"),
       optionalJson("./public/data/events/current_event_context.json"),
       optionalJson("./public/data/events/event_impact_stats.json"),
       optionalJson("./public/data/context/cross_market_current.json"),
       optionalJson("./public/data/context/cross_market_conditional.json"),
     ]);
 
+    const eventContext = eventContextRaw || { nearest: null };
+    const eventImpactStats = eventImpactStatsRaw || {};
     const currentContext = currentContextRaw || (await optionalJson("./public/data/context/current_context.json"));
     const conditionalContextStats = conditionalContextStatsRaw || (await optionalJson("./public/data/context/conditional_stats.json"));
 
@@ -1062,45 +1082,66 @@ function applyCosts(equitySeries, costBps = 0.0) {
   }
 
   function eventTimingText(context) {
-    if (!context || typeof context.days_to_event !== "number") return "—";
-    if (context.days_to_event === 0) return t("eventPhaseToday");
-    const days = Math.abs(context.days_to_event);
-    return context.days_to_event > 0 ? `${days}d ${t("eventTimingLabel")}` : `${days}d ${t("eventPhasePost")}`;
+    const delta = context?.nearest?.days_to_event ?? context?.days_to_event;
+    if (typeof delta !== "number") return "";
+    if (delta === 0) return t("eventPhaseToday");
+    const days = Math.abs(delta);
+    return delta > 0 ? `${days}d ${t("eventTimingLabel")}` : `${days}d ${t("eventPhasePost")}`;
   }
 
-  function renderEventContext(context) {
+  function renderEventContext(context, statsByType) {
     const badge = document.getElementById("eventContextBadge");
     const card = document.getElementById("eventContextCard");
-    if (!context || context.status === "NO_EVENT") {
+    const nearest = context?.nearest;
+    if (!context || !nearest) {
       badge.textContent = t("eventContextNone");
       card.style.display = "none";
       return;
     }
 
-    const phaseText = eventPhaseLabel(context.status);
+    const phaseText = eventPhaseLabel(nearest.phase);
     const timing = eventTimingText(context);
-    badge.textContent = `${t("eventContextLabel")}: ${context.event ?? "—"} • ${phaseText}${timing ? ` (${timing})` : ""}`;
+    const eventStats = statsByType?.[nearest.type] || {};
+    const eventDay = eventStats.event_day || {};
+    const post5d = eventStats.post_5d || {};
+    const confidence = eventStats.confidence || context.expected_effects?.direction?.confidence;
+
+    badge.textContent = `${t("eventContextLabel")}: ${nearest.type ?? "—"} • ${phaseText}${timing ? ` (${timing})` : ""}`;
     card.style.display = "block";
     document.getElementById("eventPhaseChip").textContent = phaseText;
-    document.getElementById("eventPriorityChip").textContent = context.priority ? context.priority.toUpperCase() : "—";
-    document.getElementById("eventName").textContent = context.event ?? "—";
-    document.getElementById("eventTiming").textContent = eventTimingText(context);
-    document.getElementById("eventVolNote").textContent = context.historical_note ?? "—";
-    document.getElementById("eventDirection").textContent = context.directional_note ?? "—";
-    document.getElementById("eventSampleSize").textContent = context.sample_size
-      ? `${t("sampleSizeLabel")}: n=${context.sample_size}`
-      : t("sampleSizeLabel");
-    const conf = context.confidence ? context.confidence : "";
-    document.getElementById("eventConfidence").textContent = conf
-      ? `${t("confidenceLabel")}: ${conf}`
-      : t("confidenceLabel");
+    document.getElementById("eventPriorityChip").textContent = nearest.priority ? nearest.priority.toUpperCase() : "—";
+    document.getElementById("eventName").textContent = nearest.title || nearest.type || "—";
+    document.getElementById("eventTiming").textContent = timing || "—";
 
-    const description = [phaseText, context.description].filter(Boolean).join(" · ");
-    const hist = context.historical_note || "";
-    const dir = context.directional_note || "";
-    const pieces = [description, hist, dir].filter(Boolean);
-    document.getElementById("eventContextSummary").textContent = pieces.join(" · ");
-    document.getElementById("eventContextFooter").textContent = t("eventContextFooter");
+    const vol = context.expected_effects?.volatility;
+    const dir = context.expected_effects?.direction;
+    document.getElementById("eventVolLabel").textContent = vol?.label || "—";
+    const volBits = [];
+    if (typeof vol?.atr_change_median === "number") volBits.push(`ATR Δ median ${fmtPct(vol.atr_change_median, 1)}`);
+    if (eventDay?.n) volBits.push(`n=${eventDay.n}`);
+    if (vol?.confidence) volBits.push(`${t("confidenceLabel")}: ${vol.confidence}`);
+    document.getElementById("eventVolStats").textContent = volBits.join(" · ") || "—";
+
+    document.getElementById("eventDirection").textContent = dir?.label || "—";
+    const dirBits = [];
+    if (typeof dir?.p_up_1d === "number") dirBits.push(`P(up 1d) ${fmtPct(dir.p_up_1d, 0)}`);
+    if (typeof dir?.p_up_5d === "number") dirBits.push(`P(up 5d) ${fmtPct(dir.p_up_5d, 0)}`);
+    if (confidence) dirBits.push(`${t("confidenceLabel")}: ${confidence}`);
+    document.getElementById("eventDirStats").textContent = dirBits.join(" · ") || "—";
+
+    const prob1d = typeof eventDay.p_up_1d === "number" ? fmtPct(eventDay.p_up_1d, 0) : "—";
+    const med1d = typeof eventDay.median_1d === "number" ? fmtPct(eventDay.median_1d, 2) : "—";
+    document.getElementById("eventProb1d").textContent = prob1d;
+    document.getElementById("eventMedian1d").textContent = `${t("medianShortLabel")}: ${med1d}`;
+
+    const prob5d = typeof post5d.p_up_5d === "number" ? fmtPct(post5d.p_up_5d, 0) : "—";
+    const med5d = typeof post5d.median_5d === "number" ? fmtPct(post5d.median_5d, 2) : "—";
+    document.getElementById("eventProb5d").textContent = prob5d;
+    document.getElementById("eventMedian5d").textContent = `${t("medianShortLabel")}: ${med5d}`;
+
+    const description = [context.framing?.headline, context.framing?.note].filter(Boolean).join(" · ");
+    document.getElementById("eventContextSummary").textContent = description || t("eventContextFooter");
+    document.getElementById("eventContextFooter").textContent = `${t("eventContextFooter")}`;
   }
 
   function renderContextPanel(currentContext, conditionalStats) {
@@ -1885,7 +1926,7 @@ function applyCosts(equitySeries, costBps = 0.0) {
 
   function renderAll() {
     applyLanguage();
-    renderEventContext(eventContext);
+    renderEventContext(eventContext, eventImpactStats);
     renderContextPanel(currentContext, conditionalContextStats);
     renderProbabilistic();
     renderMeta();
