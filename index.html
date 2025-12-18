@@ -561,8 +561,12 @@
         <div class="section-title" data-i18n="decompTitle">Decomposition</div>
         <div class="muted"><span data-i18n="decompUpdatedLabel">Updated</span>: <span class="mono" id="decompUpdated">—</span></div>
         <div class="muted"><span data-i18n="decompPeriodLabel">Period</span>: <span class="mono" id="decompPeriod">—</span></div>
+        <div class="muted"><span data-i18n="decompInputLabel">Input</span>: <span class="mono" id="decompInput">—</span></div>
+        <div class="muted" id="decompParams">—</div>
+        <div class="alert-card" id="decompStatus" style="display:none"></div>
         <div id="trendChart" style="height:180px; margin-top:10px;"></div>
         <div id="seasonalChart" style="height:180px; margin-top:10px;"></div>
+        <div id="residualChart" style="height:180px; margin-top:10px;"></div>
       </div>
     </div>
     </div>
@@ -582,6 +586,43 @@ async function optionalJson(path) {
     console.warn(`Optional JSON missing: ${path}`, err);
     return null;
   }
+}
+
+async function loadDecomposition() {
+  const meta = await optionalJson("./public/data/diagnostics/decomposition_meta.json");
+  const base = {
+    status: meta?.status ?? (meta ? "ok" : "missing"),
+    meta,
+    trend: [],
+    seasonal: [],
+    residual: [],
+    dates: [],
+    error: meta?.error || (!meta ? "missing meta file" : null),
+  };
+
+  if (!meta || base.status !== "ok") return base;
+
+  try {
+    const [trend, seasonal, residual] = await Promise.all([
+      getJson("./public/data/diagnostics/decomposition_trend.json"),
+      getJson("./public/data/diagnostics/decomposition_seasonal.json"),
+      getJson("./public/data/diagnostics/decomposition_residual.json"),
+    ]);
+    const mapSeries = (payload) => ({
+      dates: (payload.rows || []).map((r) => r.date),
+      values: (payload.rows || []).map((r) => r.value),
+    });
+    const trendSeries = mapSeries(trend);
+    base.dates = trendSeries.dates;
+    base.trend = trendSeries.values;
+    base.seasonal = mapSeries(seasonal).values;
+    base.residual = mapSeries(residual).values;
+  } catch (err) {
+    base.status = "error";
+    base.error = err.message;
+  }
+
+  return base;
 }
 
 function detectLang() {
@@ -621,12 +662,16 @@ const translations = {
     decompTitle: "פירוק (Decomposition)",
     decompUpdatedLabel: "עדכון",
     decompPeriodLabel: "אורך מחזור",
+    decompInputLabel: "קלט",
+    decompParamsLabel: "פרמטרים",
     trendTitle: "מגמה",
-    seasonalTitle: "עונתיות / שארית",
+    seasonalTitle: "עונתיות",
+    residualTitle: "שארית",
     noCycles: "לא זוהו מחזורים עדיין.",
     perfSeriesUnavailable: "סדרת ביצועים לא זמינה.",
     benchUnavailable: "חלון מדד חסר.",
     decompUnavailable: "פירוק לא זמין.",
+    decompMissing: "פירוק לא זמין (קבצים חסרים).",
     seriesLabel: "סדרה",
     totalReturnLabel: "תשואה כוללת",
     sortinoLabel: "Sortino",
@@ -783,12 +828,16 @@ const translations = {
     decompTitle: "Decomposition",
     decompUpdatedLabel: "Updated",
     decompPeriodLabel: "Period",
+    decompInputLabel: "Input",
+    decompParamsLabel: "Parameters",
     trendTitle: "Trend",
-    seasonalTitle: "Seasonal / Residual",
+    seasonalTitle: "Seasonal",
+    residualTitle: "Residual",
     noCycles: "No cycles detected yet.",
     perfSeriesUnavailable: "Performance series unavailable.",
     benchUnavailable: "Benchmark window unavailable.",
     decompUnavailable: "Decomposition unavailable.",
+    decompMissing: "Decomposition unavailable (missing files).",
     seriesLabel: "Series",
     totalReturnLabel: "Total Return",
     sortinoLabel: "Sortino",
@@ -1005,12 +1054,11 @@ function applyCosts(equitySeries, costBps = 0.0) {
 }
 
 (async () => {
-  const [meta, prices, probabilistic, anomalies, decomposition, perfSummary, equityCurve, cycleStats, heatmapDeviation, heatmapVolatility, heatmapMomentum, statsByBand, eventContextRaw, eventImpactStatsRaw, currentContextRaw, conditionalContextStatsRaw] = await Promise.all([
+  const [meta, prices, probabilistic, anomalies, perfSummary, equityCurve, cycleStats, heatmapDeviation, heatmapVolatility, heatmapMomentum, statsByBand, eventContextRaw, eventImpactStatsRaw, currentContextRaw, conditionalContextStatsRaw] = await Promise.all([
     getJson("./public/data/meta.json"),
     getJson("./data/slv_prices.json"),
     getJson("./public/data/signals/probabilistic.json"),
     getJson("./public/data/anomalies/latest.json"),
-    getJson("./public/data/perf/decomposition.json"),
     getJson("./public/data/perf/summary.json"),
     getJson("./public/data/perf/equity_curve.json"),
     getJson("./public/data/events/cycle_stats.json"),
@@ -1023,6 +1071,8 @@ function applyCosts(equitySeries, costBps = 0.0) {
       optionalJson("./public/data/context/cross_market_current.json"),
       optionalJson("./public/data/context/cross_market_conditional.json"),
     ]);
+
+    const decomposition = await loadDecomposition();
 
     const eventContext = eventContextRaw || { nearest: null };
     const eventImpactStats = eventImpactStatsRaw || {};
@@ -1898,30 +1948,85 @@ function applyCosts(equitySeries, costBps = 0.0) {
     document.getElementById("avgReturn10d").textContent = fmtPct(perfSummary.avg_return_10d, 2);
     document.getElementById("maxDrawdown").textContent = fmtPct(perfSummary.max_drawdown, 2);
 
-    document.getElementById("decompUpdated").textContent = decomposition.updated_at || "—";
-    document.getElementById("decompPeriod").textContent = decomposition.period ?? "—";
+    const decompMeta = decomposition.meta || {};
+    const stl = decompMeta.stl || {};
+    const params = [];
+    if (stl.period_mode) params.push(`mode=${stl.period_mode}`);
+    if (typeof stl.period === "number") params.push(`period=${stl.period}`);
+    if (typeof stl.robust === "boolean") params.push(stl.robust ? "robust" : "not robust");
+    document.getElementById("decompUpdated").textContent = decompMeta.asof || decompMeta.range?.end || "—";
+    document.getElementById("decompPeriod").textContent = stl.period ?? "—";
+    document.getElementById("decompInput").textContent = decompMeta.input ?? "—";
+    document.getElementById("decompParams").textContent = params.length ? `${t("decompParamsLabel")}: ${params.join(" · ")}` : t("decompParamsLabel");
+    const decompStatus = document.getElementById("decompStatus");
+    if (decomposition.status !== "ok") {
+      decompStatus.style.display = "block";
+      decompStatus.textContent = decomposition.status === "missing" ? t("decompMissing") : `${t("decompUnavailable")} ${decomposition.error || ""}`;
+    } else {
+      decompStatus.style.display = "none";
+      decompStatus.textContent = "";
+    }
   }
 
   function renderDecomposition(range) {
+    const chartIds = ["trendChart", "seasonalChart", "residualChart"];
     const months = range === "3m" ? 3 : range === "1y" ? 12 : null;
-    const mask = getRangeMask(months, state.startDate, state.endDate);
-    const dates = applyMask(prices.dates, mask);
+    const startBound = state.startDate ? new Date(state.startDate) : null;
+    const endBound = state.endDate ? new Date(state.endDate) : null;
+    const decompDates = (decomposition.dates || []).map((d) => new Date(d));
+    const rangeStart = (() => {
+      if (!months || !decompDates.length) return null;
+      const lastDate = decompDates[decompDates.length - 1];
+      const start = new Date(lastDate);
+      start.setMonth(start.getMonth() - months);
+      return start;
+    })();
+
+    const mask = [];
+    decompDates.forEach((d, i) => {
+      if (rangeStart && d < rangeStart) return;
+      if (startBound && d < startBound) return;
+      if (endBound && d > endBound) return;
+      mask.push(i);
+    });
+
+    const showMessage = (msg) => {
+      chartIds.forEach((id) => {
+        const el = document.getElementById(id);
+        if (window.Plotly) { Plotly.purge(el); }
+        el.textContent = msg;
+      });
+    };
+
+    if (decomposition.status === "missing") {
+      showMessage(t("decompMissing"));
+      return;
+    }
+
+    if (decomposition.status !== "ok") {
+      showMessage(`${t("decompUnavailable")} ${decomposition.error || ""}`);
+      return;
+    }
+
+    if (!mask.length) {
+      showMessage(t("decompUnavailable"));
+      return;
+    }
+
+    const dates = applyMask(decomposition.dates, mask);
     const trend = applyMask(decomposition.trend ?? [], mask);
     const seasonal = applyMask(decomposition.seasonal ?? [], mask);
     const residual = applyMask(decomposition.residual ?? [], mask);
 
-    if (!trend.length) {
-      document.getElementById("trendChart").textContent = t("decompUnavailable");
-      document.getElementById("seasonalChart").textContent = t("decompUnavailable");
+    if (!trend.length || !seasonal.length || !residual.length) {
+      showMessage(t("decompUnavailable"));
       return;
     }
 
     const layout = { paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)", margin: { l: 45, r: 15, t: 10, b: 30 }, xaxis: { showgrid: false, color: "#a8b4d6" }, yaxis: { showgrid: true, gridcolor: "#1e2a45", color: "#a8b4d6" } };
     Plotly.newPlot("trendChart", [{ x: dates, y: trend, mode: "lines", name: t("trendTitle"), line: { color: "#4c9cff" } }], layout, { displayModeBar: false });
-    Plotly.newPlot("seasonalChart", [
-      { x: dates, y: seasonal, mode: "lines", name: t("seasonalTitle"), line: { color: "#fbbf24" } },
-      { x: dates, y: residual, mode: "lines", name: "Residual", line: { color: "#a855f7", dash: "dot" } },
-    ], layout, { displayModeBar: false });
+    Plotly.newPlot("seasonalChart", [{ x: dates, y: seasonal, mode: "lines", name: t("seasonalTitle"), line: { color: "#fbbf24" } }], layout, { displayModeBar: false });
+    Plotly.newPlot("residualChart", [{ x: dates, y: residual, mode: "lines", name: t("residualTitle"), line: { color: "#a855f7", dash: "dot" } }], layout, { displayModeBar: false });
   }
 
   function renderAll() {
