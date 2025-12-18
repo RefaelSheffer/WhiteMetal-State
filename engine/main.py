@@ -25,6 +25,7 @@ from engine.backtest.performance import (
     summarize_returns,
 )
 from engine.anomalies.detector import compute_regime, detect_anomalies
+from engine.context import fetch_context_assets, write_context_outputs
 from engine.events.calendar import (
     align_events_to_history,
     build_event_context,
@@ -60,6 +61,7 @@ def run_pipeline() -> None:
         cache_path=str(BASE_PATH / "raw/slv_daily.json"),
         source=source,
     )
+    aux_assets = fetch_context_assets(start_date="2008-01-01", source=source)
     validate_ohlcv(raw_data)
     closes = [row["close"] for row in raw_data]
     opens = [row["open"] for row in raw_data]
@@ -67,6 +69,13 @@ def run_pipeline() -> None:
     lows = [row["low"] for row in raw_data]
     volumes = [row["volume"] for row in raw_data]
     dates = [row["date"] for row in raw_data]
+
+    write_context_outputs(
+        raw_data,
+        gld_rows=aux_assets["GLD"],
+        dxy_rows=aux_assets["DXY"],
+        us10y_rows=aux_assets["US10Y"],
+    )
 
     calendar_path = Path("data/events_calendar.json")
     known_events = load_events_calendar(calendar_path)
