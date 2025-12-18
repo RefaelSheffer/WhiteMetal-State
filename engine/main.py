@@ -61,7 +61,7 @@ def run_pipeline() -> None:
         cache_path=str(BASE_PATH / "raw/slv_daily.json"),
         source=source,
     )
-    aux_assets = fetch_context_assets(start_date="2008-01-01", source=source)
+    aux_assets, context_meta = fetch_context_assets(start_date="2008-01-01", source=source)
     validate_ohlcv(raw_data)
     closes = [row["close"] for row in raw_data]
     opens = [row["open"] for row in raw_data]
@@ -75,6 +75,8 @@ def run_pipeline() -> None:
         gld_rows=aux_assets["GLD"],
         dxy_rows=aux_assets["DXY"],
         us10y_rows=aux_assets["US10Y"],
+        source=source,
+        meta=context_meta,
     )
 
     calendar_path = Path("data/events_calendar.json")

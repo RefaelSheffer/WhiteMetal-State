@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from statistics import mean, median, pstdev
 from typing import Iterable, Sequence
@@ -10,6 +10,10 @@ from engine.fetchers.ohlcv import fetch_ohlcv
 from engine.utils.io import ensure_parent, write_json
 
 BASE_CONTEXT_DIR = Path("public/data/context")
+Z_WINDOW = 252
+PERCENTILE_WINDOW = 2520
+MAX_FFILL_DAYS = 3
+DEFAULT_MIN_OCCURRENCES = 80
 
 
 class ContextComputationError(RuntimeError):
@@ -76,15 +80,38 @@ def context_bucket(pct: float | None, z: float | None) -> str | None:
     return None
 
 
-def _align_series(primary: list[tuple[str, float]], secondary: dict[str, float]) -> tuple[list[str], list[float], list[float]]:
+def _align_series_with_ffill(
+    primary: list[tuple[str, float]],
+    secondary: list[tuple[str, float]],
+    *,
+    max_ffill_days: int = MAX_FFILL_DAYS,
+) -> tuple[list[str], list[float], list[float]]:
     dates: list[str] = []
     primary_vals: list[float] = []
     secondary_vals: list[float] = []
-    for date, pval in primary:
-        if date in secondary:
-            dates.append(date)
+
+    secondary_sorted = sorted(secondary, key=lambda x: x[0])
+    sec_idx = 0
+    last_date: datetime | None = None
+    last_val: float | None = None
+
+    for date_str, pval in primary:
+        date_dt = datetime.fromisoformat(date_str)
+        while sec_idx < len(secondary_sorted) and secondary_sorted[sec_idx][0] <= date_str:
+            last_date = datetime.fromisoformat(secondary_sorted[sec_idx][0])
+            last_val = secondary_sorted[sec_idx][1]
+            sec_idx += 1
+
+        if last_date is None or last_val is None:
+            continue
+
+        if last_val <= 0 or pval <= 0:
+            continue
+
+        if date_dt - last_date <= timedelta(days=max_ffill_days):
+            dates.append(date_str)
             primary_vals.append(pval)
-            secondary_vals.append(secondary[date])
+            secondary_vals.append(last_val)
     return dates, primary_vals, secondary_vals
 
 
@@ -152,12 +179,20 @@ def _percentile(values: Sequence[float], pct: float) -> float:
     return sorted_vals[lower] * (1 - weight) + sorted_vals[upper] * weight
 
 
+def _confidence_from_samples(n: int, min_occurrences: int) -> str:
+    if n < min_occurrences:
+        return "low"
+    if n < min_occurrences * 2:
+        return "medium"
+    return "high"
+
+
 def compute_conditional_stats(
     buckets: Sequence[str | None],
     closes: Sequence[float],
     *,
     horizons: Sequence[int] = (5, 10),
-    min_occurrences: int = 50,
+    min_occurrences: int = DEFAULT_MIN_OCCURRENCES,
 ) -> dict[str, dict]:
     forward_returns: dict[int, list[float]] = {h: [] for h in horizons}
     for horizon in horizons:
@@ -181,9 +216,10 @@ def compute_conditional_stats(
         if not horizon_map:
             continue
         n = min(len(vals) for vals in horizon_map.values())
-        if n < min_occurrences:
-            continue
-        bucket_stats: dict[str, float | int] = {"n": n}
+        bucket_stats: dict[str, float | int | str] = {
+            "n": n,
+            "confidence": _confidence_from_samples(n, min_occurrences),
+        }
         for horizon, values in horizon_map.items():
             bucket_stats[f"p_up_{horizon}d"] = sum(1 for v in values if v > 0) / len(values)
             bucket_stats[f"median_{horizon}d"] = median(values)
@@ -200,12 +236,12 @@ def _build_indicator(
     dates: list[str],
     slv_closes: list[float],
     *,
-    min_occurrences: int = 50,
+    min_occurrences: int = DEFAULT_MIN_OCCURRENCES,
 ) -> dict:
     if not values or not dates:
         raise ContextComputationError(f"No data available for {name}")
-    z = rolling_zscores(values, window=252)
-    pct = rolling_percentiles(values, window=2520)
+    z = rolling_zscores(values, window=Z_WINDOW)
+    pct = rolling_percentiles(values, window=PERCENTILE_WINDOW)
     buckets = [context_bucket(p, z_val) for p, z_val in zip(pct, z)]
     stats = compute_conditional_stats(buckets, slv_closes, min_occurrences=min_occurrences)
     latest_idx = len(values) - 1
@@ -230,29 +266,20 @@ def _build_indicator(
     }
 
 
-def _values_map(series: list[tuple[str, float]]) -> dict[str, float]:
-    return {d: v for d, v in series}
-
-
 def build_context_payloads(
     slv_rows: list[dict],
     *,
     gld_rows: list[dict],
     dxy_rows: list[dict],
     us10y_rows: list[dict],
-    min_occurrences: int = 50,
+    min_occurrences: int = DEFAULT_MIN_OCCURRENCES,
 ) -> tuple[dict, dict]:
     slv_series = _to_close_series(slv_rows)
     gld_series = _to_close_series(gld_rows)
     dxy_series = _to_close_series(dxy_rows)
     us10y_series = _to_close_series(us10y_rows)
 
-    slv_map = _values_map(slv_series)
-    gld_map = _values_map(gld_series)
-    dxy_map = _values_map(dxy_series)
-    us10y_map = _values_map(us10y_series)
-
-    gsr_dates_raw, slv_for_gsr_raw, gld_vals_raw = _align_series(slv_series, gld_map)
+    gsr_dates_raw, slv_for_gsr_raw, gld_vals_raw = _align_series_with_ffill(slv_series, gld_series)
     gsr_dates: list[str] = []
     gsr_values: list[float] = []
     slv_for_gsr: list[float] = []
@@ -262,8 +289,8 @@ def build_context_payloads(
             gsr_values.append(g_val / s_val)
             slv_for_gsr.append(s_val)
 
-    dxy_dates, slv_for_dxy, dxy_vals = _align_series(slv_series, dxy_map)
-    us10y_dates, slv_for_us10y, us10y_vals = _align_series(slv_series, us10y_map)
+    dxy_dates, slv_for_dxy, dxy_vals = _align_series_with_ffill(slv_series, dxy_series)
+    us10y_dates, slv_for_us10y, us10y_vals = _align_series_with_ffill(slv_series, us10y_series)
 
     if not (gsr_values and dxy_vals and us10y_vals):
         raise ContextComputationError("Insufficient data to compute context indicators")
@@ -294,25 +321,50 @@ def build_context_payloads(
     )
 
     conditional_stats = {
-        "gsr": {k: v for k, v in gsr["stats"].items() if v.get("n", 0) >= min_occurrences},
-        "dxy": {k: v for k, v in dxy["stats"].items() if v.get("n", 0) >= min_occurrences},
-        "us10y": {k: v for k, v in us10y["stats"].items() if v.get("n", 0) >= min_occurrences},
+        "GSR": gsr["stats"],
+        "DXY": dxy["stats"],
+        "US10Y": us10y["stats"],
+    }
+
+    baseline = {
+        "window_z": Z_WINDOW,
+        "window_pct": PERCENTILE_WINDOW,
+        "min_occurrences": min_occurrences,
     }
 
     current_context = {
         "asof": slv_rows[-1]["date"],
-        "items": [
-            {"key": "GSR", "name": gsr["name"], **gsr["current"], "stats": gsr["stats"].get(gsr["current"]["bucket"])} if gsr else None,
-            {"key": "DXY", "name": dxy["name"], **dxy["current"], "stats": dxy["stats"].get(dxy["current"]["bucket"])} if dxy else None,
-            {"key": "US10Y", "name": us10y["name"], **us10y["current"], "stats": us10y["stats"].get(us10y["current"]["bucket"])} if us10y else None,
-        ],
+        "baseline": baseline,
+        "items": [],
+        "note": "Historical context only; not a promise.",
     }
-    current_context["items"] = [item for item in current_context["items"] if item]
 
-    return current_context, conditional_stats
+    for indicator in (gsr, dxy, us10y):
+        bucket = indicator["current"]["bucket"]
+        band_stats = indicator["stats"].get(bucket, {}) if bucket else {}
+        current_context["items"].append(
+            {
+                "key": indicator["key"].upper(),
+                "name": indicator["name"],
+                "value": indicator["current"]["value"],
+                "z": indicator["current"]["z"],
+                "pct": indicator["current"]["pct"],
+                "band": bucket,
+                "n_band": band_stats.get("n", 0),
+                "p_up_5d": band_stats.get("p_up_5d"),
+                "median_5d": band_stats.get("median_5d"),
+                "p_up_10d": band_stats.get("p_up_10d"),
+                "median_10d": band_stats.get("median_10d"),
+                "confidence": band_stats.get("confidence", _confidence_from_samples(0, min_occurrences)),
+                "note": indicator["current"].get("note") or "Historical context only; not a promise.",
+                "as_of": indicator["current"].get("as_of"),
+            }
+        )
+
+    return current_context, {"baseline": baseline, **conditional_stats}
 
 
-def fetch_context_assets(start_date: str, *, source: str | None = None) -> dict[str, list[dict]]:
+def fetch_context_assets(start_date: str, *, source: str | None = None) -> tuple[dict[str, list[dict]], dict]:
     sources = (source,) if source else ("stooq", "yahoo")
 
     def fetch_with_fallback(symbols: list[str], cache_name: str) -> tuple[str, list[dict]]:
@@ -340,7 +392,16 @@ def fetch_context_assets(start_date: str, *, source: str | None = None) -> dict[
     _write_raw_payload("DXY", dxy_rows, f"{now_source} ({dxy_symbol})")
     _write_raw_payload("US10Y", us10y_rows, f"{now_source} ({us10y_symbol})")
 
-    return {"GLD": gld_rows, "DXY": dxy_rows, "US10Y": us10y_rows}
+    meta = {
+        "preferred_source": now_source,
+        "symbols": {
+            "GLD": gld_symbol,
+            "DXY": dxy_symbol,
+            "US10Y": us10y_symbol,
+        },
+    }
+
+    return {"GLD": gld_rows, "DXY": dxy_rows, "US10Y": us10y_rows}, meta
 
 
 def write_context_outputs(
@@ -349,7 +410,9 @@ def write_context_outputs(
     gld_rows: list[dict],
     dxy_rows: list[dict],
     us10y_rows: list[dict],
-    min_occurrences: int = 50,
+    min_occurrences: int = DEFAULT_MIN_OCCURRENCES,
+    source: str | None = None,
+    meta: dict | None = None,
 ) -> None:
     ensure_parent(BASE_CONTEXT_DIR / "placeholder")
     current, stats = build_context_payloads(
@@ -359,6 +422,55 @@ def write_context_outputs(
         us10y_rows=us10y_rows,
         min_occurrences=min_occurrences,
     )
+    now = datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+    assets_meta = meta or {}
+    assets_meta.update(
+        {
+            "SLV": {
+                "start": slv_rows[0]["date"] if slv_rows else None,
+                "end": slv_rows[-1]["date"] if slv_rows else None,
+                "rows": len(slv_rows),
+                "source": source or "unknown",
+            },
+            "GLD": {
+                "start": gld_rows[0]["date"] if gld_rows else None,
+                "end": gld_rows[-1]["date"] if gld_rows else None,
+                "rows": len(gld_rows),
+                "source": meta.get("preferred_source") if meta else source,
+                "fetched_symbol": meta.get("symbols", {}).get("GLD") if meta else None,
+            },
+            "DXY": {
+                "start": dxy_rows[0]["date"] if dxy_rows else None,
+                "end": dxy_rows[-1]["date"] if dxy_rows else None,
+                "rows": len(dxy_rows),
+                "source": meta.get("preferred_source") if meta else source,
+                "fetched_symbol": meta.get("symbols", {}).get("DXY") if meta else None,
+            },
+            "US10Y": {
+                "start": us10y_rows[0]["date"] if us10y_rows else None,
+                "end": us10y_rows[-1]["date"] if us10y_rows else None,
+                "rows": len(us10y_rows),
+                "source": meta.get("preferred_source") if meta else source,
+                "fetched_symbol": meta.get("symbols", {}).get("US10Y") if meta else None,
+            },
+        }
+    )
+    meta_payload = {
+        "asof": slv_rows[-1]["date"] if slv_rows else None,
+        "last_updated_utc": now,
+        "baseline": stats.get("baseline"),
+        "assets": assets_meta,
+        "notes": [
+            "Historical context only; not a promise.",
+            "Conditional stats on SLV based on similar cross-market regimes.",
+        ],
+    }
+
+    write_json(BASE_CONTEXT_DIR / "cross_market_current.json", current)
+    write_json(BASE_CONTEXT_DIR / "cross_market_conditional.json", stats)
+    write_json(BASE_CONTEXT_DIR / "cross_market_meta.json", meta_payload)
+
+    # Legacy paths for backward compatibility
     write_json(BASE_CONTEXT_DIR / "current_context.json", current)
     write_json(BASE_CONTEXT_DIR / "conditional_stats.json", stats)
 
