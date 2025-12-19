@@ -1,6 +1,6 @@
 {
   "asof": "2025-12-12",
-  "last_updated_utc": "2025-12-18T22:42:14Z",
+  "last_updated_utc": "2025-12-19T22:42:01Z",
   "baseline": {
     "window_z": 252,
     "window_pct": 2520,
@@ -10,8 +10,8 @@
     "preferred_source": "stooq",
     "symbols": {
       "GLD": "GLD",
-      "DXY": "UUP",
-      "US10Y": "IEF"
+      "DXY": "DXY",
+      "US10Y": "US10Y"
     },
     "SLV": {
       "start": "2008-01-02",
@@ -31,14 +31,14 @@
       "end": "2025-12-18",
       "rows": 4520,
       "source": "stooq",
-      "fetched_symbol": "UUP"
+      "fetched_symbol": "DXY"
     },
     "US10Y": {
       "start": "2008-01-02",
       "end": "2025-12-18",
       "rows": 4520,
       "source": "stooq",
-      "fetched_symbol": "IEF"
+      "fetched_symbol": "US10Y"
     }
   },
   "notes": [
