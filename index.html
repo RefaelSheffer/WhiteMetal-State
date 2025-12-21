@@ -1913,7 +1913,13 @@ updateAdvancedCopy();
 
   function applyMask(arr, mask, accessor) {
     if (!Array.isArray(arr)) return [];
-    return mask.map((i) => (accessor ? accessor(arr[i], i) : arr[i])).filter((v) => v !== undefined);
+    return mask
+      .map((i) => {
+        const value = arr[i];
+        if (value === undefined) return undefined;
+        return accessor ? accessor(value, i) : value;
+      })
+      .filter((v) => v !== undefined);
   }
 
   function renderPrice(range) {
