@@ -266,6 +266,34 @@
 
     <div style="height:16px"></div>
 
+    <div class="card" id="probEngineCard">
+      <div class="section-title flex">
+        <span data-i18n="probEngineTitle">Probability Engine</span>
+        <span class="chip muted" id="probEngineConfidence">—</span>
+      </div>
+      <div class="kpis">
+        <div class="kpi">
+          <div class="muted" data-i18n="probEngineProbLabel">P(up)</div>
+          <div class="v mono" id="probEngineProb">—</div>
+          <span class="small" id="probEngineHorizon">—</span>
+        </div>
+        <div class="kpi">
+          <div class="muted" data-i18n="probEngineMedianLabel">Median</div>
+          <div class="v mono" id="probEngineMedian">—</div>
+          <span class="small" id="probEngineRange">—</span>
+        </div>
+        <div class="kpi">
+          <div class="muted" data-i18n="probEngineNeighborsLabel">Neighbors</div>
+          <div class="v mono" id="probEngineNeighbors">—</div>
+          <span class="small" id="probEngineDistance">—</span>
+        </div>
+      </div>
+      <div class="subtitle" id="probEngineDescription">—</div>
+      <div id="probEngineTopNeighbors" class="grid-2"></div>
+    </div>
+
+    <div style="height:16px"></div>
+
     <div class="card" id="deviationPanel">
       <div class="section-title flex">
         <span data-i18n="deviationPanelTitle">Deviation vs history</span>
@@ -634,7 +662,8 @@
     </div>
   </div>
 
-<script>
+<script type="module">
+import { buildFeatureRows, knnAnalogProbability } from "./src/lib/probability-engine.js";
 async function getJson(path) {
   const r = await fetch(path, { cache: "no-store" });
   if (!r.ok) throw new Error(`Failed ${path}: ${r.status}`);
@@ -791,6 +820,14 @@ const baseLanguageStrings = {
     whatItMeansTitle: "מה זה בדרך כלל אומר",
     analogiesTitle: "אנלוגיות",
     analogiesNote: "דומים היסטוריים · ללא הוראות",
+    probEngineTitle: "מנוע הסתברות",
+    probEngineProbLabel: "הסתברות לעלייה",
+    probEngineMedianLabel: "חציון",
+    probEngineNeighborsLabel: "שכנים",
+    probEngineRangeLabel: "טווח",
+    probEngineConfidenceLow: "ביטחון נמוך",
+    probEngineConfidenceMedium: "ביטחון בינוני",
+    probEngineConfidenceHigh: "ביטחון גבוה",
     eventContextTitle: "הקשר אירועים",
     eventContextLabel: "קונטקסט אירוע",
     eventContextNone: "אין אירוע קרוב",
@@ -1011,6 +1048,14 @@ const baseLanguageStrings = {
     whatItMeansTitle: "What this usually means",
     analogiesTitle: "Analogies",
     analogiesNote: "Historical peers · No instructions",
+    probEngineTitle: "Probability Engine",
+    probEngineProbLabel: "P(up)",
+    probEngineMedianLabel: "Median",
+    probEngineNeighborsLabel: "Neighbors",
+    probEngineRangeLabel: "Range",
+    probEngineConfidenceLow: "Low confidence",
+    probEngineConfidenceMedium: "Medium confidence",
+    probEngineConfidenceHigh: "High confidence",
     eventContextTitle: "Event Context",
     eventContextLabel: "Event Context",
     eventContextNone: "No known event window",
@@ -1331,6 +1376,13 @@ let state = {
   heatmapRange: "all",
   heatmapWeekly: false,
   isAdvancedOpen: false,
+  probabilityEngine: {
+    horizon: 20,
+    k: 150,
+    threshold: 0,
+    weighting: "inverse_distance",
+  },
+  probabilityResult: null,
 };
 
 function t(key, lang = state.lang) {
@@ -1421,6 +1473,8 @@ updateAdvancedCopy();
     state.startDate = priceDateStrings[0] ?? state.startDate;
     state.endDate = priceDateStrings[priceDateStrings.length - 1] ?? state.endDate;
     const buyHoldCurve = normalizeEquityFromPrices(prices.close);
+    const featureRows = buildFeatureRows(priceDateStrings, Array.isArray(prices?.close) ? prices.close : []);
+    state.probabilityResult = knnAnalogProbability(featureRows, state.probabilityEngine);
     if (backtestEquity?.fees) {
       state.costBps = backtestEquity.fees.cost_bps ?? state.costBps;
       state.slippageBps = backtestEquity.fees.slippage_bps ?? state.slippageBps;
@@ -2183,6 +2237,73 @@ updateAdvancedCopy();
     }
   }
 
+  function renderProbabilityEngine(result, config) {
+    const horizon = config?.horizon ?? 20;
+    const probEl = document.getElementById("probEngineProb");
+    const horizonEl = document.getElementById("probEngineHorizon");
+    const medianEl = document.getElementById("probEngineMedian");
+    const rangeEl = document.getElementById("probEngineRange");
+    const neighborsEl = document.getElementById("probEngineNeighbors");
+    const distanceEl = document.getElementById("probEngineDistance");
+    const confidenceEl = document.getElementById("probEngineConfidence");
+    const descriptionEl = document.getElementById("probEngineDescription");
+    const neighborList = document.getElementById("probEngineTopNeighbors");
+
+    if (!probEl || !horizonEl || !medianEl || !rangeEl || !neighborsEl || !confidenceEl || !neighborList) return;
+
+    const reset = () => {
+      probEl.textContent = "—";
+      horizonEl.textContent = t("limitsCopy");
+      medianEl.textContent = "—";
+      rangeEl.textContent = "—";
+      neighborsEl.textContent = "—";
+      distanceEl.textContent = "";
+      confidenceEl.textContent = t("probEngineConfidenceLow");
+      descriptionEl.textContent = t("limitsCopy");
+      neighborList.innerHTML = `<div class="muted">${t("limitsCopy")}</div>`;
+    };
+
+    if (!result) {
+      reset();
+      return;
+    }
+
+    probEl.textContent = fmtPct(result.pSuccess, 1);
+    horizonEl.textContent = `${t("rangeLabel")} ${horizon}d`;
+    medianEl.textContent = fmtPct(result.stats?.median, 2);
+    rangeEl.textContent = `${fmtPct(result.stats?.p10, 1)} → ${fmtPct(result.stats?.p90, 1)}`;
+    neighborsEl.textContent = `${result.n} · eff ${fmt(result.effectiveN, 0)}`;
+    distanceEl.textContent = `${t("confidenceLabel")}: ${fmt(result.avgDistance, 2)}`;
+
+    const confidenceKey =
+      result.confidenceLabel === "High"
+        ? "probEngineConfidenceHigh"
+        : result.confidenceLabel === "Medium"
+          ? "probEngineConfidenceMedium"
+          : "probEngineConfidenceLow";
+    confidenceEl.textContent = t(confidenceKey);
+    confidenceEl.className = `chip ${result.confidenceLabel === "High" ? "info" : result.confidenceLabel === "Low" ? "muted" : ""}`.trim();
+
+    descriptionEl.textContent = result.description || t("limitsCopy");
+
+    const top = Array.isArray(result.neighborsTop) ? result.neighborsTop.slice(0, 4) : [];
+    if (!top.length) {
+      neighborList.innerHTML = `<div class="muted">${t("limitsCopy")}</div>`;
+    } else {
+      neighborList.innerHTML = top
+        .map((n) => {
+          return `
+            <div class="analogy">
+              <div class="muted">${n.t}</div>
+              <div class="v mono">${fmtPct(n.y, 2)}</div>
+              <div class="small muted">${t("probEngineRangeLabel")}: ${fmt(n.d, 2)}</div>
+            </div>
+          `;
+        })
+        .join("");
+    }
+  }
+
   function percentile(arr, pct) {
     if (!Array.isArray(arr) || !arr.length) return null;
     const sorted = [...arr].sort((a, b) => a - b);
@@ -2678,6 +2799,7 @@ updateAdvancedCopy();
     renderEventContext(eventContext, eventImpactStats);
     renderContextPanel(currentContext, conditionalContextStats);
     renderProbabilistic();
+    renderProbabilityEngine(state.probabilityResult, state.probabilityEngine);
     renderMeta();
     renderSummary();
     renderDeviationPanel();
