@@ -717,12 +717,12 @@ function detectLang() {
 
 const baseLanguageStrings = {
   he: {
-    title: "SLV Monitor",
+    title: "לוח בקרה ל-SLV",
     subtitle: "דשבורד סטטי ב-GitHub Pages + “מוח” שרץ ב-GitHub Actions ומעדכן JSON.",
     alert: "המלצות המערכת הן תוצאה של עיבוד סטטיסטי ואינן מהוות ייעוץ או הנחיה לביצוע פעולה מיידית. מומלץ לשלב את האיתותים עם גורמים נוספים כמו חדשות מאקרו, מדיניות מוניטרית ושיקולים אישיים אחרים.",
     priceTitle: "מחיר",
     rangeLabel: "טווח זמן:",
-    cycleTitle: "מחזורי Peaks/Troughs אחרונים",
+    cycleTitle: "מחזורי שיא/שפל אחרונים",
     cycleEndDate: "תאריך סיום",
     cycleStartDate: "תאריך התחלה",
     cycleDirection: "כיוון",
@@ -734,13 +734,13 @@ const baseLanguageStrings = {
     performanceTitle: "ביצועים",
     feesImpactTitle: "השפעת עמלות",
     feesSensitivityLabel: "רגישות לעמלות",
-    roundTripLabel: "Round-trip (bps)",
+    roundTripLabel: "עסקה הלוך-חזור (נקודות בסיס)",
     tradesLabel: "מס' עסקאות",
     feesTotalLabel: "סה\"כ עמלות",
-    feeDragLabel: "שחיקה מול תשואת Gross",
+    feeDragLabel: "שחיקה מול תשואת ברוטו",
     noTradesFees: "אין טריידים → אין עמלות",
     algoScoreLabel: "ציון אלגוריתם",
-    sharpeLabel: "Sharpe Ratio",
+    sharpeLabel: "מדד שארפ",
     cycleCaptureLabel: "ציון מחזורי",
     rsiLabel: "RSI (14)",
     stdLabel: "סטיית תקן מתגלגלת (20)",
@@ -764,9 +764,9 @@ const baseLanguageStrings = {
     decompMissing: "פירוק לא זמין (קבצים חסרים).",
     seriesLabel: "סדרה",
     totalReturnLabel: "תשואה כוללת",
-    sortinoLabel: "Sortino",
+    sortinoLabel: "מדד סורטינו",
     strategyLabel: "אסטרטגיה",
-    buyHoldLabel: "Buy & Hold",
+    buyHoldLabel: "קנייה והחזקה",
     updatedPrefix: "עודכן (UTC)",
     metaSourceLabel: "מקור נתונים",
     metaCoverageLabel: "טווח כיסוי",
@@ -788,11 +788,11 @@ const baseLanguageStrings = {
       contextDisclaimer: "הקשר היסטורי בלבד; לא הבטחה.",
       contextLowSample: "מדגם קטן; הסקה חלשה.",
       contextValueLabel: "ערך נוכחי",
-      contextZLabel: "Z-score",
+      contextZLabel: "ציון Z",
       contextPctLabel: "אחוזון",
-      contextPUp5d: "P(up 5d)",
+      contextPUp5d: "הסתברות לעלייה (5 ימים)",
       contextMedian5d: "חציון 5 ימים",
-      contextPUp10d: "P(up 10d)",
+      contextPUp10d: "הסתברות לעלייה (10 ימים)",
       contextMedian10d: "חציון 10 ימים",
     eventPhasePre: "לפני אירוע",
     eventPhaseToday: "יום אירוע",
@@ -810,38 +810,38 @@ const baseLanguageStrings = {
     deviationPanelTitle: "סטייה מול היסטוריה",
     zNowLabel: "Z-score נוכחי",
     pctNowLabel: "אחוזון נוכחי",
-    bandLabel: "Band",
+    bandLabel: "רצועה",
     heatmapTitle: "מפת חום לאורך זמן",
-    heatmapNote: "צבע הוא הקשר, לא הוראה. Hover → מספרים.",
+    heatmapNote: "הצבע הוא הקשר בלבד; רחפו כדי לראות מספרים.",
     heatmapLegendTitle: "מקרא צבעים",
-    heatmapMeaningExtremeLowDeviation: "Extremely below baseline (סטיית חסר חדה).",
-    heatmapMeaningLowDeviation: "Below baseline (סטייה שלילית).",
-    heatmapMeaningNeutralDeviation: "Near baseline (סטייה נמוכה).",
-    heatmapMeaningHighDeviation: "Above baseline (סטייה חיובית).",
-    heatmapMeaningExtremeHighDeviation: "Far above baseline (סטיית יתר חדה).",
-    heatmapMeaningLowVol: "Low ATR% · תנועה יומית רגועה יחסית.",
-    heatmapMeaningNormalVol: "Normal ATR% · תנודתיות טיפוסית.",
-    heatmapMeaningHighVol: "High ATR% · תנודתיות מוגברת.",
-    heatmapMeaningBearishMom: "Bearish ROC20 · לחץ ירידות.",
-    heatmapMeaningNeutralMom: "Neutral ROC20 · מומנטום שטוח.",
-    heatmapMeaningBullishMom: "Bullish ROC20 · מומנטום עליות.",
+    heatmapMeaningExtremeLowDeviation: "הרבה מתחת לבסיס (סטיית חסר חדה).",
+    heatmapMeaningLowDeviation: "מתחת לבסיס (סטייה שלילית).",
+    heatmapMeaningNeutralDeviation: "קרוב לבסיס (סטייה נמוכה).",
+    heatmapMeaningHighDeviation: "מעל הבסיס (סטייה חיובית).",
+    heatmapMeaningExtremeHighDeviation: "מעל מאוד לבסיס (סטיית יתר חדה).",
+    heatmapMeaningLowVol: "ATR% נמוך · תנודה יומית רגועה מהרגיל.",
+    heatmapMeaningNormalVol: "ATR% רגיל · תנודתיות טיפוסית.",
+    heatmapMeaningHighVol: "ATR% גבוה · תנודתיות מוגברת.",
+    heatmapMeaningBearishMom: "ROC20 דובי · לחץ ירידות.",
+    heatmapMeaningNeutralMom: "ROC20 ניטרלי · מומנטום שטוח.",
+    heatmapMeaningBullishMom: "ROC20 שורי · מומנטום עליות.",
     viewLabel: "תצוגה",
     weeklyAgg: "שבועי",
     limitsCopy: "הנתונים היסטוריים בלבד; לא התחייבות לתוצאה.",
     medianLabel: "חציון 5 ימים",
-    advancedTitle: "Advanced",
+    advancedTitle: "מצב מתקדם",
     advancedClosedTitle: "ניתוח מתקדם",
-    advancedOpenTitle: "Advanced פתוח",
+    advancedOpenTitle: "מצב מתקדם פתוח",
     advancedClosedSubtitle: "פתיחת גרפים, בקטסט ומדדי סיכון.",
-    advancedOpenSubtitle: "Advanced פתוח. השתמשו ב-Backtest Settings להתאמות.",
+    advancedOpenSubtitle: "מצב מתקדם פתוח. השתמשו בהגדרות הבקטסט להתאמות.",
     showAdvanced: "פתח ניתוח מתקדם",
     hideAdvanced: "סגור ניתוח מתקדם",
-    advancedAnalysisTitle: "Advanced Analysis",
-    advancedAnalysisSubtitle: "מחזורי מחיר, פירוק, Equity מול בנצ'מרק, הקשר אירועי והקשר בין-שוקי.",
-    confidenceLabel: "Confidence",
-    scoreTotalLabel: "Score Total",
-    scorePriceLabel: "Price Score",
-    scoreCOTLabel: "COT Score",
+    advancedAnalysisTitle: "ניתוח מתקדם",
+    advancedAnalysisSubtitle: "מחזורי מחיר, פירוק, רווחיות מול בנצ'מרק, הקשר אירועי ובין-שוקי.",
+    confidenceLabel: "רמת ביטחון",
+    scoreTotalLabel: "ציון כולל",
+    scorePriceLabel: "ציון מחיר",
+    scoreCOTLabel: "ציון COT",
     latestCloseLabel: "מחיר סגירה אחרון",
     maLabel: "ממוצעים 20/50/200",
     momLabel: "מומנטום 1M",
@@ -850,10 +850,10 @@ const baseLanguageStrings = {
     cotUnavailable: "COT לא זמין (בינתיים).",
     edgarNoFiling: "לא נמצאה הגשה אחרונה.",
     edgarUnavailable: "EDGAR לא זמין (בינתיים).",
-    hitRateLabel: "Hit Rate",
+    hitRateLabel: "שיעור פגיעה",
     avgReturn5dLabel: "תשואה ממוצעת 5 ימים",
     avgReturn10dLabel: "תשואה ממוצעת 10 ימים",
-    maxDrawdownLabel: "Max Drawdown",
+    maxDrawdownLabel: "נסיגה מקסימלית",
     rsiToggle: "RSI",
     stdToggle: "StdDev",
     macdToggle: "MACD",
@@ -861,78 +861,78 @@ const baseLanguageStrings = {
     obvToggle: "OBV",
     maLongToggle: "MA1000",
     decompToggle: "Decomposition",
-    langToggleEnglish: "English",
+    langToggleEnglish: "אנגלית",
     langToggleHebrew: "עברית",
     langToggleSpanish: "ספרדית",
-    switchToEnglishAria: "Switch to English",
+    switchToEnglishAria: "החלף לאנגלית",
     switchToHebrewAria: "החלף לעברית",
     switchToSpanishAria: "החלף לספרדית",
     languageSelectorAria: "בחירת שפה",
-    anomalyNowTitle: "התראות חריגות (Layer 1)",
+    anomalyNowTitle: "התראות חריגות (שכבה 1)",
     anomalyScoreLabel: "מדד חריגות",
     adxLabel: "ADX",
     atrLabel: "ATR (14)",
-    alertCountLabel: "Alerts",
+    alertCountLabel: "מספר התראות",
     alertListTitle: "מה חריג היום",
     cyclesToggle: "מחזורי מחיר",
     noAlerts: "אין חריגות חזקות היום.",
-    backtestSettings: "Backtest settings",
-    openSettings: "Open",
+    backtestSettings: "הגדרות בקטסט",
+    openSettings: "פתח",
     settingsHint: "שליטה מהירה לטווחי בדיקה, עלויות ואסטרטגיה.",
     backtestSettingsSubtitle: "התאמת פרמטרי הסימולציה (לא ייעוץ).",
-    simulationDisclaimer: "Simulation only · נתונים היסטוריים · לא ייעוץ פיננסי",
+    simulationDisclaimer: "סימולציה בלבד · נתונים היסטוריים · אין ייעוץ פיננסי",
     dateRangeLabel: "טווח תאריכים",
-    rangeAll: "All",
-    range1Y: "Last 1Y",
-    range3Y: "Last 3Y",
-    range5Y: "Last 5Y",
-    rangeCustom: "Custom",
+    rangeAll: "כל התקופה",
+    range1Y: "שנה אחרונה",
+    range3Y: "שלוש שנים אחרונות",
+    range5Y: "חמש שנים אחרונות",
+    rangeCustom: "טווח מותאם",
     maWindow: "חלון MA (מסנן מגמה)",
     rsiPeriod: "תקופת RSI",
     rsiOversold: "RSI מכירות יתר",
     rsiOverbought: "RSI קניות יתר",
     bandWindow: "חלון בולינגר",
     bandStd: "סטיית תקן",
-    strategyCycleBasic: "cycle_basic",
-    strategyRiskManaged: "risk_managed",
-    strategyBuyHold: "buy_hold",
+    strategyCycleBasic: "בסיס מחזורי",
+    strategyRiskManaged: "ניהול סיכונים",
+    strategyBuyHold: "קנייה והחזקה",
     strategyNote: "הבקטסט משתמש רק בסיגנלים מאושרים (ללא lookahead).",
-    startDate: "Start date",
-    endDate: "End date",
+    startDate: "תאריך התחלה",
+    endDate: "תאריך סיום",
     costsLabel: "עלויות (bps)",
-    slippageLabel: "Slippage (bps)",
+    slippageLabel: "החלקה (נקודות בסיס)",
     costsSelectedLabel: "עלות נבחרת (bps לעסקה)",
-    costDragLabel: "שחיקה מול תשואת Gross",
-    grossNetImpactLabel: "תשואה: Gross → Net",
+    costDragLabel: "שחיקה מול תשואת ברוטו",
+    grossNetImpactLabel: "תשואה: ברוטו → נטו",
     riskControlsLabel: "ניהול סיכונים",
-    useAtrSizing: "שימוש ב-ATR sizing",
+    useAtrSizing: "שימוש בקביעת גודל לפי ATR",
     targetDailyVol: "יעד סטיית תקן יומית (%)",
-    useStopLoss: "שימוש ב-Stop-loss",
-    stopAtrMult: "מקדם ATR ל-Stop",
-    useTrailingStop: "Trailing stop",
-    trailingAtrMult: "מקדם ATR ל-Trailing",
+    useStopLoss: "שימוש בסטופ-לוס",
+    stopAtrMult: "מקדם ATR לסטופ",
+    useTrailingStop: "הפעלת טריילינג סטופ",
+    trailingAtrMult: "מקדם ATR לטריילינג",
     useVarSizing: "גודל פוזיציה לפי VaR",
     varConfidence: "רמת ביטחון VaR (%)",
     varRisk: "סיכון פוזיציה (%)",
     varLookback: "חלון VaR (ימים)",
-    runSimulation: "Run Simulation",
-    strategyPick: "Strategy",
-    strategyTrend: "Trend",
-    strategyRange: "Range",
-    strategyHybrid: "Hybrid",
-    grossNet: "Gross / Net",
-    grossLabel: "Gross",
-    netLabel: "Net",
-    maToggle: "MAs",
-    signalsToggle: "Buy/Sell",
+    runSimulation: "הרץ סימולציה",
+    strategyPick: "בחירת אסטרטגיה",
+    strategyTrend: "מגמה",
+    strategyRange: "דשדוש",
+    strategyHybrid: "היברידי",
+    grossNet: "ברוטו / נטו",
+    grossLabel: "ברוטו",
+    netLabel: "נטו",
+    maToggle: "ממוצעים",
+    signalsToggle: "קנייה/מכירה",
     equityViewLabel: "תצוגת רווחיות",
     riskTitle: "מדדי סיכון",
-    ulcerLabel: "Ulcer Index",
-    worstMonthLabel: "Worst month",
+    ulcerLabel: "מדד אולצר",
+    worstMonthLabel: "החודש הגרוע ביותר",
     tradeLogTitle: "יומן עסקאות",
     tradeEntry: "כניסה",
     tradeExit: "יציאה",
-    tradeReason: "Trigger",
+    tradeReason: "טריגר",
     tradeReturn: "רווח %",
     tradeHold: "זמן החזקה"
   },
@@ -1325,6 +1325,20 @@ function t(key, lang = state.lang) {
   return entry[lang] ?? entry.en ?? Object.values(entry)[0] ?? key;
 }
 
+function localizeCopy(text, fallbackKey) {
+  if (!text) return fallbackKey ? t(fallbackKey) : "";
+  const normalized = text.trim();
+  const dictionary = {
+    "Context only; not a trading instruction.": "contextFooter",
+    "Context only; not a trade idea.": "contextFooter",
+    "Historical context only; not a promise.": "contextDisclaimer",
+    "Dollar / gold / rates framing; historical only.": "contextNote",
+    "Historical peers · No instructions": "analogiesNote",
+  };
+  const key = dictionary[normalized];
+  return key ? t(key) : text;
+}
+
 function updateAdvancedCopy() {
   const heading = document.getElementById("advancedHeading");
   const subtitle = document.getElementById("advancedSubtitle");
@@ -1519,7 +1533,8 @@ updateAdvancedCopy();
     document.getElementById("eventProb5d").textContent = prob5d;
     document.getElementById("eventMedian5d").textContent = `${t("medianShortLabel")}: ${med5d}`;
 
-    const description = [context.framing?.headline, context.framing?.note].filter(Boolean).join(" · ");
+    const framingNote = localizeCopy(context.framing?.note);
+    const description = [context.framing?.headline, framingNote].filter(Boolean).join(" · ");
     document.getElementById("eventContextSummary").textContent = description || t("eventContextFooter");
     document.getElementById("eventContextFooter").textContent = `${t("eventContextFooter")}`;
   }
@@ -1551,6 +1566,7 @@ updateAdvancedCopy();
             <div class="stat-label">${label}</div>
             <div class="stat-value">${formatter(value)}</div>
           </div>`;
+        const localizedNote = localizeCopy(item.note, "contextFooter");
         return `
           <div class="context-item-card ${lowSample ? "context-low-confidence" : ""}">
             <div class="context-row">
@@ -1575,14 +1591,14 @@ updateAdvancedCopy();
               <span class="chip muted">${t("confidenceLabel")}: ${confidence}</span>
             </div>
             ${lowSample ? `<div class="context-warning">${t("contextLowSample")}</div>` : ""}
-            <div class="context-note">${item.note || t("contextFooter")}</div>
+            <div class="context-note">${localizedNote}</div>
             <div class="context-note">${t("contextDisclaimer")}</div>
           </div>
         `;
       })
       .join("");
     const footer = document.getElementById("contextFooter");
-    if (footer) footer.textContent = t("contextFooter");
+    if (footer) footer.textContent = localizeCopy(currentContext.note, "contextFooter");
   }
 
   function bandLabel(band) {
