@@ -10,6 +10,10 @@ function assertMeta(meta) {
 }
 
 export function createDataHub() {
+  const clone = typeof structuredClone === "function"
+    ? structuredClone
+    : (obj) => JSON.parse(JSON.stringify(obj));
+
   const state = {
     status: "idle",
     progress: { total: 0, done: 0 },
@@ -20,11 +24,11 @@ export function createDataHub() {
   };
 
   const listeners = new Set();
-  const emit = () => listeners.forEach((fn) => fn(structuredClone(state)));
+  const emit = () => listeners.forEach((fn) => fn(clone(state)));
 
   function subscribe(fn) {
     listeners.add(fn);
-    fn(structuredClone(state));
+    fn(clone(state));
     return () => listeners.delete(fn);
   }
 
