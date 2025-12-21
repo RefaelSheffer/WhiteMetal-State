@@ -178,7 +178,8 @@ function euclideanDistance(a, b) {
 function weightVector(distances, weighting, tau) {
   const eps = 1e-6;
   if (weighting === "softmax") {
-    const scale = tau ?? (distances.length ? median(distances) : 1) || 1;
+    const baseScale = tau ?? (distances.length ? median(distances) : 1);
+    const scale = baseScale || 1;
     const weights = distances.map((d) => Math.exp(-d / scale));
     const total = weights.reduce((a, b) => a + b, 0) || 1;
     return weights.map((w) => w / total);
