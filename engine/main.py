@@ -26,6 +26,11 @@ from engine.backtest.performance import (
 )
 from engine.anomalies.detector import compute_regime, detect_anomalies
 from engine.context import fetch_context_assets, write_context_outputs
+from engine.context_macro import (
+    build_macro_enrichment,
+    fetch_macro_assets,
+    write_macro_outputs,
+)
 from engine.backtest.trade_engine import (
     TradeSettings,
     build_fees_impact,
@@ -70,6 +75,12 @@ def run_pipeline() -> None:
         source=source,
     )
     aux_assets, context_meta = fetch_context_assets(start_date="2008-01-01", source=source)
+    macro_assets: dict[str, list[dict]] | None = None
+    macro_meta: dict | None = None
+    try:
+        macro_assets, macro_meta = fetch_macro_assets(start_date="2008-01-01", source=source)
+    except Exception as exc:  # noqa: PERF203
+        print(f"[macro] Unable to fetch macro assets: {exc}")
     validate_ohlcv(raw_data)
     closes = [row["close"] for row in raw_data]
     opens = [row["open"] for row in raw_data]
@@ -86,6 +97,16 @@ def run_pipeline() -> None:
         source=source,
         meta=context_meta,
     )
+    if macro_assets:
+        try:
+            macro_enrichment = build_macro_enrichment(
+                raw_data,
+                vix_rows=macro_assets.get("VIX", []),
+                tip_rows=macro_assets.get("TIP", []),
+            )
+            write_macro_outputs(macro_enrichment, macro_meta or {}, source=source)
+        except Exception as exc:  # noqa: PERF203
+            print(f"[macro] Unable to build macro enrichment: {exc}")
 
     calendar_path = Path("data/events_calendar.json")
     known_events, calendar_meta = load_events_calendar(calendar_path)
