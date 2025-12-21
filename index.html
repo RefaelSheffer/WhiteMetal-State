@@ -690,11 +690,14 @@
     </div>
   </div>
 
+  <div class="card" id="tradingSimulationCard"></div>
+
 <script type="module">
 import { buildFeatureRows, knnAnalogProbability } from "./src/lib/probability-engine.js";
 import { FetchAllCandidatesError } from "./src/lib/fetchJson.js";
 import { createDataHub } from "./src/lib/data-hub.js";
 import { renderActionRecommendation } from "./src/ui/render-action-recommendation.js";
+import { renderTradingSimulationCard } from "./src/ui/render-trading-simulation.js";
 import { attachTooltips } from "./src/ui/tooltips.js";
 
 function setGlobalStatus(message, tone = "info") {
@@ -1443,6 +1446,7 @@ let currentContext = null;
 let conditionalContextStats = null;
 let buyHoldCurve = [];
 let featureRows = [];
+let probabilityDaily = [];
 let backtestEquity = null;
 let backtestFeesImpact = null;
 let backtestFeesSensitivity = null;
@@ -1590,6 +1594,7 @@ hub.subscribe((state) => {
       eventImpactStats: hub.getDataset("eventImpactStats"),
       crossMarketCurrent: hub.getDataset("crossMarketCurrent"),
       crossMarketConditional: hub.getDataset("crossMarketConditional"),
+      probabilityDaily: hub.getDataset("probabilityDaily"),
       backtestEquity: hub.getDataset("backtestEquity"),
       backtestFeesImpact: hub.getDataset("backtestFeesImpact"),
       backtestFeesSensitivity: hub.getDataset("backtestFeesSensitivity"),
@@ -1629,6 +1634,8 @@ hub.subscribe((state) => {
     buyHoldCurve = normalizeEquityFromPrices(prices.close || []);
     featureRows = buildFeatureRows(priceDateStrings, Array.isArray(prices?.close) ? prices.close : []);
     state.probabilityResult = featureRows.length ? knnAnalogProbability(featureRows, state.probabilityEngine) : null;
+    probabilityDaily = datasets.probabilityDaily || [];
+    renderTradingSimulationCard(probabilityDaily);
     heatmaps = {
       deviation: datasets.heatmapDeviation,
       volatility: datasets.heatmapVolatility,

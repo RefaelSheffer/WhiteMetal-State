@@ -22,6 +22,7 @@
     "eventImpactStats": "events/event_impact_stats.json",
     "crossMarketCurrent": "context/cross_market_current.json",
     "crossMarketConditional": "context/cross_market_conditional.json",
+    "probabilityDaily": "probability_daily.json",
     "backtestEquity": "backtest/equity_curves.json",
     "backtestFeesImpact": "backtest/fees_impact.json",
     "backtestFeesSensitivity": "backtest/fees_sensitivity.json",
