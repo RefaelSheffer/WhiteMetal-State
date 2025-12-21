@@ -650,13 +650,16 @@ async function loadPrices() {
   throw new Error("Price data unavailable");
 }
 
-async function optionalJson(path) {
-  try {
-    return await getJson(path);
-  } catch (err) {
-    console.warn(`Optional JSON missing: ${path}`, err);
-    return null;
+async function optionalJson(path, fallbackPaths = []) {
+  const attempts = [path, ...fallbackPaths];
+  for (const p of attempts) {
+    try {
+      return await getJson(p);
+    } catch (err) {
+      console.warn(`Optional JSON missing: ${p}`, err);
+    }
   }
+  return null;
 }
 
 async function loadDecomposition() {
@@ -1367,11 +1370,11 @@ updateAdvancedCopy();
         optionalJson("./public/data/events/event_impact_stats.json"),
         optionalJson("./public/data/context/cross_market_current.json"),
         optionalJson("./public/data/context/cross_market_conditional.json"),
-        optionalJson("./public/data/backtest/equity_curves.json"),
-        optionalJson("./public/data/backtest/fees_impact.json"),
-      optionalJson("./public/data/backtest/fees_sensitivity.json"),
-      optionalJson("./public/data/backtest/trade_log.json"),
-      optionalJson("./public/data/backtest/risk_metrics.json"),
+        optionalJson("./public/data/backtest/equity_curves.json", ["./data/backtest/equity_curves.json"]),
+        optionalJson("./public/data/backtest/fees_impact.json", ["./data/backtest/fees_impact.json"]),
+      optionalJson("./public/data/backtest/fees_sensitivity.json", ["./data/backtest/fees_sensitivity.json"]),
+      optionalJson("./public/data/backtest/trade_log.json", ["./data/backtest/trade_log.json"]),
+      optionalJson("./public/data/backtest/risk_metrics.json", ["./data/backtest/risk_metrics.json"]),
       optionalJson("./public/data/perf/atr.json"),
       optionalJson("./public/data/perf/adx.json"),
       ]);
