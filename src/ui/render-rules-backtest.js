@@ -19,13 +19,13 @@ function renderKpis(container, result) {
   const b = result?.benchmark || {};
   container.innerHTML = `
     <div class="kpis">
-      <div class="kpi"><div class="muted">Net Return</div><div class="v mono">${fmtPct(k.totalReturnPct)}</div></div>
-      <div class="kpi"><div class="muted">CAGR</div><div class="v mono">${fmtPct(k.cagrPct)}</div></div>
-      <div class="kpi"><div class="muted">Max DD</div><div class="v mono">${fmtPct(k.maxDrawdownPct)}</div></div>
-      <div class="kpi"><div class="muted">Sharpe</div><div class="v mono">${fmtNum(k.sharpe)}</div></div>
-      <div class="kpi"><div class="muted">Win rate</div><div class="v mono">${fmtPct(k.winRatePct)}</div></div>
-      <div class="kpi"><div class="muted"># Trades</div><div class="v mono">${k.tradesCount ?? 0}</div></div>
-      <div class="kpi"><div class="muted">Exposure</div><div class="v mono">${fmtPct(k.exposurePct)}</div></div>
+      <div class="kpi"><div class="muted" data-tooltip="תשואה מצטברת של האסטרטגיה לאורך כל התקופה">Net Return</div><div class="v mono">${fmtPct(k.totalReturnPct)}</div></div>
+      <div class="kpi"><div class="muted" data-tooltip="CAGR: שיעור תשואה שנתית ממוצעת במונחים מצטברים">CAGR</div><div class="v mono">${fmtPct(k.cagrPct)}</div></div>
+      <div class="kpi"><div class="muted" data-tooltip="Max Drawdown: הירידה החדה ביותר משיא לשפל">Max DD</div><div class="v mono">${fmtPct(k.maxDrawdownPct)}</div></div>
+      <div class="kpi"><div class="muted" data-tooltip="Sharpe Ratio: תשואה עודפת חלקי סטיית תקן של התשואות">Sharpe</div><div class="v mono">${fmtNum(k.sharpe)}</div></div>
+      <div class="kpi"><div class="muted" data-tooltip="Win rate: אחוז העסקאות שנסגרו ברווח">Win rate</div><div class="v mono">${fmtPct(k.winRatePct)}</div></div>
+      <div class="kpi"><div class="muted" data-tooltip="מספר העסקאות שבוצעו בסימולציה"># Trades</div><div class="v mono">${k.tradesCount ?? 0}</div></div>
+      <div class="kpi"><div class="muted" data-tooltip="Exposure: חלק מהזמן או מההון שהיה מושקע בשוק">Exposure</div><div class="v mono">${fmtPct(k.exposurePct)}</div></div>
     </div>
     <div class="muted" style="margin-top:8px;">Buy & Hold: ${fmtPct(b.buyHoldTotalReturnPct)} · MaxDD ${fmtPct(b.buyHoldMaxDrawdownPct)}</div>
   `;
