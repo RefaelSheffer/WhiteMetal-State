@@ -128,6 +128,14 @@
     .context-low-confidence { opacity: 0.82; }
     .context-note { color: var(--muted); font-size: 13px; line-height: 1.5; margin-top: 6px; }
     .context-warning { color: #fbbf24; font-size: 12px; }
+    .rule-checks { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+    .rule-check { display: flex; gap: 10px; padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); }
+    .rule-check.pass { border-color: rgba(34, 197, 94, 0.3); }
+    .rule-check.fail { border-color: rgba(244, 63, 94, 0.35); }
+    .rule-check .marker { font-size: 18px; }
+    .rules-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 10px; }
+    .plain-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; color: var(--muted); }
+    .plain-list li { padding-left: 0; }
     @media (max-width: 900px) {
       .wrap { padding: 18px; }
       .row { grid-template-columns: 1fr; }
@@ -281,6 +289,18 @@
     <div style="height:16px"></div>
 
     <div class="card" id="action-recommendation"></div>
+
+    <div style="height:16px"></div>
+
+    <div class="card" id="simpleRulesRecommendation"></div>
+
+    <div style="height:16px"></div>
+
+    <div class="card" id="simpleRulesExplain"></div>
+
+    <div style="height:16px"></div>
+
+    <div class="card" id="simpleRulesBacktest"></div>
 
     <div style="height:16px"></div>
 
@@ -698,6 +718,9 @@ import { FetchAllCandidatesError } from "./src/lib/fetchJson.js";
 import { createDataHub } from "./src/lib/data-hub.js";
 import { renderActionRecommendation } from "./src/ui/render-action-recommendation.js";
 import { renderTradingSimulationCard } from "./src/ui/render-trading-simulation.js";
+import { backtestRuleset } from "./src/lib/rules/backtest-ruleset.js";
+import { renderRulesRecommendation, renderRulesExplain } from "./src/ui/render-rules-recommendation.js";
+import { renderRulesBacktest } from "./src/ui/render-rules-backtest.js";
 import { attachTooltips } from "./src/ui/tooltips.js";
 
 function setGlobalStatus(message, tone = "info") {
@@ -1447,6 +1470,7 @@ let conditionalContextStats = null;
 let buyHoldCurve = [];
 let featureRows = [];
 let probabilityDaily = [];
+let simpleRulesResult = null;
 let backtestEquity = null;
 let backtestFeesImpact = null;
 let backtestFeesSensitivity = null;
@@ -1636,6 +1660,10 @@ hub.subscribe((state) => {
     state.probabilityResult = featureRows.length ? knnAnalogProbability(featureRows, state.probabilityEngine) : null;
     probabilityDaily = datasets.probabilityDaily || [];
     renderTradingSimulationCard(probabilityDaily);
+    simpleRulesResult = backtestRuleset(probabilityDaily);
+    renderRulesRecommendation(simpleRulesResult, dataErrors.probabilityDaily);
+    renderRulesExplain(simpleRulesResult);
+    renderRulesBacktest(probabilityDaily, simpleRulesResult);
     heatmaps = {
       deviation: datasets.heatmapDeviation,
       volatility: datasets.heatmapVolatility,
