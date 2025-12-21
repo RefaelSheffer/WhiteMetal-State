@@ -58,6 +58,7 @@
     .kpi { background: #0d1424; border: 1px solid var(--border); border-radius: 12px; padding: 10px; }
     .kpi .v { font-size: 18px; font-weight: 700; margin-top: 4px; }
     .kpi .small { font-size: 12px; color: var(--muted); margin-top: 4px; display: block; line-height: 1.4; }
+    .kpi.highlight { border-color: rgba(34, 197, 94, 0.5); box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.25); }
     .pill { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 13px; border: 1px solid var(--border); text-transform: uppercase; letter-spacing: 0.5px; }
     .pill.up { background: rgba(34, 197, 94, 0.12); color: var(--success); }
     .pill.down { background: rgba(244, 63, 94, 0.12); color: var(--danger); }
@@ -136,6 +137,7 @@
     .rules-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 10px; }
     .plain-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; color: var(--muted); }
     .plain-list li { padding-left: 0; }
+    .success-flag { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 10px; border: 1px solid rgba(34,197,94,0.35); background: rgba(34,197,94,0.12); color: var(--success); font-weight: 700; margin-top: 10px; }
     @media (max-width: 900px) {
       .wrap { padding: 18px; }
       .row { grid-template-columns: 1fr; }
@@ -316,11 +318,58 @@
 
     <div class="card" id="probEngineCard">
       <div class="section-title flex">
-        <span data-i18n="probEngineTitle">Probability Engine</span>
-        <span class="chip muted" id="probEngineConfidence">—</span>
+        <div class="flex" style="gap:8px; align-items:center;">
+          <span data-i18n="probEngineTitle">Probability Engine</span>
+          <span class="chip muted" id="probEngineConfidence">—</span>
+        </div>
+        <div class="controls" style="margin:0;">
+          <button class="btn" id="probEngineInfoBtn" data-i18n="probEngineInfoLabel">🔍 מידע</button>
+          <button class="btn" id="probEngineSettingsToggle" data-i18n="probEngineSettingsLabel">Settings</button>
+        </div>
+      </div>
+      <div class="settings" id="probEngineSettingsPanel" style="display:none;">
+        <div>
+          <label class="small" data-i18n="probEngineHorizonLabel">אופק תחזית</label>
+          <select id="probSettingHorizon">
+            <option value="5">5</option>
+            <option value="20">20</option>
+            <option value="60">60</option>
+          </select>
+        </div>
+        <div>
+          <label class="small" data-i18n="probEngineKLabel">K (שכנים)</label>
+          <select id="probSettingK">
+            <option value="80">80</option>
+            <option value="120">120</option>
+            <option value="150">150</option>
+            <option value="200">200</option>
+          </select>
+        </div>
+        <div>
+          <label class="small" data-i18n="probEngineWeightingLabel">שיטת משקולות</label>
+          <select id="probSettingWeighting">
+            <option value="inverse_distance">Inverse distance</option>
+            <option value="softmax">Softmax</option>
+          </select>
+        </div>
+        <div>
+          <label class="small" data-i18n="probEngineSuccessThresholdLabel">סף הצלחה</label>
+          <select id="probSettingThreshold">
+            <option value="0">0%</option>
+            <option value="1">1%</option>
+            <option value="2">2%</option>
+          </select>
+        </div>
+        <div>
+          <label class="small" data-i18n="probEngineHighlightLabel">סף הדגשה ל-P(up)</label>
+          <input type="number" id="probSettingHighlight" min="0" max="100" step="1" />
+        </div>
+        <div style="align-self:end;">
+          <button class="btn" id="probEngineApply" data-i18n="probEngineApplyLabel">עדכון</button>
+        </div>
       </div>
       <div class="kpis">
-        <div class="kpi">
+        <div class="kpi" id="probEngineProbWrap">
           <div class="muted" data-i18n="probEngineProbLabel">P(up)</div>
           <div class="v mono" id="probEngineProb">—</div>
           <span class="small" id="probEngineHorizon">—</span>
@@ -336,6 +385,7 @@
           <span class="small" id="probEngineDistance">—</span>
         </div>
       </div>
+      <div class="success-flag" id="probEngineSuccessFlag" style="display:none;"></div>
       <div class="subtitle" id="probEngineDescription">—</div>
       <div id="probEngineTopNeighbors" class="grid-2"></div>
     </div>
@@ -917,6 +967,8 @@ const baseLanguageStrings = {
     analogiesTitle: "אנלוגיות",
     analogiesNote: "דומים היסטוריים · ללא הוראות",
     probEngineTitle: "מנוע הסתברות",
+    probEngineInfoLabel: "🔍 מידע",
+    probEngineSettingsLabel: "הגדרות",
     probEngineProbLabel: "הסתברות לעלייה",
     probEngineMedianLabel: "חציון",
     probEngineNeighborsLabel: "שכנים",
@@ -924,6 +976,13 @@ const baseLanguageStrings = {
     probEngineConfidenceLow: "ביטחון נמוך",
     probEngineConfidenceMedium: "ביטחון בינוני",
     probEngineConfidenceHigh: "ביטחון גבוה",
+    probEngineHorizonLabel: "אופק תחזית (ימים)",
+    probEngineKLabel: "K (מספר שכנים)",
+    probEngineWeightingLabel: "שיטת משקולות",
+    probEngineSuccessThresholdLabel: "סף הצלחה (תשואה מעל)",
+    probEngineHighlightLabel: "הדגשה אם P(up) מעל (%)",
+    probEngineApplyLabel: "עדכון",
+    probEngineHighlightHit: "P(up) עבר את סף ההדגשה",
     eventContextTitle: "הקשר אירועים",
     eventContextLabel: "קונטקסט אירוע",
     eventContextNone: "אין אירוע קרוב",
@@ -1153,6 +1212,8 @@ const baseLanguageStrings = {
     analogiesTitle: "Analogies",
     analogiesNote: "Historical peers · No instructions",
     probEngineTitle: "Probability Engine",
+    probEngineInfoLabel: "🔍 Info",
+    probEngineSettingsLabel: "Settings",
     probEngineProbLabel: "P(up)",
     probEngineMedianLabel: "Median",
     probEngineNeighborsLabel: "Neighbors",
@@ -1160,6 +1221,13 @@ const baseLanguageStrings = {
     probEngineConfidenceLow: "Low confidence",
     probEngineConfidenceMedium: "Medium confidence",
     probEngineConfidenceHigh: "High confidence",
+    probEngineHorizonLabel: "Forecast horizon (days)",
+    probEngineKLabel: "K (neighbors)",
+    probEngineWeightingLabel: "Weighting method",
+    probEngineSuccessThresholdLabel: "Success threshold (return >)",
+    probEngineHighlightLabel: "Highlight if P(up) above (%)",
+    probEngineApplyLabel: "Apply",
+    probEngineHighlightHit: "P(up) cleared the highlight bar",
     eventContextTitle: "Event Context",
     eventContextLabel: "Event Context",
     eventContextNone: "No known event window",
@@ -1520,6 +1588,7 @@ let state = {
     k: 150,
     threshold: 0,
     weighting: "inverse_distance",
+    highlightThreshold: 0.65,
   },
   probabilityResult: null,
 };
@@ -2504,6 +2573,8 @@ hub.subscribe((state) => {
     const confidenceEl = document.getElementById("probEngineConfidence");
     const descriptionEl = document.getElementById("probEngineDescription");
     const neighborList = document.getElementById("probEngineTopNeighbors");
+    const successFlag = document.getElementById("probEngineSuccessFlag");
+    const probWrap = document.getElementById("probEngineProbWrap");
 
     if (error) { renderCardError("probEngineCard", t("probEngineTitle"), error); return; }
     if (!probEl || !horizonEl || !medianEl || !rangeEl || !neighborsEl || !confidenceEl || !neighborList) return;
@@ -2518,6 +2589,8 @@ hub.subscribe((state) => {
       confidenceEl.textContent = t("probEngineConfidenceLow");
       descriptionEl.textContent = t("limitsCopy");
       neighborList.innerHTML = `<div class="muted">${t("limitsCopy")}</div>`;
+      if (successFlag) successFlag.style.display = "none";
+      if (probWrap) probWrap.classList.remove("highlight");
     };
 
     if (!result) {
@@ -2543,6 +2616,16 @@ hub.subscribe((state) => {
 
     descriptionEl.textContent = result.description || t("limitsCopy");
 
+    const highlightThreshold = Number(config?.highlightThreshold ?? 0);
+    const hit = highlightThreshold > 0 && result.pSuccess >= highlightThreshold;
+    if (probWrap) probWrap.classList.toggle("highlight", hit);
+    if (successFlag) {
+      successFlag.style.display = hit ? "inline-flex" : "none";
+      successFlag.textContent = hit
+        ? `${t("probEngineHighlightHit")} (${fmtPct(highlightThreshold, 0)}+)`
+        : "";
+    }
+
     const top = Array.isArray(result.neighborsTop) ? result.neighborsTop.slice(0, 4) : [];
     if (!top.length) {
       neighborList.innerHTML = `<div class="muted">${t("limitsCopy")}</div>`;
@@ -2559,6 +2642,21 @@ hub.subscribe((state) => {
         })
         .join("");
     }
+  }
+
+  function renderProbabilitySettings(config) {
+    const horizonSelect = document.getElementById("probSettingHorizon");
+    const kSelect = document.getElementById("probSettingK");
+    const weightingSelect = document.getElementById("probSettingWeighting");
+    const thresholdSelect = document.getElementById("probSettingThreshold");
+    const highlightInput = document.getElementById("probSettingHighlight");
+    if (!horizonSelect || !kSelect || !weightingSelect || !thresholdSelect || !highlightInput) return;
+
+    horizonSelect.value = String(config?.horizon ?? 20);
+    kSelect.value = String(config?.k ?? 150);
+    weightingSelect.value = config?.weighting ?? "inverse_distance";
+    thresholdSelect.value = String(Math.round((config?.threshold ?? 0) * 100));
+    highlightInput.value = Math.round((config?.highlightThreshold ?? 0) * 100);
   }
 
   function percentile(arr, pct) {
@@ -3058,6 +3156,7 @@ hub.subscribe((state) => {
     renderContextPanel(currentContext, conditionalContextStats, dataErrors.crossMarketCurrent);
     renderProbabilistic(probabilistic, dataErrors.probabilistic);
     renderProbabilityEngine(state.probabilityResult, state.probabilityEngine, dataErrors.prices || dataErrors.legacyPrices);
+    renderProbabilitySettings(state.probabilityEngine);
     renderMeta();
     renderSummary();
     renderDeviationPanel();
@@ -3086,6 +3185,47 @@ hub.subscribe((state) => {
   document.getElementById("toggleMa").addEventListener("change", (e) => { state.showMa = e.target.checked; renderPrice(state.range); });
   document.getElementById("toggleBoll").addEventListener("change", (e) => { state.showBoll = e.target.checked; renderPrice(state.range); });
   document.getElementById("toggleCycles").addEventListener("change", (e) => { state.showCycles = e.target.checked; renderPrice(state.range); });
+
+  const probInfoBtn = document.getElementById("probEngineInfoBtn");
+  if (probInfoBtn) {
+    probInfoBtn.addEventListener("click", () => {
+      window.open("./docs/how-it-works-he.html", "_blank", "noopener");
+    });
+  }
+
+  const probSettingsToggle = document.getElementById("probEngineSettingsToggle");
+  const probSettingsPanel = document.getElementById("probEngineSettingsPanel");
+  if (probSettingsToggle && probSettingsPanel) {
+    probSettingsToggle.addEventListener("click", () => {
+      const isHidden = probSettingsPanel.style.display === "none";
+      probSettingsPanel.style.display = isHidden ? "grid" : "none";
+      probSettingsToggle.classList.toggle("active", isHidden);
+    });
+  }
+
+  const applyProbabilitySettings = () => {
+    const horizon = Number(document.getElementById("probSettingHorizon")?.value) || state.probabilityEngine.horizon;
+    const k = Number(document.getElementById("probSettingK")?.value) || state.probabilityEngine.k;
+    const weighting = document.getElementById("probSettingWeighting")?.value || state.probabilityEngine.weighting;
+    const thresholdPct = Number(document.getElementById("probSettingThreshold")?.value) || 0;
+    const highlightPct = Number(document.getElementById("probSettingHighlight")?.value);
+
+    state.probabilityEngine = {
+      ...state.probabilityEngine,
+      horizon,
+      k,
+      weighting,
+      threshold: thresholdPct / 100,
+      highlightThreshold: Number.isFinite(highlightPct) ? highlightPct / 100 : state.probabilityEngine.highlightThreshold,
+    };
+
+    state.probabilityResult = featureRows.length ? knnAnalogProbability(featureRows, state.probabilityEngine) : null;
+    renderProbabilityEngine(state.probabilityResult, state.probabilityEngine, dataErrors.prices || dataErrors.legacyPrices);
+    renderProbabilitySettings(state.probabilityEngine);
+  };
+
+  const probApplyBtn = document.getElementById("probEngineApply");
+  if (probApplyBtn) probApplyBtn.addEventListener("click", applyProbabilitySettings);
 
   const langSelect = document.getElementById("langSelect");
   if (langSelect) {
