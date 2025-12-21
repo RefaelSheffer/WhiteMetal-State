@@ -23,16 +23,18 @@ function getRepoBaseFromLocation() {
   const path = window.location.pathname || "/";
   const segments = path.split("/").filter(Boolean);
 
-  // If you're using https://refaelsheffer.github.io (user site), segments[0] is probably nothing.
-  // If you're using https://refaelsheffer.github.io/WhiteMetal-State/, segments[0] === "WhiteMetal-State"
-  if (segments.length === 0) return "/";
-
-  // Heuristic: if you know repo name, you can force it via a meta tag (recommended).
+  // When a meta tag is provided, honor it before guessing from the URL structure.
+  // This ensures custom domains (where pathname is just "/") can still point at
+  // a nested repo base like "/WhiteMetal-State/".
   const meta = document.querySelector('meta[name="wm-base"]');
   if (meta?.content) {
     const forced = meta.content.trim();
-    return forced.endsWith("/") ? forced : forced + "/";
+    if (forced) return forced.endsWith("/") ? forced : `${forced}/`;
   }
+
+  // If you're using https://refaelsheffer.github.io (user site), segments[0] is probably nothing.
+  // If you're using https://refaelsheffer.github.io/WhiteMetal-State/, segments[0] === "WhiteMetal-State"
+  if (segments.length === 0) return "/";
 
   // Otherwise: treat first segment as repo base (works for project pages).
   return `/${segments[0]}/`;
