@@ -1170,6 +1170,64 @@ function applyCosts(equitySeries, costBps = 0.0) {
   return out;
 }
 
+let state = {
+  range: "3m",
+  lang: detectLang(),
+  showMa: true,
+  showBoll: true,
+  showCycles: true,
+  showNet: true,
+  showSensitivity: false,
+  costBps: 10,
+  slippageBps: 5,
+  startDate: "",
+  endDate: "",
+  dateRangePreset: "all",
+  maWindow: 50,
+  rsiPeriod: 14,
+  rsiOversold: 35,
+  rsiOverbought: 65,
+  bandWindow: 20,
+  bandStd: 2,
+  strategy: "cycle_basic",
+  useAtrSizing: false,
+  targetDailyVol: 1.0,
+  useStopLoss: false,
+  stopAtrMult: 2.5,
+  heatmapMode: "deviation",
+  heatmapRange: "all",
+  heatmapWeekly: false,
+  isAdvancedOpen: false,
+};
+
+function t(key) { return translations[state.lang]?.[key] ?? translations.en[key] ?? key; }
+
+function updateAdvancedCopy() {
+  const heading = document.getElementById("advancedHeading");
+  const subtitle = document.getElementById("advancedSubtitle");
+  const toggle = document.getElementById("advancedToggle");
+  const panel = document.getElementById("advancedPanel");
+  if (!heading || !subtitle || !toggle || !panel) return;
+  heading.textContent = state.isAdvancedOpen ? t("advancedOpenTitle") : t("advancedClosedTitle");
+  subtitle.textContent = state.isAdvancedOpen ? t("advancedOpenSubtitle") : t("advancedClosedSubtitle");
+  toggle.textContent = state.isAdvancedOpen ? t("hideAdvanced") : t("showAdvanced");
+  toggle.setAttribute("aria-expanded", state.isAdvancedOpen ? "true" : "false");
+  panel.style.display = state.isAdvancedOpen ? "block" : "none";
+}
+
+function attachAdvancedToggle() {
+  const advancedToggle = document.getElementById("advancedToggle");
+  if (!advancedToggle || advancedToggle.dataset.bound === "true") return;
+  advancedToggle.dataset.bound = "true";
+  advancedToggle.addEventListener("click", () => {
+    state.isAdvancedOpen = !state.isAdvancedOpen;
+    updateAdvancedCopy();
+  });
+}
+
+attachAdvancedToggle();
+updateAdvancedCopy();
+
 (async () => {
   try {
     const pricePromise = loadPrices();
@@ -1205,49 +1263,20 @@ function applyCosts(equitySeries, costBps = 0.0) {
 
     const priceDateStrings = Array.isArray(prices?.dates) ? prices.dates.filter(Boolean) : [];
     const priceDates = priceDateStrings.map((d) => new Date(d));
-  const state = {
-    range: "3m",
-    lang: detectLang(),
-    showMa: true,
-    showBoll: true,
-    showCycles: true,
-    showNet: true,
-    showSensitivity: false,
-    costBps: 10,
-    slippageBps: 5,
-    startDate: priceDateStrings[0] ?? "",
-    endDate: priceDateStrings[priceDateStrings.length - 1] ?? "",
-    dateRangePreset: "all",
-    maWindow: 50,
-    rsiPeriod: 14,
-    rsiOversold: 35,
-    rsiOverbought: 65,
-    bandWindow: 20,
-    bandStd: 2,
-    strategy: "cycle_basic",
-    useAtrSizing: false,
-    targetDailyVol: 1.0,
-    useStopLoss: false,
-    stopAtrMult: 2.5,
-    heatmapMode: "deviation",
-    heatmapRange: "all",
-    heatmapWeekly: false,
-    isAdvancedOpen: false,
-  };
-  const buyHoldCurve = normalizeEquityFromPrices(prices.close);
-  if (backtestEquity?.fees) {
-    state.costBps = backtestEquity.fees.cost_bps ?? state.costBps;
-    state.slippageBps = backtestEquity.fees.slippage_bps ?? state.slippageBps;
-  }
-  let lastBacktest = { trades: backtestTradeLog?.trades || [] };
-  const heatmaps = {
-    deviation: heatmapDeviation,
-    volatility: heatmapVolatility,
-    momentum: heatmapMomentum,
-    stats: statsByBand,
-  };
-
-  function t(key) { return translations[state.lang]?.[key] ?? translations.en[key] ?? key; }
+    state.startDate = priceDateStrings[0] ?? state.startDate;
+    state.endDate = priceDateStrings[priceDateStrings.length - 1] ?? state.endDate;
+    const buyHoldCurve = normalizeEquityFromPrices(prices.close);
+    if (backtestEquity?.fees) {
+      state.costBps = backtestEquity.fees.cost_bps ?? state.costBps;
+      state.slippageBps = backtestEquity.fees.slippage_bps ?? state.slippageBps;
+    }
+    let lastBacktest = { trades: backtestTradeLog?.trades || [] };
+    const heatmaps = {
+      deviation: heatmapDeviation,
+      volatility: heatmapVolatility,
+      momentum: heatmapMomentum,
+      stats: statsByBand,
+    };
 
   function applyLanguage() {
     document.documentElement.lang = state.lang;
@@ -1259,19 +1288,6 @@ function applyCosts(equitySeries, costBps = 0.0) {
     const langBtn = document.getElementById("langToggle");
     langBtn.textContent = state.lang === "he" ? translations.en.langToggleEnglish : translations.he.langToggleHebrew;
     langBtn.setAttribute("aria-label", state.lang === "he" ? translations.en.switchToEnglishAria : translations.he.switchToHebrewAria);
-  }
-
-  function updateAdvancedCopy() {
-    const heading = document.getElementById("advancedHeading");
-    const subtitle = document.getElementById("advancedSubtitle");
-    const toggle = document.getElementById("advancedToggle");
-    const panel = document.getElementById("advancedPanel");
-    if (!heading || !subtitle || !toggle || !panel) return;
-    heading.textContent = state.isAdvancedOpen ? t("advancedOpenTitle") : t("advancedClosedTitle");
-    subtitle.textContent = state.isAdvancedOpen ? t("advancedOpenSubtitle") : t("advancedClosedSubtitle");
-    toggle.textContent = state.isAdvancedOpen ? t("hideAdvanced") : t("showAdvanced");
-    toggle.setAttribute("aria-expanded", state.isAdvancedOpen ? "true" : "false");
-    panel.style.display = state.isAdvancedOpen ? "block" : "none";
   }
 
   function updateDateRangeUi() {
@@ -2332,12 +2348,6 @@ function applyCosts(equitySeries, costBps = 0.0) {
 
   document.getElementById("langToggle").addEventListener("click", () => { state.lang = state.lang === "he" ? "en" : "he"; localStorage.setItem("lang", state.lang); renderAll(); });
 
-    const advancedToggle = document.getElementById("advancedToggle");
-    advancedToggle.addEventListener("click", () => {
-      state.isAdvancedOpen = !state.isAdvancedOpen;
-      updateAdvancedCopy();
-    });
-
     const startInput = document.getElementById("startDate");
     const endInput = document.getElementById("endDate");
     const dateRangeSelect = document.getElementById("dateRangeSelect");
@@ -2405,6 +2415,9 @@ function applyCosts(equitySeries, costBps = 0.0) {
     console.error("Failed to initialize dashboard", err);
     const updated = document.getElementById("updated");
     if (updated) updated.textContent = `Error loading data: ${err.message}`;
+  } finally {
+    attachAdvancedToggle();
+    updateAdvancedCopy();
   }
 })();
 </script>
