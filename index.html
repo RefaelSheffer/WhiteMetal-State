@@ -590,6 +590,26 @@
                 <label class="small" data-i18n="stopAtrMult">Stop ATR multiple</label>
                 <input type="number" id="stopAtrMult" step="0.1" value="2.5" min="0" />
               </div>
+              <label class="toggle"><input type="checkbox" id="useTrailingStop" /> <span data-i18n="useTrailingStop">Enable trailing stop</span></label>
+              <div>
+                <label class="small" data-i18n="trailingAtrMult">Trailing ATR multiple</label>
+                <input type="number" id="trailingAtrMult" step="0.1" value="3.0" min="0" />
+              </div>
+              <label class="toggle"><input type="checkbox" id="useVarSizing" /> <span data-i18n="useVarSizing">Size by VaR</span></label>
+              <div class="grid-2">
+                <div>
+                  <label class="small" data-i18n="varConfidence">VaR confidence (%)</label>
+                  <input type="number" id="varConfidence" step="1" value="95" min="50" max="99" />
+                </div>
+                <div>
+                  <label class="small" data-i18n="varRisk">Risk budget per trade (%)</label>
+                  <input type="number" id="varRisk" step="0.1" value="1.0" min="0" max="10" />
+                </div>
+                <div>
+                  <label class="small" data-i18n="varLookback">VaR lookback (days)</label>
+                  <input type="number" id="varLookback" step="5" value="60" min="20" max="400" />
+                </div>
+              </div>
             </div>
           </div>
           <div style="display:flex; align-items:flex-end;">
@@ -886,6 +906,12 @@ const baseLanguageStrings = {
     targetDailyVol: "יעד סטיית תקן יומית (%)",
     useStopLoss: "שימוש ב-Stop-loss",
     stopAtrMult: "מקדם ATR ל-Stop",
+    useTrailingStop: "Trailing stop",
+    trailingAtrMult: "מקדם ATR ל-Trailing",
+    useVarSizing: "גודל פוזיציה לפי VaR",
+    varConfidence: "רמת ביטחון VaR (%)",
+    varRisk: "סיכון פוזיציה (%)",
+    varLookback: "חלון VaR (ימים)",
     runSimulation: "Run Simulation",
     strategyPick: "Strategy",
     strategyTrend: "Trend",
@@ -1100,6 +1126,12 @@ const baseLanguageStrings = {
     targetDailyVol: "Target daily vol (%)",
     useStopLoss: "Use stop-loss",
     stopAtrMult: "Stop ATR multiple",
+    useTrailingStop: "Enable trailing stop",
+    trailingAtrMult: "Trailing ATR multiple",
+    useVarSizing: "Size by VaR",
+    varConfidence: "VaR confidence (%)",
+    varRisk: "Risk budget per trade (%)",
+    varLookback: "VaR lookback (days)",
     runSimulation: "Run Simulation",
     strategyPick: "Strategy",
     strategyTrend: "Trend",
@@ -1271,6 +1303,13 @@ let state = {
   targetDailyVol: 1.0,
   useStopLoss: false,
   stopAtrMult: 2.5,
+  useTrailingStop: false,
+  trailingAtrMult: 3.0,
+  useVarSizing: false,
+  varConfidence: 95,
+  varRisk: 1.0,
+  varLookback: 60,
+  useCustomBacktest: false,
   heatmapMode: "deviation",
   heatmapRange: "all",
   heatmapWeekly: false,
@@ -1312,7 +1351,7 @@ updateAdvancedCopy();
 (async () => {
   try {
     const pricePromise = loadPrices();
-    const [meta, prices, probabilistic, anomalies, perfSummary, equityCurve, cycleStats, heatmapDeviation, heatmapVolatility, heatmapMomentum, statsByBand, eventContextRaw, eventImpactStatsRaw, currentContextRaw, conditionalContextStatsRaw, backtestEquity, backtestFeesImpact, backtestFeesSensitivity, backtestTradeLog, backtestRiskMetrics] = await Promise.all([
+    const [meta, prices, probabilistic, anomalies, perfSummary, equityCurve, cycleStats, heatmapDeviation, heatmapVolatility, heatmapMomentum, statsByBand, eventContextRaw, eventImpactStatsRaw, currentContextRaw, conditionalContextStatsRaw, backtestEquity, backtestFeesImpact, backtestFeesSensitivity, backtestTradeLog, backtestRiskMetrics, perfAtr, perfAdx] = await Promise.all([
       getJson("./public/data/meta.json"),
       pricePromise,
       getJson("./public/data/signals/probabilistic.json"),
@@ -1330,9 +1369,11 @@ updateAdvancedCopy();
         optionalJson("./public/data/context/cross_market_conditional.json"),
         optionalJson("./public/data/backtest/equity_curves.json"),
         optionalJson("./public/data/backtest/fees_impact.json"),
-        optionalJson("./public/data/backtest/fees_sensitivity.json"),
-        optionalJson("./public/data/backtest/trade_log.json"),
-        optionalJson("./public/data/backtest/risk_metrics.json"),
+      optionalJson("./public/data/backtest/fees_sensitivity.json"),
+      optionalJson("./public/data/backtest/trade_log.json"),
+      optionalJson("./public/data/backtest/risk_metrics.json"),
+      optionalJson("./public/data/perf/atr.json"),
+      optionalJson("./public/data/perf/adx.json"),
       ]);
 
     const decomposition = await loadDecomposition();
@@ -1341,6 +1382,8 @@ updateAdvancedCopy();
     const eventImpactStats = eventImpactStatsRaw || {};
     const currentContext = currentContextRaw || (await optionalJson("./public/data/context/current_context.json"));
     const conditionalContextStats = conditionalContextStatsRaw || (await optionalJson("./public/data/context/conditional_stats.json"));
+    const atrSeries = Array.isArray(perfAtr?.atr) ? perfAtr.atr : [];
+    const adxSeries = Array.isArray(perfAdx?.adx) ? perfAdx.adx : [];
 
     const priceDateStrings = Array.isArray(prices?.dates) ? prices.dates.filter(Boolean) : [];
     const priceDates = priceDateStrings.map((d) => new Date(d));
@@ -2101,75 +2144,176 @@ updateAdvancedCopy();
     }
   }
 
+  function percentile(arr, pct) {
+    if (!Array.isArray(arr) || !arr.length) return null;
+    const sorted = [...arr].sort((a, b) => a - b);
+    const clamped = Math.min(100, Math.max(0, pct));
+    const rank = (clamped / 100) * (sorted.length - 1);
+    const lower = Math.floor(rank);
+    const upper = Math.ceil(rank);
+    if (lower === upper) return sorted[lower];
+    const weight = rank - lower;
+    return sorted[lower] * (1 - weight) + sorted[upper] * weight;
+  }
+
+  function buildIndicatorLookup(series, key) {
+    if (!Array.isArray(series)) return {};
+    const lookup = {};
+    series.forEach((row) => {
+      if (!row) return;
+      const k = row.date || (row.index !== undefined ? String(row.index) : null);
+      const v = key ? row[key] : null;
+      if (k !== null && v !== undefined && v !== null) lookup[k] = Number(v);
+    });
+    return lookup;
+  }
+
   function runBacktest(closes, dates, options) {
     const ma = movingAverage(closes, options.maWindow || 50);
     const bands = bollinger(closes, options.bandWindow || 20, options.bandStd || 2);
     const rsi = computeRsi(closes, options.rsiPeriod || 14);
+    const atrLookup = buildIndicatorLookup(options.atrSeries, "atr");
+    const adxLookup = buildIndicatorLookup(options.adxSeries, "adx");
 
     const gross = [{ index: 0, equity: 1 }];
+    const net = [{ index: 0, equity: 1 }];
     const trades = [];
-    let equity = 1;
-    let inPosition = false;
-    let entryIndex = null;
-    let entryEquity = 1;
+    const returns = closes.map((c, i) => (i === 0 ? 0 : (c / (closes[i - 1] || 1)) - 1));
+    const costRate = ((options.costBps || 0) + (options.slippageBps || 0)) / 10000;
+    const targetVol = (Number(options.targetDailyVol) || 0) / 100;
+    const stopMult = Number(options.stopAtrMult) || 0;
+    const trailMult = Number(options.trailingAtrMult) || 0;
+    const riskBudget = (Number(options.varRisk) || 0) / 100;
+    const varLookback = Math.max(10, Number(options.varLookback) || 60);
+    const varTailPct = 100 - (Number(options.varConfidence) || 95);
 
-    for (let i = 1; i < closes.length; i++) {
-      if (inPosition) {
-        const ret = closes[i] / closes[i - 1] - 1;
-        equity *= 1 + ret;
+    let equityGross = 1;
+    let equityNet = 1;
+    let inPosition = false;
+    let position = 0;
+    let entryIndex = null;
+    let entryGross = 1;
+    let entryNet = 1;
+    let entryPrice = 0;
+    let entryAtr = null;
+    let peakPrice = 0;
+
+    const clampSize = (v) => Math.max(0, Math.min(1, Number(v)));
+
+    const sizeForIndex = (i) => {
+      let size = 1;
+      const atrValue = atrLookup[dates[i]] ?? null;
+      const adxValue = adxLookup[dates[i]] ?? null;
+      const close = closes[i];
+      if (options.useAtrSizing && atrValue !== null && close) {
+        const atrPct = atrValue / close;
+        if (atrPct > 0 && targetVol > 0) {
+          size = Math.min(size, targetVol / atrPct);
+        }
       }
 
-      gross.push({ index: i, equity: Number(equity.toFixed(6)) });
+      if (options.useVarSizing && i > 2) {
+        const start = Math.max(1, i - varLookback);
+        const window = returns.slice(start, i + 1);
+        const tail = percentile(window, varTailPct);
+        if (tail !== null && tail < 0 && riskBudget > 0) {
+          const sizeFromVar = riskBudget / Math.abs(tail);
+          size = Math.min(size, sizeFromVar);
+        }
+      }
 
+      if (adxValue !== null && adxValue < 15) size *= 0.75;
+
+      return clampSize(size);
+    };
+
+    const recordExit = (i, reason) => {
+      equityNet *= 1 - costRate * position;
+      const grossRet = equityGross / entryGross - 1;
+      const netRet = equityNet / entryNet - 1;
+      trades.push({
+        entry: dates[entryIndex],
+        exit: dates[i],
+        reason,
+        return: netRet,
+        gross_return: grossRet,
+        hold: i - entryIndex,
+        size: Number(position.toFixed(4)),
+      });
+      inPosition = false;
+      position = 0;
+      entryIndex = null;
+      entryPrice = 0;
+      entryAtr = null;
+      peakPrice = 0;
+    };
+
+    for (let i = 1; i < closes.length; i++) {
       const maVal = ma[i];
       const rsiVal = rsi[i];
       const lower = bands.lower[i];
 
+      if (inPosition) {
+        const ret = returns[i];
+        equityGross *= 1 + ret * position;
+        equityNet *= 1 + ret * position;
+        peakPrice = Math.max(peakPrice, closes[i]);
+      }
+
+      gross.push({ index: i, equity: Number(equityGross.toFixed(6)) });
+      net.push({ index: i, equity: Number(equityNet.toFixed(6)) });
+
+      const atrForEntry = entryAtr ?? (entryIndex !== null ? atrLookup[dates[entryIndex]] : null);
+      const stopLoss = inPosition && options.useStopLoss && atrForEntry !== null && closes[i] <= entryPrice - stopMult * atrForEntry;
+      const trailingStop =
+        inPosition && options.useTrailingStop && atrForEntry !== null && peakPrice && closes[i] <= peakPrice - trailMult * atrForEntry;
       const exitMa = inPosition && maVal !== null && closes[i] < maVal;
       const exitRsi = inPosition && rsiVal !== null && rsiVal >= (options.rsiOverbought || 65);
-      if (exitMa || exitRsi) {
-        const ret = equity / entryEquity - 1;
-        trades.push({
-          entry: dates[entryIndex],
-          exit: dates[i],
-          reason: exitRsi ? "RSI exit" : "MA breakdown",
-          return: ret,
-          hold: i - entryIndex,
-        });
-        inPosition = false;
-        entryIndex = null;
-        entryEquity = equity;
+
+      if (inPosition && (exitMa || exitRsi || stopLoss || trailingStop)) {
+        const reason = stopLoss
+          ? "ATR stop"
+          : trailingStop
+          ? "Trailing stop"
+          : exitRsi
+          ? "RSI exit"
+          : "MA breakdown";
+        recordExit(i, reason);
+        continue;
       }
 
       const entryBand = lower !== null && closes[i] <= lower;
       const entryRsi = rsiVal !== null && rsiVal <= (options.rsiOversold || 35);
       const entryTrend = maVal !== null && closes[i] >= maVal * 0.98;
       if (!inPosition && entryBand && entryRsi && entryTrend) {
+        const size = sizeForIndex(i);
+        if (size <= 0) continue;
         inPosition = true;
+        position = size;
         entryIndex = i;
-        entryEquity = equity;
+        entryPrice = closes[i];
+        entryGross = equityGross;
+        equityNet *= 1 - costRate * position;
+        entryNet = equityNet;
+        entryAtr = atrLookup[dates[i]] ?? null;
+        peakPrice = entryPrice;
       }
     }
 
     if (inPosition && entryIndex !== null) {
-      const ret = equity / entryEquity - 1;
-      trades.push({
-        entry: dates[entryIndex],
-        exit: dates[dates.length - 1],
-        reason: "Range timeout",
-        return: ret,
-        hold: dates.length - 1 - entryIndex,
-      });
+      recordExit(closes.length - 1, "Range timeout");
     }
 
     const buyHold = buildBuyHoldSeries(closes);
 
     return {
       gross,
+      net,
       buyHold,
       trades,
       stats: {
-        strategy: computeStats(gross),
+        strategy: computeStats(net),
+        strategyGross: computeStats(gross),
         benchmark: computeStats(buyHold),
       },
     };
@@ -2186,6 +2330,7 @@ updateAdvancedCopy();
     const hasPrecomputed = Array.isArray(backtestEquity?.rows) && backtestEquity.rows.length;
     const tradesCount = backtestFeesImpact?.totals?.num_trades ?? (backtestTradeLog?.trades?.length ?? 0);
     const sensitivityAvailable = (backtestFeesSensitivity?.rows?.length ?? 0) > 0 && tradesCount > 0;
+    const useCustomBacktest = state.useCustomBacktest || !hasPrecomputed;
     if (!sensitivityAvailable) state.showSensitivity = false;
     const sensToggle = document.getElementById("toggleFeesSensitivity");
     if (sensToggle) {
@@ -2193,7 +2338,7 @@ updateAdvancedCopy();
       sensToggle.disabled = !sensitivityAvailable;
     }
 
-    if (hasPrecomputed) {
+    if (hasPrecomputed && !useCustomBacktest) {
       const equityRows = backtestEquity.rows;
       const datesMasked = applyMask(equityRows, mask, (r) => new Date(r.date));
       const gross = applyMask(equityRows, mask, (r) => ({ equity: r.strategy_gross }));
@@ -2270,13 +2415,13 @@ updateAdvancedCopy();
       return;
     }
 
-    const backtest = runBacktest(close, dates, state);
+    const backtest = runBacktest(close, dates, { ...state, atrSeries, adxSeries });
     lastBacktest = backtest;
     const gross = backtest.gross;
     const buyHold = backtest.buyHold;
-    const net = applyCosts(gross, state.costBps);
-    const grossStats = backtest.stats.strategy;
-    const netStats = computeStats(net);
+    const net = backtest.net ?? applyCosts(gross, state.costBps + state.slippageBps);
+    const grossStats = backtest.stats.strategyGross ?? backtest.stats.strategy;
+    const netStats = backtest.stats.strategy ?? computeStats(net);
     const benchStats = backtest.stats.benchmark;
     const selectedStats = state.showNet ? netStats : grossStats;
 
@@ -2311,6 +2456,11 @@ updateAdvancedCopy();
       <tr><td>${state.showNet ? "Strategy (Net)" : "Strategy (Gross)"}</td><td>${fmtPct(chosenReturn, 2)}</td><td>${maxDdDisplay}</td><td>${fmt(selectedStats.sharpe, 2)}</td><td>${fmt(selectedStats.sortino, 2)}</td></tr>
       <tr><td>${t("buyHoldLabel")}</td><td>${fmtPct(benchReturn, 2)}</td><td>${fmtPct(benchStats.maxDrawdown, 2)}</td><td>${fmt(benchStats.sharpe, 2)}</td><td>${fmt(benchStats.sortino, 2)}</td></tr>
     `;
+
+    document.getElementById("roundTripBps").textContent = `${(state.costBps + state.slippageBps) * 2} bps`;
+    document.getElementById("numTrades").textContent = backtest.trades?.length ?? 0;
+    const feesTotalEl = document.getElementById("feesTotal");
+    if (feesTotalEl) feesTotalEl.textContent = `${fmtPct(drag, 2)} drag vs gross`;
   }
 
   function renderTradeLog() {
@@ -2532,6 +2682,16 @@ updateAdvancedCopy();
     endInput.value = state.endDate.slice(0, 10);
     document.getElementById("costsInput").value = state.costBps;
     document.getElementById("slippageInput").value = state.slippageBps;
+    document.getElementById("useAtrSizing").checked = state.useAtrSizing;
+    document.getElementById("targetDailyVol").value = state.targetDailyVol;
+    document.getElementById("useStopLoss").checked = state.useStopLoss;
+    document.getElementById("stopAtrMult").value = state.stopAtrMult;
+    document.getElementById("useTrailingStop").checked = state.useTrailingStop;
+    document.getElementById("trailingAtrMult").value = state.trailingAtrMult;
+    document.getElementById("useVarSizing").checked = state.useVarSizing;
+    document.getElementById("varConfidence").value = state.varConfidence;
+    document.getElementById("varRisk").value = state.varRisk;
+    document.getElementById("varLookback").value = state.varLookback;
 
     const syncDates = () => {
       const startDate = new Date(state.startDate);
@@ -2566,13 +2726,19 @@ updateAdvancedCopy();
     startInput.addEventListener("change", (e) => { state.startDate = e.target.value || state.startDate; state.dateRangePreset = "custom"; dateRangeSelect.value = "custom"; syncDates(); renderAll(); });
     endInput.addEventListener("change", (e) => { state.endDate = e.target.value || state.endDate; state.dateRangePreset = "custom"; dateRangeSelect.value = "custom"; syncDates(); renderAll(); });
 
-    document.getElementById("costsInput").addEventListener("input", (e) => { state.costBps = Number(e.target.value) || 0; renderEquity(state.range); });
-    document.getElementById("slippageInput").addEventListener("input", (e) => { state.slippageBps = Number(e.target.value) || 0; });
+    document.getElementById("costsInput").addEventListener("input", (e) => { state.costBps = Number(e.target.value) || 0; state.useCustomBacktest = true; renderEquity(state.range); });
+    document.getElementById("slippageInput").addEventListener("input", (e) => { state.slippageBps = Number(e.target.value) || 0; state.useCustomBacktest = true; });
     document.getElementById("strategySelect").addEventListener("change", (e) => { state.strategy = e.target.value; });
-    document.getElementById("useAtrSizing").addEventListener("change", (e) => { state.useAtrSizing = e.target.checked; });
-    document.getElementById("targetDailyVol").addEventListener("input", (e) => { state.targetDailyVol = Number(e.target.value) || state.targetDailyVol; });
-    document.getElementById("useStopLoss").addEventListener("change", (e) => { state.useStopLoss = e.target.checked; });
-    document.getElementById("stopAtrMult").addEventListener("input", (e) => { state.stopAtrMult = Number(e.target.value) || state.stopAtrMult; });
+    document.getElementById("useAtrSizing").addEventListener("change", (e) => { state.useAtrSizing = e.target.checked; state.useCustomBacktest = true; });
+    document.getElementById("targetDailyVol").addEventListener("input", (e) => { state.targetDailyVol = Number(e.target.value) || state.targetDailyVol; state.useCustomBacktest = true; });
+    document.getElementById("useStopLoss").addEventListener("change", (e) => { state.useStopLoss = e.target.checked; state.useCustomBacktest = true; });
+    document.getElementById("stopAtrMult").addEventListener("input", (e) => { state.stopAtrMult = Number(e.target.value) || state.stopAtrMult; state.useCustomBacktest = true; });
+    document.getElementById("useTrailingStop").addEventListener("change", (e) => { state.useTrailingStop = e.target.checked; state.useCustomBacktest = true; });
+    document.getElementById("trailingAtrMult").addEventListener("input", (e) => { state.trailingAtrMult = Number(e.target.value) || state.trailingAtrMult; state.useCustomBacktest = true; });
+    document.getElementById("useVarSizing").addEventListener("change", (e) => { state.useVarSizing = e.target.checked; state.useCustomBacktest = true; });
+    document.getElementById("varConfidence").addEventListener("input", (e) => { state.varConfidence = Number(e.target.value) || state.varConfidence; state.useCustomBacktest = true; });
+    document.getElementById("varRisk").addEventListener("input", (e) => { state.varRisk = Number(e.target.value) || state.varRisk; state.useCustomBacktest = true; });
+    document.getElementById("varLookback").addEventListener("input", (e) => { state.varLookback = Number(e.target.value) || state.varLookback; state.useCustomBacktest = true; });
 
     document.querySelectorAll('input[name="equityMode"]').forEach((r) => {
       r.addEventListener('change', (e) => { state.showNet = e.target.value === 'net'; syncPnlModeRadios(); renderEquity(state.range); });
@@ -2586,7 +2752,7 @@ updateAdvancedCopy();
       sensToggle.addEventListener('change', (e) => { state.showSensitivity = e.target.checked; renderEquity(state.range); });
     }
 
-    document.getElementById("runSimulation").addEventListener("click", () => { renderAll(); });
+    document.getElementById("runSimulation").addEventListener("click", () => { state.useCustomBacktest = true; renderAll(); });
   } catch (err) {
     console.error("Failed to initialize dashboard", err);
     const updated = document.getElementById("updated");
