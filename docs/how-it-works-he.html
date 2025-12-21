@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>איך זה עובד – SLV Monitor</title>
+  <style>
+    body { font-family: system-ui, Arial; margin: 0; background: #0b0f17; color: #e8eefc; line-height: 1.6; }
+    .wrap { max-width: 900px; margin: 0 auto; padding: 24px; }
+    h1, h2 { color: #8bb2ff; }
+    section { margin-bottom: 24px; background: #111a2b; border: 1px solid #1e2a45; border-radius: 12px; padding: 18px; }
+    ul { padding-right: 20px; }
+    code { background: rgba(255,255,255,0.08); padding: 2px 4px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>🔍 איך זה עובד?</h1>
+    <p>המסך הראשי מציג חישובים סטטיסטיים בלבד. אין כאן ייעוץ השקעות. להלן פירוט על המדדים והמנועים שמזינים את הגרפים.</p>
+
+    <section>
+      <h2>חישוב פיצ׳רים טכניים</h2>
+      <ul>
+        <li><strong>RSI (14)</strong> – ממוצע עליות מול ירידות ב-14 ימי מסחר. ערך גבוה מצביע על קניות יתר, נמוך על מכירות יתר.</li>
+        <li><strong>ATR (14)</strong> – ממוצע נע של <em>true range</em> על פני 14 ימים. מודד תנודתיות נקייה מפערי פתיחה ומשמש לגודל פוזיציה או סטופים.</li>
+        <li><strong>Z-Score מול MA20</strong> – מרחק המחיר מהממוצע הנע 20 מחולק בסטיית התקן הגלגלת. ערך חיובי גבוה → המחיר מעל הרצועה, שלילי → מתחת.</li>
+        <li><strong>תשואות גלגלות</strong> – ret_5 / ret_20 / ret_60 מודדות שינוי אחוזי ב-5, 20 או 60 ימים אחרונים; vol_20 הוא סטיית התקן של תשואה יומית.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>מנוע kNN (Probability Engine)</h2>
+      <ul>
+        <li>כל יום במסד הנתונים מומר לוקטור תכונות (RSI, ATR%, Z-score ועוד) ומתוייג לפי תשואה קדימה (<code>fwd_5</code>, <code>fwd_20</code>, <code>fwd_60</code>).</li>
+        <li>המערכת מחפשת את <strong>K</strong> הימים הדומים ביותר ליום הנוכחי באמצעות מרחק אוקלידי מנורמל (z-score per feature).</li>
+        <li><strong>Weighting</strong>: "inverse distance" מעניק משקל 1/d, בעוד "softmax" מדגיש שכנים קרובים אקספוננציאלית.</li>
+        <li><strong>P(up)</strong> – סכום משקולות של השכנים עם תשואה חיובית מעל סף ההצלחה (0%, 1% או 2%). זהו אומדן הסתברותי, לא הבטחה.</li>
+        <li><strong>Median</strong> – החציון המשוקלל של תשואות השכנים על פני האופק הנבחר (5/20/60 ימים). מייצג תוצאה טיפוסית.</li>
+        <li><strong>Range</strong> – טווח אחוזוני 10–90 משוקלל כדי לתת מושג על פיזור אפשרי סביב החציון.</li>
+        <li><strong>N / Effective N</strong> – מספר השכנים שנמצאו והגודל האפקטיבי לאחר שקלול משקולות. Effective N קטן מרמז שהמודל נשען על מעט דוגמאות.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>סימולציה ובקרות סיכון</h2>
+      <ul>
+        <li>הסימולציות משתמשות בנתונים היסטוריים בלבד (ללא <em>lookahead</em>). כניסה/יציאה מבוססת על P(up) ומדדי ביטחון.</li>
+        <li>עמלות והחלקה מוחלות בכל טרייד כדי להמחיש השפעה תפעולית.</li>
+        <li>סטופים: ניתן להפעיל <strong>stop-loss</strong>, <strong>trailing stop</strong> או ניהול גודל פוזיציה לפי ATR/VaR כדי להקטין חשיפה.</li>
+        <li>תוצאות העבר אינן מבטיחות דבר על העתיד. שינויים מבניים בשוק, חדשות או נזילות נמוכה עלולים להפוך את המסקנות ללא רלוונטיות.</li>
+        <li>המשתמש אחראי לוודא שהפרמטרים מתאימים ליעדים ולסיבולת הסיכון האישית. הדגש "הצלחה" בדשבורד אינו תחליף לבדיקת שיקולים נוספים.</li>
+      </ul>
+    </section>
+  </div>
+</body>
+</html>
