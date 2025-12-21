@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="wm-base" content="/WhiteMetal-State/">
   <title>SLV Monitor</title>
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
   <style>
@@ -132,6 +133,7 @@
           <div class="big" data-i18n="title">SLV Monitor</div>
           <div class="muted" data-i18n="subtitle">דשבורד סטטי ב-GitHub Pages + “מוח” שרץ ב-GitHub Actions ומעדכן JSON.</div>
           <div class="muted mono" id="updated">Loading…</div>
+          <div id="global-status" style="margin:10px 0;"></div>
           <div class="meta-row">
             <span class="badge"><span data-i18n="metaSourceLabel">Data source</span>: <span class="mono" id="metaSource">—</span></span>
             <span class="badge"><span data-i18n="metaCoverageLabel">Coverage</span>: <span class="mono" id="metaCoverage">—</span></span>
@@ -664,15 +666,50 @@
 
 <script type="module">
 import { buildFeatureRows, knnAnalogProbability } from "./src/lib/probability-engine.js";
-async function getJson(path) {
-  const r = await fetch(path, { cache: "no-store" });
-  if (!r.ok) throw new Error(`Failed ${path}: ${r.status}`);
-  return await r.json();
+import { fetchJsonWithFallbacks, FetchAllCandidatesError } from "./src/lib/fetchJson.js";
+
+function setGlobalStatus(message, tone = "info") {
+  const el = document.getElementById("global-status");
+  if (!el) return;
+  if (!message) { el.innerHTML = ""; return; }
+  const styles = {
+    info: { border: "#4c9cff", color: "#a8b4d6" },
+    success: { border: "#22c55e", color: "#bbf7d0" },
+    error: { border: "#f33", color: "#fca5a5" },
+  };
+  const { border, color } = styles[tone] || styles.info;
+  el.innerHTML = `
+    <div style="padding:12px;border:1px solid ${border};border-radius:10px;color:${color};background:rgba(15,23,42,0.6);">
+      ${message}
+      <div style="font-size:12px;color:#a8b4d6;">Check DevTools console for details.</div>
+    </div>
+  `;
+}
+
+function showGlobalError(message) {
+  setGlobalStatus(`<b>Data load failed</b><br/>${message}`, "error");
+}
+
+function normalizeDataPath(path) {
+  const trimmed = (path || "").replace(/^\.\/+/, "").replace(/^\/+/, "");
+  const withoutPublic = trimmed.startsWith("public/") ? trimmed.slice("public/".length) : trimmed;
+  const withoutData = withoutPublic.startsWith("data/") ? withoutPublic.slice("data/".length) : withoutPublic;
+  return withoutData;
+}
+
+async function fetchJsonData(path, options = {}) {
+  const relativePath = normalizeDataPath(path);
+  return await fetchJsonWithFallbacks(relativePath, { debugLabel: options.debugLabel || path, ...options });
+}
+
+async function getJson(path, options = {}) {
+  const { data } = await fetchJsonData(path, options);
+  return data;
 }
 
 async function loadPrices() {
   try {
-    const legacy = await getJson("./data/slv_prices.json");
+    const legacy = await getJson("slv_prices.json");
     if (Array.isArray(legacy?.dates) && legacy.dates.length && Array.isArray(legacy.close)) {
       return legacy;
     }
@@ -680,7 +717,7 @@ async function loadPrices() {
     console.warn("Legacy price file missing, falling back to raw export", err);
   }
 
-  const raw = await getJson("./public/data/raw/slv_daily.json");
+  const raw = await getJson("raw/slv_daily.json");
   if (Array.isArray(raw) && raw.length) {
     const cleaned = raw.filter((r) => r && r.date !== undefined && r.date !== null && r.close !== undefined);
     if (!cleaned.length) throw new Error("Price data unavailable (missing date/close fields)");
@@ -706,7 +743,7 @@ async function optionalJson(path, fallbackPaths = []) {
 }
 
 async function loadDecomposition() {
-  const meta = await optionalJson("./public/data/diagnostics/decomposition_meta.json");
+  const meta = await optionalJson("diagnostics/decomposition_meta.json");
   const base = {
     status: meta?.status ?? (meta ? "ok" : "missing"),
     meta,
@@ -721,9 +758,9 @@ async function loadDecomposition() {
 
   try {
     const [trend, seasonal, residual] = await Promise.all([
-      getJson("./public/data/diagnostics/decomposition_trend.json"),
-      getJson("./public/data/diagnostics/decomposition_seasonal.json"),
-      getJson("./public/data/diagnostics/decomposition_residual.json"),
+      getJson("diagnostics/decomposition_trend.json"),
+      getJson("diagnostics/decomposition_seasonal.json"),
+      getJson("diagnostics/decomposition_residual.json"),
     ]);
     const mapSeries = (payload) => {
       const rows = Array.isArray(payload?.rows) ? payload.rows.filter((r) => r && r.date !== undefined) : [];
@@ -1449,31 +1486,43 @@ updateAdvancedCopy();
 
 (async () => {
   try {
+    setGlobalStatus("<b>Loading data…</b>");
     const pricePromise = loadPrices();
-    const [meta, prices, probabilistic, anomalies, perfSummary, equityCurve, cycleStats, heatmapDeviation, heatmapVolatility, heatmapMomentum, statsByBand, eventContextRaw, eventImpactStatsRaw, currentContextRaw, conditionalContextStatsRaw, backtestEquity, backtestFeesImpact, backtestFeesSensitivity, backtestTradeLog, backtestRiskMetrics, perfAtr, perfAdx] = await Promise.all([
-      getJson("./public/data/meta.json"),
+    const metaPromise = fetchJsonData("meta.json", { debugLabel: "meta.json" });
+    const [metaResult, prices, probabilistic, anomalies, perfSummary, equityCurve, cycleStats, heatmapDeviation, heatmapVolatility, heatmapMomentum, statsByBand, eventContextRaw, eventImpactStatsRaw, currentContextRaw, conditionalContextStatsRaw, backtestEquity, backtestFeesImpact, backtestFeesSensitivity, backtestTradeLog, backtestRiskMetrics, perfAtr, perfAdx] = await Promise.all([
+      metaPromise,
       pricePromise,
-      getJson("./public/data/signals/probabilistic.json"),
-      getJson("./public/data/anomalies/latest.json"),
-      getJson("./public/data/perf/summary.json"),
-      getJson("./public/data/perf/equity_curve.json"),
-      getJson("./public/data/events/cycle_stats.json"),
-      optionalJson("./public/data/heatmap/deviation.json"),
-        optionalJson("./public/data/heatmap/volatility.json"),
-        optionalJson("./public/data/heatmap/momentum.json"),
-        optionalJson("./public/data/heatmap/stats_by_band.json"),
-        optionalJson("./public/data/events/current_event_context.json"),
-        optionalJson("./public/data/events/event_impact_stats.json"),
-        optionalJson("./public/data/context/cross_market_current.json"),
-        optionalJson("./public/data/context/cross_market_conditional.json"),
-        optionalJson("./public/data/backtest/equity_curves.json", ["./data/backtest/equity_curves.json"]),
-        optionalJson("./public/data/backtest/fees_impact.json", ["./data/backtest/fees_impact.json"]),
-      optionalJson("./public/data/backtest/fees_sensitivity.json", ["./data/backtest/fees_sensitivity.json"]),
-      optionalJson("./public/data/backtest/trade_log.json", ["./data/backtest/trade_log.json"]),
-      optionalJson("./public/data/backtest/risk_metrics.json", ["./data/backtest/risk_metrics.json"]),
-      optionalJson("./public/data/perf/atr.json"),
-      optionalJson("./public/data/perf/adx.json"),
+      getJson("signals/probabilistic.json", { debugLabel: "signals/probabilistic.json" }),
+      getJson("anomalies/latest.json", { debugLabel: "anomalies/latest.json" }),
+      getJson("perf/summary.json", { debugLabel: "perf/summary.json" }),
+      getJson("perf/equity_curve.json", { debugLabel: "perf/equity_curve.json" }),
+      getJson("events/cycle_stats.json", { debugLabel: "events/cycle_stats.json" }),
+      optionalJson("heatmap/deviation.json"),
+        optionalJson("heatmap/volatility.json"),
+        optionalJson("heatmap/momentum.json"),
+        optionalJson("heatmap/stats_by_band.json"),
+        optionalJson("events/current_event_context.json"),
+        optionalJson("events/event_impact_stats.json"),
+        optionalJson("context/cross_market_current.json"),
+        optionalJson("context/cross_market_conditional.json"),
+        optionalJson("backtest/equity_curves.json"),
+        optionalJson("backtest/fees_impact.json"),
+      optionalJson("backtest/fees_sensitivity.json"),
+      optionalJson("backtest/trade_log.json"),
+      optionalJson("backtest/risk_metrics.json"),
+      optionalJson("perf/atr.json"),
+      optionalJson("perf/adx.json"),
       ]);
+
+    const meta = metaResult?.data ?? metaResult ?? {};
+    const metaSourceUrl = metaResult?.url;
+    if (metaSourceUrl) {
+      setGlobalStatus(`<b>Data loaded</b><br/>${metaSourceUrl}`, "success");
+      const metaSourceEl = document.getElementById("metaSource");
+      if (metaSourceEl) metaSourceEl.title = `Loaded from: ${metaSourceUrl}`;
+    } else {
+      setGlobalStatus("<b>Data loaded</b>", "success");
+    }
 
     const decomposition = await loadDecomposition();
 
@@ -2981,6 +3030,10 @@ updateAdvancedCopy();
     console.error("Failed to initialize dashboard", err);
     const updated = document.getElementById("updated");
     if (updated) updated.textContent = `Error loading data: ${err.message}`;
+    showGlobalError(err?.message || "Data load failed");
+    if (err instanceof FetchAllCandidatesError && err.details) {
+      console.table(err.details);
+    }
   } finally {
     attachAdvancedToggle();
     updateAdvancedCopy();
