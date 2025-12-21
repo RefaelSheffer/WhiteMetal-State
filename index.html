@@ -876,6 +876,14 @@ const baseLanguageStrings = {
     heatmapMeaningBearishMom: "ROC20 דובי · לחץ ירידות.",
     heatmapMeaningNeutralMom: "ROC20 ניטרלי · מומנטום שטוח.",
     heatmapMeaningBullishMom: "ROC20 שורי · מומנטום עליות.",
+    heatmapTooltipDate: "תאריך",
+    heatmapTooltipClose: "סגירה",
+    heatmapTooltipZScore: "Z-score",
+    heatmapTooltipPercentile: "אחוזון",
+    heatmapTooltipAtrPct: "ATR%",
+    heatmapTooltipRoc20: "ROC20",
+    heatmapTooltipMeaning: "משמעות",
+    heatmapMissingData: "אין נתונים לנקודה זו.",
     viewLabel: "תצוגה",
     weeklyAgg: "שבועי",
     limitsCopy: "הנתונים היסטוריים בלבד; לא התחייבות לתוצאה.",
@@ -1104,6 +1112,14 @@ const baseLanguageStrings = {
     heatmapMeaningBearishMom: "Bearish ROC20 · Downside momentum.",
     heatmapMeaningNeutralMom: "Neutral ROC20 · Flat momentum.",
     heatmapMeaningBullishMom: "Bullish ROC20 · Upside momentum.",
+    heatmapTooltipDate: "Date",
+    heatmapTooltipClose: "Close",
+    heatmapTooltipZScore: "Z-score",
+    heatmapTooltipPercentile: "Percentile",
+    heatmapTooltipAtrPct: "ATR%",
+    heatmapTooltipRoc20: "ROC20",
+    heatmapTooltipMeaning: "Meaning",
+    heatmapMissingData: "No data for this period.",
     viewLabel: "View",
     weeklyAgg: "Weekly",
     limitsCopy: "Historical only; not a promise.",
@@ -1746,6 +1762,55 @@ updateAdvancedCopy();
     return mapping[band] ?? null;
   }
 
+  function formatHeatmapTooltip(row, mode, bandKey, mappedValue) {
+    if (!row?.date) return t("heatmapMissingData");
+
+    const parts = [`<strong>${t("heatmapTooltipDate")}:<\/strong> ${row.date}`];
+    const metrics = [];
+
+    if (row.close !== null && row.close !== undefined) {
+      metrics.push(`<strong>${t("heatmapTooltipClose")}:<\/strong> ${fmt(row.close, 2)}`);
+    }
+
+    if (mode === "deviation") {
+      if (row.z !== null && row.z !== undefined) {
+        metrics.push(`<strong>${t("heatmapTooltipZScore")}:<\/strong> ${fmt(row.z, 2)}`);
+      }
+      if (row.pct !== null && row.pct !== undefined) {
+        metrics.push(`<strong>${t("heatmapTooltipPercentile")}:<\/strong> ${fmt(row.pct, 1)}`);
+      }
+    } else if (mode === "volatility") {
+      if (row.atr_pct !== null && row.atr_pct !== undefined) {
+        metrics.push(`<strong>${t("heatmapTooltipAtrPct")}:<\/strong> ${fmtPct(row.atr_pct, 2)}`);
+      }
+    } else if (mode === "momentum") {
+      if (row.roc_20 !== null && row.roc_20 !== undefined) {
+        metrics.push(`<strong>${t("heatmapTooltipRoc20")}:<\/strong> ${fmtPct(row.roc_20, 2)}`);
+      }
+    }
+
+    if (metrics.length) parts.push(metrics.join(" · "));
+
+    const meaning = bandMeaning(mode, bandKey);
+    if (bandKey || meaning) {
+      const pieces = [`<strong>${t("bandLabel")}:<\/strong> ${bandLabel(bandKey)}`];
+      if (meaning) pieces.push(`${t("heatmapTooltipMeaning")}: ${meaning}`);
+      parts.push(pieces.join(" · "));
+    }
+
+    const hasValue =
+      metrics.length > 0 ||
+      bandKey ||
+      meaning ||
+      (mappedValue !== null && mappedValue !== undefined);
+
+    if (!hasValue) {
+      parts.push(`<span class="muted">${t("heatmapMissingData")}<\/span>`);
+    }
+
+    return parts.join("<br>");
+  }
+
   function bandMeaning(mode, band) {
     if (!band) return null;
     const keyMap = {
@@ -1836,24 +1901,16 @@ updateAdvancedCopy();
         ? { EXTREME_LOW: -2, LOW: -1, NEUTRAL: 0, HIGH: 1, EXTREME_HIGH: 2 }
         : { LOW: -1, NORMAL: 0, HIGH: 1, BEARISH: -1, NEUTRAL: 0, BULLISH: 1 };
 
-    const x = filtered.map((r) => r.date);
-    const values = filtered.map((r) => {
+    const x = [];
+    const values = [];
+    const text = [];
+
+    filtered.forEach((r) => {
+      x.push(r.date);
       const bandKey = mode === "deviation" ? r.band : mode === "volatility" ? r.vol_bucket : r.mom_bucket;
-      return mapBandValue(bandKey, mapping);
-    });
-    const text = filtered.map((r) => {
-      const bandKey = mode === "deviation" ? r.band : mode === "volatility" ? r.vol_bucket : r.mom_bucket;
-      const meaning = bandMeaning(mode, bandKey);
-      const parts = [
-        `Date: ${r.date}`,
-        r.close !== undefined ? `Close: ${fmt(r.close, 2)}` : null,
-        mode === "deviation" && r.z !== undefined ? `z=${fmt(r.z, 2)}, pct=${r.pct ?? "—"}` : null,
-        mode === "volatility" && r.atr_pct !== undefined ? `ATR%=${fmtPct(r.atr_pct, 2)}` : null,
-        mode === "momentum" && r.roc_20 !== undefined ? `ROC20=${fmtPct(r.roc_20, 2)}` : null,
-        `Bucket: ${bandLabel(bandKey)}`,
-        meaning ? `Meaning: ${meaning}` : null,
-      ].filter(Boolean);
-      return parts.join("<br>");
+      const mappedValue = mapBandValue(bandKey, mapping);
+      values.push(mappedValue);
+      text.push(formatHeatmapTooltip(r, mode, bandKey, mappedValue));
     });
 
     const colorscale =
