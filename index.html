@@ -94,6 +94,7 @@
     .pill.extreme-low { background: rgba(37, 99, 235, 0.18); color: #bfdbfe; }
     .heatmap-legend { display: flex; gap: 8px; align-items: center; margin-top: 8px; color: var(--muted); font-size: 12px; flex-wrap: wrap; }
     .legend-swatch { width: 14px; height: 14px; border-radius: 4px; display: inline-block; border: 1px solid var(--border); }
+    .legend-item { display: inline-flex; align-items: center; gap: 6px; padding: 4px 6px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 10px; }
     .context-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 10px; }
     .context-item-card { background: #0d1424; border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
     .context-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
@@ -303,6 +304,7 @@
         <label class="toggle" style="margin-inline-start:8px;"><input type="checkbox" id="heatmapWeekly" /> <span data-i18n="weeklyAgg">Weekly</span></label>
       </div>
       <div id="heatmap" style="height:240px;"></div>
+      <div class="heatmap-legend" id="heatmapLegend" aria-live="polite"></div>
       <div class="muted" id="heatmapNote">—</div>
       <div class="band-grid" id="bandStats"></div>
     </div>
@@ -788,6 +790,18 @@ const baseLanguageStrings = {
     bandLabel: "Band",
     heatmapTitle: "מפת חום לאורך זמן",
     heatmapNote: "צבע הוא הקשר, לא הוראה. Hover → מספרים.",
+    heatmapLegendTitle: "מקרא צבעים",
+    heatmapMeaningExtremeLowDeviation: "Extremely below baseline (סטיית חסר חדה).",
+    heatmapMeaningLowDeviation: "Below baseline (סטייה שלילית).",
+    heatmapMeaningNeutralDeviation: "Near baseline (סטייה נמוכה).",
+    heatmapMeaningHighDeviation: "Above baseline (סטייה חיובית).",
+    heatmapMeaningExtremeHighDeviation: "Far above baseline (סטיית יתר חדה).",
+    heatmapMeaningLowVol: "Low ATR% · תנועה יומית רגועה יחסית.",
+    heatmapMeaningNormalVol: "Normal ATR% · תנודתיות טיפוסית.",
+    heatmapMeaningHighVol: "High ATR% · תנודתיות מוגברת.",
+    heatmapMeaningBearishMom: "Bearish ROC20 · לחץ ירידות.",
+    heatmapMeaningNeutralMom: "Neutral ROC20 · מומנטום שטוח.",
+    heatmapMeaningBullishMom: "Bullish ROC20 · מומנטום עליות.",
     viewLabel: "תצוגה",
     weeklyAgg: "שבועי",
     limitsCopy: "הנתונים היסטוריים בלבד; לא התחייבות לתוצאה.",
@@ -990,6 +1004,18 @@ const baseLanguageStrings = {
     bandLabel: "Band",
     heatmapTitle: "Heatmap timeline",
     heatmapNote: "Color = context only. Hover to see numbers.",
+    heatmapLegendTitle: "Color key",
+    heatmapMeaningExtremeLowDeviation: "Far below baseline (deep negative deviation).",
+    heatmapMeaningLowDeviation: "Below baseline (negative deviation).",
+    heatmapMeaningNeutralDeviation: "Near baseline (low deviation).",
+    heatmapMeaningHighDeviation: "Above baseline (positive deviation).",
+    heatmapMeaningExtremeHighDeviation: "Well above baseline (sharp positive deviation).",
+    heatmapMeaningLowVol: "Low ATR% · Calmer-than-usual daily moves.",
+    heatmapMeaningNormalVol: "Normal ATR% · Typical volatility.",
+    heatmapMeaningHighVol: "High ATR% · Elevated volatility.",
+    heatmapMeaningBearishMom: "Bearish ROC20 · Downside momentum.",
+    heatmapMeaningNeutralMom: "Neutral ROC20 · Flat momentum.",
+    heatmapMeaningBullishMom: "Bullish ROC20 · Upside momentum.",
     viewLabel: "View",
     weeklyAgg: "Weekly",
     limitsCopy: "Historical only; not a promise.",
@@ -1590,11 +1616,74 @@ updateAdvancedCopy();
     return mapping[band] ?? null;
   }
 
+  function bandMeaning(mode, band) {
+    if (!band) return null;
+    const keyMap = {
+      deviation: {
+        EXTREME_LOW: "heatmapMeaningExtremeLowDeviation",
+        LOW: "heatmapMeaningLowDeviation",
+        NEUTRAL: "heatmapMeaningNeutralDeviation",
+        HIGH: "heatmapMeaningHighDeviation",
+        EXTREME_HIGH: "heatmapMeaningExtremeHighDeviation",
+      },
+      volatility: {
+        LOW: "heatmapMeaningLowVol",
+        NORMAL: "heatmapMeaningNormalVol",
+        HIGH: "heatmapMeaningHighVol",
+      },
+      momentum: {
+        BEARISH: "heatmapMeaningBearishMom",
+        NEUTRAL: "heatmapMeaningNeutralMom",
+        BULLISH: "heatmapMeaningBullishMom",
+      },
+    };
+    const meaningKey = keyMap[mode]?.[band];
+    return meaningKey ? t(meaningKey) : null;
+  }
+
+  function heatmapLegendConfig(mode) {
+    if (mode === "deviation") {
+      return [
+        { color: "#1d4ed8", label: t("heatmapMeaningExtremeLowDeviation") },
+        { color: "#60a5fa", label: t("heatmapMeaningLowDeviation") },
+        { color: "#6b7280", label: t("heatmapMeaningNeutralDeviation") },
+        { color: "#fb923c", label: t("heatmapMeaningHighDeviation") },
+        { color: "#ef4444", label: t("heatmapMeaningExtremeHighDeviation") },
+      ];
+    }
+    if (mode === "volatility") {
+      return [
+        { color: "#60a5fa", label: t("heatmapMeaningLowVol") },
+        { color: "#6b7280", label: t("heatmapMeaningNormalVol") },
+        { color: "#f59e0b", label: t("heatmapMeaningHighVol") },
+      ];
+    }
+    return [
+      { color: "#ef4444", label: t("heatmapMeaningBearishMom") },
+      { color: "#6b7280", label: t("heatmapMeaningNeutralMom") },
+      { color: "#22c55e", label: t("heatmapMeaningBullishMom") },
+    ];
+  }
+
+  function renderHeatmapLegend(mode) {
+    const legendEl = document.getElementById("heatmapLegend");
+    if (!legendEl) return;
+    const items = heatmapLegendConfig(mode);
+    legendEl.innerHTML = [
+      `<span class="muted">${t("heatmapLegendTitle")}:</span>`,
+      ...items.map(
+        (item) =>
+          `<span class="legend-item"><span class="legend-swatch" style="background:${item.color};"></span><span>${item.label}</span></span>`,
+      ),
+    ].join(" ");
+  }
+
   function renderHeatmap() {
     const mode = state.heatmapMode;
     const payload = heatmaps[mode];
     const rows = Array.isArray(payload?.rows) ? payload.rows.filter((r) => r && r.date) : [];
     const noteEl = document.getElementById("heatmapNote");
+    renderHeatmapLegend(mode);
     if (!rows.length) {
       document.getElementById("heatmap").textContent = t("perfSeriesUnavailable");
       noteEl.textContent = t("heatmapNote");
@@ -1624,6 +1713,7 @@ updateAdvancedCopy();
     });
     const text = filtered.map((r) => {
       const bandKey = mode === "deviation" ? r.band : mode === "volatility" ? r.vol_bucket : r.mom_bucket;
+      const meaning = bandMeaning(mode, bandKey);
       const parts = [
         `Date: ${r.date}`,
         r.close !== undefined ? `Close: ${fmt(r.close, 2)}` : null,
@@ -1631,6 +1721,7 @@ updateAdvancedCopy();
         mode === "volatility" && r.atr_pct !== undefined ? `ATR%=${fmtPct(r.atr_pct, 2)}` : null,
         mode === "momentum" && r.roc_20 !== undefined ? `ROC20=${fmtPct(r.roc_20, 2)}` : null,
         `Bucket: ${bandLabel(bandKey)}`,
+        meaning ? `Meaning: ${meaning}` : null,
       ].filter(Boolean);
       return parts.join("<br>");
     });
