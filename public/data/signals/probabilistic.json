@@ -9,8 +9,8 @@
   },
   "confidence": 75,
   "message": {
-    "headline": "\u05e1\u05d1\u05d9\u05e8 \u05e9\u05de\u05ea\u05d7\u05d9\u05dc \u05d2\u05dc \u05e2\u05dc\u05d9\u05d5\u05ea \u05e7\u05e6\u05e8-\u05d8\u05d5\u05d5\u05d7; \u05d1\u05ea\u05e0\u05d5\u05d3\u05ea\u05d9\u05d5\u05ea \u05d2\u05d1\u05d5\u05d4\u05d4 \u05d4\u05ea\u05d5\u05e6\u05d0\u05d5\u05ea \u05de\u05e4\u05d5\u05d6\u05e8\u05d5\u05ea \u05d9\u05d5\u05ea\u05e8 \u05de\u05d4\u05e8\u05d2\u05d9\u05dc",
-    "subtext": "\u05de\u05d1\u05d5\u05e1\u05e1 \u05e2\u05dc 1 \u05de\u05e7\u05e8\u05d9\u05dd \u05d4\u05d9\u05e1\u05d8\u05d5\u05e8\u05d9\u05d9\u05dd \u05d3\u05d5\u05de\u05d9\u05dd \u05de\u05d0\u05d6 2008. \u05de\u05e1\u05e4\u05e8 \u05de\u05e7\u05e8\u05d9\u05dd \u05d4\u05d9\u05e1\u05d8\u05d5\u05e8\u05d9\u05d9\u05dd \u05d3\u05d5\u05de\u05d4 \u05e0\u05de\u05d5\u05da; \u05d1\u05d9\u05d8\u05d7\u05d5\u05df \u05de\u05d5\u05d2\u05d1\u05dc."
+    "headline": "סביר שמתחיל גל עליות קצר-טווח; בתנודתיות גבוהה התוצאות מפוזרות יותר מהרגיל",
+    "subtext": "מבוסס על 1 מקרים היסטוריים דומים מאז 2008. מספר מקרים היסטוריים דומה נמוך; ביטחון מוגבל."
   },
   "historical_outcomes": {
     "horizon_days": 5,
@@ -31,14 +31,44 @@
     },
     {
       "type": "ATR",
-      "text": "ATR \u05d2\u05d1\u05d5\u05d4 \u05de\u05d4\u05de\u05de\u05d5\u05e6\u05e2"
+      "text": "ATR גבוה מהממוצע"
     }
   ],
   "disclaimer_level": "HIGH",
   "analogs": [
     {
+      "start_date": "2008-01-28",
+      "similarity": 0.995,
+      "forward_5d": -0.0018,
+      "forward_10d": 0.0514
+    },
+    {
+      "start_date": "2008-01-22",
+      "similarity": 0.994,
+      "forward_5d": 0.0396,
+      "forward_10d": 0.017
+    },
+    {
+      "start_date": "2008-01-29",
+      "similarity": 0.992,
+      "forward_5d": -0.0218,
+      "forward_10d": 0.0302
+    },
+    {
+      "start_date": "2008-01-24",
+      "similarity": 0.979,
+      "forward_5d": 0.0319,
+      "forward_10d": 0.0227
+    },
+    {
+      "start_date": "2008-01-25",
+      "similarity": 0.979,
+      "forward_5d": 0.0196,
+      "forward_10d": 0.0448
+    },
+    {
       "start_date": "2008-03-06",
-      "similarity": 1.0,
+      "similarity": 0.976,
       "forward_5d": 0.0169,
       "forward_10d": -0.1679
     }
