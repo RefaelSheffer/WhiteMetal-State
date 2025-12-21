@@ -134,6 +134,7 @@
           <div class="muted" data-i18n="subtitle">דשבורד סטטי ב-GitHub Pages + “מוח” שרץ ב-GitHub Actions ומעדכן JSON.</div>
           <div class="muted mono" id="updated">Loading…</div>
           <div id="global-status" style="margin:10px 0;"></div>
+          <div id="data-status" style="margin:10px 0; font-size: 12px; opacity: 0.9;"></div>
           <div class="meta-row">
             <span class="badge"><span data-i18n="metaSourceLabel">Data source</span>: <span class="mono" id="metaSource">—</span></span>
             <span class="badge"><span data-i18n="metaCoverageLabel">Coverage</span>: <span class="mono" id="metaCoverage">—</span></span>
@@ -666,7 +667,8 @@
 
 <script type="module">
 import { buildFeatureRows, knnAnalogProbability } from "./src/lib/probability-engine.js";
-import { fetchJsonWithFallbacks, FetchAllCandidatesError } from "./src/lib/fetchJson.js";
+import { FetchAllCandidatesError } from "./src/lib/fetchJson.js";
+import { createDataHub } from "./src/lib/data-hub.js";
 
 function setGlobalStatus(message, tone = "info") {
   const el = document.getElementById("global-status");
@@ -690,60 +692,69 @@ function showGlobalError(message) {
   setGlobalStatus(`<b>Data load failed</b><br/>${message}`, "error");
 }
 
-function normalizeDataPath(path) {
-  const trimmed = (path || "").replace(/^\.\/+/, "").replace(/^\/+/, "");
-  const withoutPublic = trimmed.startsWith("public/") ? trimmed.slice("public/".length) : trimmed;
-  const withoutData = withoutPublic.startsWith("data/") ? withoutPublic.slice("data/".length) : withoutPublic;
-  return withoutData;
+const hub = createDataHub();
+let dataErrors = {};
+
+function escapeHtml(str) {
+  return (str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
-async function fetchJsonData(path, options = {}) {
-  const relativePath = normalizeDataPath(path);
-  return await fetchJsonWithFallbacks(relativePath, { debugLabel: options.debugLabel || path, ...options });
+function renderCardError(rootId, title, error) {
+  const root = document.getElementById(rootId);
+  if (!root || !error) return;
+  const details = error.details ? escapeHtml(JSON.stringify(error.details, null, 2)) : escapeHtml(error.message || "Unknown error");
+  root.innerHTML = `
+    <div class="section-title flex">${title}</div>
+    <div class="alert-card">
+      <div class="title">Failed to load data</div>
+      <div class="muted">${escapeHtml(error.message || "")}</div>
+      <details style="margin-top:8px;">
+        <summary>Details</summary>
+        <pre style="white-space:pre-wrap;">${details}</pre>
+      </details>
+    </div>
+  `;
 }
 
-async function getJson(path, options = {}) {
-  const { data } = await fetchJsonData(path, options);
-  return data;
+function renderDataStatusPanel(state) {
+  const el = document.getElementById("data-status");
+  if (!el) return;
+  const errKeys = Object.keys(state.errors || {});
+  const metaUrl = state.loadedFrom?.metaUrl || "—";
+  const metaTimestamp = state.meta?.last_updated_utc || state.meta?.end || "—";
+  el.innerHTML = `
+    <div style="padding:10px;border:1px solid #1e2a45;border-radius:10px;background:rgba(255,255,255,0.02);">
+      <b>Data Status</b><br/>
+      Status: <b>${state.status}</b> | Loaded: ${state.progress.done}/${state.progress.total}<br/>
+      meta: ${metaUrl !== "—" ? `<code>${metaUrl}</code>` : "—"}<br/>
+      version: <code>${metaTimestamp}</code><br/>
+      ${errKeys.length ? `Errors: <code>${errKeys.join(", ")}</code>` : "Errors: —"}
+    </div>
+  `;
 }
 
-async function loadPrices() {
-  try {
-    const legacy = await getJson("slv_prices.json");
-    if (Array.isArray(legacy?.dates) && legacy.dates.length && Array.isArray(legacy.close)) {
-      return legacy;
+function normalizePricesDataset(primary, legacy) {
+  if (Array.isArray(primary)) {
+    const cleaned = primary.filter((r) => r && r.date !== undefined && r.close !== undefined);
+    if (cleaned.length) {
+      return { dates: cleaned.map((r) => r.date ?? null), close: cleaned.map((r) => r.close ?? null) };
     }
-  } catch (err) {
-    console.warn("Legacy price file missing, falling back to raw export", err);
   }
 
-  const raw = await getJson("raw/slv_daily.json");
-  if (Array.isArray(raw) && raw.length) {
-    const cleaned = raw.filter((r) => r && r.date !== undefined && r.date !== null && r.close !== undefined);
-    if (!cleaned.length) throw new Error("Price data unavailable (missing date/close fields)");
-    return {
-      dates: cleaned.map((r) => r.date ?? null),
-      close: cleaned.map((r) => r.close ?? null),
-    };
+  if (legacy && Array.isArray(legacy.dates) && Array.isArray(legacy.close)) {
+    return { dates: legacy.dates, close: legacy.close };
   }
 
-  throw new Error("Price data unavailable");
+  return { dates: [], close: [] };
 }
 
-async function optionalJson(path, fallbackPaths = []) {
-  const attempts = [path, ...fallbackPaths];
-  for (const p of attempts) {
-    try {
-      return await getJson(p);
-    } catch (err) {
-      console.warn(`Optional JSON missing: ${p}`, err);
-    }
-  }
-  return null;
-}
-
-async function loadDecomposition() {
-  const meta = await optionalJson("diagnostics/decomposition_meta.json");
+function buildDecompositionFromDatasets(datasets) {
+  const meta = datasets.decompositionMeta;
   const base = {
     status: meta?.status ?? (meta ? "ok" : "missing"),
     meta,
@@ -756,24 +767,19 @@ async function loadDecomposition() {
 
   if (!meta || base.status !== "ok") return base;
 
+  const mapSeries = (payload) => {
+    const rows = Array.isArray(payload?.rows) ? payload.rows.filter((r) => r && r.date !== undefined) : [];
+    return { dates: rows.map((r) => r.date ?? null), values: rows.map((r) => r.value ?? null) };
+  };
+
   try {
-    const [trend, seasonal, residual] = await Promise.all([
-      getJson("diagnostics/decomposition_trend.json"),
-      getJson("diagnostics/decomposition_seasonal.json"),
-      getJson("diagnostics/decomposition_residual.json"),
-    ]);
-    const mapSeries = (payload) => {
-      const rows = Array.isArray(payload?.rows) ? payload.rows.filter((r) => r && r.date !== undefined) : [];
-      return {
-        dates: rows.map((r) => r.date ?? null),
-        values: rows.map((r) => r.value ?? null),
-      };
-    };
-    const trendSeries = mapSeries(trend);
-    base.dates = trendSeries.dates;
-    base.trend = trendSeries.values;
-    base.seasonal = mapSeries(seasonal).values;
-    base.residual = mapSeries(residual).values;
+    const trend = mapSeries(datasets.decompositionTrend);
+    const seasonal = mapSeries(datasets.decompositionSeasonal);
+    const residual = mapSeries(datasets.decompositionResidual);
+    base.dates = trend.dates;
+    base.trend = trend.values;
+    base.seasonal = seasonal.values;
+    base.residual = residual.values;
   } catch (err) {
     base.status = "error";
     base.error = err.message;
@@ -1394,6 +1400,30 @@ function applyCosts(equitySeries, costBps = 0.0) {
   return out;
 }
 
+let meta = {};
+let prices = { dates: [], close: [] };
+let priceDates = [];
+let probabilistic = null;
+let anomalies = {};
+let perfSummary = {};
+let equityCurve = {};
+let cycleStats = {};
+let heatmaps = { deviation: null, volatility: null, momentum: null, stats: null };
+let eventContext = { nearest: null };
+let eventImpactStats = {};
+let currentContext = null;
+let conditionalContextStats = null;
+let buyHoldCurve = [];
+let featureRows = [];
+let backtestEquity = null;
+let backtestFeesImpact = null;
+let backtestFeesSensitivity = null;
+let backtestTradeLog = null;
+let backtestRiskMetrics = null;
+let perfAtr = null;
+let perfAdx = null;
+let decomposition = { status: "missing", meta: null, trend: [], seasonal: [], residual: [], dates: [], error: "missing" };
+
 let state = {
   range: "3m",
   lang: detectLang(),
@@ -1484,38 +1514,66 @@ function attachAdvancedToggle() {
 attachAdvancedToggle();
 updateAdvancedCopy();
 
+let latestHubState = null;
+hub.subscribe((state) => {
+  latestHubState = state;
+  dataErrors = state.errors || {};
+  renderDataStatusPanel(state);
+
+  if (state.status === "loading") {
+    setGlobalStatus(`<b>Loading data…</b> ${state.progress.done}/${state.progress.total}`);
+  }
+
+  if (state.status === "ready" && Object.keys(state.errors || {}).length === 0) {
+    setGlobalStatus("");
+  }
+
+  if (state.status === "error") {
+    const err = state.errors?.meta;
+    setGlobalStatus(`<b>Data load failed (meta.json)</b><br/>${err?.message || "Unknown error"}`, "error");
+    if (err?.details) console.table(err.details);
+  }
+});
+
 (async () => {
   try {
     setGlobalStatus("<b>Loading data…</b>");
-    const pricePromise = loadPrices();
-    const metaPromise = fetchJsonData("meta.json", { debugLabel: "meta.json" });
-    const [metaResult, prices, probabilistic, anomalies, perfSummary, equityCurve, cycleStats, heatmapDeviation, heatmapVolatility, heatmapMomentum, statsByBand, eventContextRaw, eventImpactStatsRaw, currentContextRaw, conditionalContextStatsRaw, backtestEquity, backtestFeesImpact, backtestFeesSensitivity, backtestTradeLog, backtestRiskMetrics, perfAtr, perfAdx] = await Promise.all([
-      metaPromise,
-      pricePromise,
-      getJson("signals/probabilistic.json", { debugLabel: "signals/probabilistic.json" }),
-      getJson("anomalies/latest.json", { debugLabel: "anomalies/latest.json" }),
-      getJson("perf/summary.json", { debugLabel: "perf/summary.json" }),
-      getJson("perf/equity_curve.json", { debugLabel: "perf/equity_curve.json" }),
-      getJson("events/cycle_stats.json", { debugLabel: "events/cycle_stats.json" }),
-      optionalJson("heatmap/deviation.json"),
-        optionalJson("heatmap/volatility.json"),
-        optionalJson("heatmap/momentum.json"),
-        optionalJson("heatmap/stats_by_band.json"),
-        optionalJson("events/current_event_context.json"),
-        optionalJson("events/event_impact_stats.json"),
-        optionalJson("context/cross_market_current.json"),
-        optionalJson("context/cross_market_conditional.json"),
-        optionalJson("backtest/equity_curves.json"),
-        optionalJson("backtest/fees_impact.json"),
-      optionalJson("backtest/fees_sensitivity.json"),
-      optionalJson("backtest/trade_log.json"),
-      optionalJson("backtest/risk_metrics.json"),
-      optionalJson("perf/atr.json"),
-      optionalJson("perf/adx.json"),
-      ]);
+    const loadResult = await hub.loadAll();
+    if (!loadResult.ok) {
+      console.warn("Partial data load. Failed keys:", loadResult.failedKeys);
+    }
 
-    const meta = metaResult?.data ?? metaResult ?? {};
-    const metaSourceUrl = metaResult?.url;
+    meta = hub.getMeta() || {};
+    const datasets = {
+      legacyPrices: hub.getDataset("legacyPrices"),
+      prices: hub.getDataset("prices"),
+      probabilistic: hub.getDataset("probabilistic"),
+      anomalies: hub.getDataset("anomalies"),
+      perfSummary: hub.getDataset("perfSummary"),
+      equityCurve: hub.getDataset("equityCurve"),
+      cycleStats: hub.getDataset("cycleStats"),
+      heatmapDeviation: hub.getDataset("heatmapDeviation"),
+      heatmapVolatility: hub.getDataset("heatmapVolatility"),
+      heatmapMomentum: hub.getDataset("heatmapMomentum"),
+      statsByBand: hub.getDataset("statsByBand"),
+      eventContext: hub.getDataset("eventContext"),
+      eventImpactStats: hub.getDataset("eventImpactStats"),
+      crossMarketCurrent: hub.getDataset("crossMarketCurrent"),
+      crossMarketConditional: hub.getDataset("crossMarketConditional"),
+      backtestEquity: hub.getDataset("backtestEquity"),
+      backtestFeesImpact: hub.getDataset("backtestFeesImpact"),
+      backtestFeesSensitivity: hub.getDataset("backtestFeesSensitivity"),
+      backtestTradeLog: hub.getDataset("backtestTradeLog"),
+      backtestRiskMetrics: hub.getDataset("backtestRiskMetrics"),
+      perfAtr: hub.getDataset("perfAtr"),
+      perfAdx: hub.getDataset("perfAdx"),
+      decompositionMeta: hub.getDataset("decompositionMeta"),
+      decompositionTrend: hub.getDataset("decompositionTrend"),
+      decompositionSeasonal: hub.getDataset("decompositionSeasonal"),
+      decompositionResidual: hub.getDataset("decompositionResidual"),
+    };
+
+    const metaSourceUrl = latestHubState?.loadedFrom?.metaUrl;
     if (metaSourceUrl) {
       setGlobalStatus(`<b>Data loaded</b><br/>${metaSourceUrl}`, "success");
       const metaSourceEl = document.getElementById("metaSource");
@@ -1524,33 +1582,46 @@ updateAdvancedCopy();
       setGlobalStatus("<b>Data loaded</b>", "success");
     }
 
-    const decomposition = await loadDecomposition();
+    decomposition = buildDecompositionFromDatasets(datasets);
 
-    const eventContext = eventContextRaw || { nearest: null };
-    const eventImpactStats = eventImpactStatsRaw || {};
-    const currentContext = currentContextRaw || (await optionalJson("./public/data/context/current_context.json"));
-    const conditionalContextStats = conditionalContextStatsRaw || (await optionalJson("./public/data/context/conditional_stats.json"));
-    const atrSeries = Array.isArray(perfAtr?.atr) ? perfAtr.atr : [];
-    const adxSeries = Array.isArray(perfAdx?.adx) ? perfAdx.adx : [];
+    eventContext = datasets.eventContext || { nearest: null };
+    eventImpactStats = datasets.eventImpactStats || {};
+    currentContext = datasets.crossMarketCurrent;
+    conditionalContextStats = datasets.crossMarketConditional;
+    perfAtr = datasets.perfAtr;
+    perfAdx = datasets.perfAdx;
 
+    prices = normalizePricesDataset(datasets.prices, datasets.legacyPrices);
     const priceDateStrings = Array.isArray(prices?.dates) ? prices.dates.filter(Boolean) : [];
-    const priceDates = priceDateStrings.map((d) => new Date(d));
+    priceDates = priceDateStrings.map((d) => new Date(d));
     state.startDate = priceDateStrings[0] ?? state.startDate;
     state.endDate = priceDateStrings[priceDateStrings.length - 1] ?? state.endDate;
-    const buyHoldCurve = normalizeEquityFromPrices(prices.close);
-    const featureRows = buildFeatureRows(priceDateStrings, Array.isArray(prices?.close) ? prices.close : []);
-    state.probabilityResult = knnAnalogProbability(featureRows, state.probabilityEngine);
+    buyHoldCurve = normalizeEquityFromPrices(prices.close || []);
+    featureRows = buildFeatureRows(priceDateStrings, Array.isArray(prices?.close) ? prices.close : []);
+    state.probabilityResult = featureRows.length ? knnAnalogProbability(featureRows, state.probabilityEngine) : null;
+    heatmaps = {
+      deviation: datasets.heatmapDeviation,
+      volatility: datasets.heatmapVolatility,
+      momentum: datasets.heatmapMomentum,
+      stats: datasets.statsByBand,
+    };
+    probabilistic = datasets.probabilistic || {};
+    anomalies = datasets.anomalies || {};
+    perfSummary = datasets.perfSummary || {};
+    equityCurve = datasets.equityCurve || {};
+    cycleStats = datasets.cycleStats || {};
+    backtestEquity = datasets.backtestEquity;
+    backtestFeesImpact = datasets.backtestFeesImpact;
+    backtestFeesSensitivity = datasets.backtestFeesSensitivity;
+    backtestTradeLog = datasets.backtestTradeLog;
+    backtestRiskMetrics = datasets.backtestRiskMetrics;
     if (backtestEquity?.fees) {
       state.costBps = backtestEquity.fees.cost_bps ?? state.costBps;
       state.slippageBps = backtestEquity.fees.slippage_bps ?? state.slippageBps;
     }
     let lastBacktest = { trades: backtestTradeLog?.trades || [] };
-    const heatmaps = {
-      deviation: heatmapDeviation,
-      volatility: heatmapVolatility,
-      momentum: heatmapMomentum,
-      stats: statsByBand,
-    };
+    const atrSeries = Array.isArray(perfAtr?.atr) ? perfAtr.atr : [];
+    const adxSeries = Array.isArray(perfAdx?.adx) ? perfAdx.adx : [];
 
   function languageKey(lang) {
     if (lang === "he") return "langToggleHebrew";
@@ -1616,9 +1687,10 @@ updateAdvancedCopy();
     return delta > 0 ? `${days}d ${t("eventTimingLabel")}` : `${days}d ${t("eventPhasePost")}`;
   }
 
-  function renderEventContext(context, statsByType) {
+  function renderEventContext(context, statsByType, error) {
     const badge = document.getElementById("eventContextBadge");
     const card = document.getElementById("eventContextCard");
+    if (error) { renderCardError("eventContextCard", t("eventContextTitle"), error); return; }
     const nearest = context?.nearest;
     if (!context || !nearest) {
       badge.textContent = t("eventContextNone");
@@ -1672,9 +1744,10 @@ updateAdvancedCopy();
     document.getElementById("eventContextFooter").textContent = `${t("eventContextFooter")}`;
   }
 
-  function renderContextPanel(currentContext, conditionalStats) {
+  function renderContextPanel(currentContext, conditionalStats, error) {
     const card = document.getElementById("contextCard");
     if (!card) return;
+    if (error) { renderCardError("contextCard", t("contextTitle"), error); return; }
     if (!currentContext || !Array.isArray(currentContext.items) || !currentContext.items.length) {
       card.style.display = "none";
       return;
@@ -2278,8 +2351,19 @@ updateAdvancedCopy();
     return "neutral";
   }
 
-  function renderProbabilistic() {
-    const data = probabilistic || {};
+  function renderProbabilistic(data, error) {
+    if (error) {
+      renderCardError("snapshotCard", t("marketSnapshotTitle"), error);
+      return;
+    }
+
+    if (!data) {
+      document.getElementById("scenarioId").textContent = "Loading…";
+      document.getElementById("probHeadline").textContent = t("limitsCopy");
+      document.getElementById("probSubtext").textContent = "";
+      return;
+    }
+
     const outcomes = data.historical_outcomes || {};
     document.getElementById("scenarioId").textContent = data.scenario_id || "—";
     document.getElementById("probHeadline").textContent = data.message?.headline || t("limitsCopy");
@@ -2343,7 +2427,7 @@ updateAdvancedCopy();
     }
   }
 
-  function renderProbabilityEngine(result, config) {
+  function renderProbabilityEngine(result, config, error) {
     const horizon = config?.horizon ?? 20;
     const probEl = document.getElementById("probEngineProb");
     const horizonEl = document.getElementById("probEngineHorizon");
@@ -2355,6 +2439,7 @@ updateAdvancedCopy();
     const descriptionEl = document.getElementById("probEngineDescription");
     const neighborList = document.getElementById("probEngineTopNeighbors");
 
+    if (error) { renderCardError("probEngineCard", t("probEngineTitle"), error); return; }
     if (!probEl || !horizonEl || !medianEl || !rangeEl || !neighborsEl || !confidenceEl || !neighborList) return;
 
     const reset = () => {
@@ -2902,10 +2987,10 @@ updateAdvancedCopy();
   function renderAll() {
     applyLanguage();
     updateAdvancedCopy();
-    renderEventContext(eventContext, eventImpactStats);
-    renderContextPanel(currentContext, conditionalContextStats);
-    renderProbabilistic();
-    renderProbabilityEngine(state.probabilityResult, state.probabilityEngine);
+    renderEventContext(eventContext, eventImpactStats, dataErrors.eventContext);
+    renderContextPanel(currentContext, conditionalContextStats, dataErrors.crossMarketCurrent);
+    renderProbabilistic(probabilistic, dataErrors.probabilistic);
+    renderProbabilityEngine(state.probabilityResult, state.probabilityEngine, dataErrors.prices || dataErrors.legacyPrices);
     renderMeta();
     renderSummary();
     renderDeviationPanel();
