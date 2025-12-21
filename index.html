@@ -616,9 +616,11 @@ async function loadPrices() {
 
   const raw = await getJson("./public/data/raw/slv_daily.json");
   if (Array.isArray(raw) && raw.length) {
+    const cleaned = raw.filter((r) => r && r.date !== undefined && r.date !== null && r.close !== undefined);
+    if (!cleaned.length) throw new Error("Price data unavailable (missing date/close fields)");
     return {
-      dates: raw.map((r) => r.date),
-      close: raw.map((r) => r.close),
+      dates: cleaned.map((r) => r.date ?? null),
+      close: cleaned.map((r) => r.close ?? null),
     };
   }
 
@@ -654,10 +656,13 @@ async function loadDecomposition() {
       getJson("./public/data/diagnostics/decomposition_seasonal.json"),
       getJson("./public/data/diagnostics/decomposition_residual.json"),
     ]);
-    const mapSeries = (payload) => ({
-      dates: (payload.rows || []).map((r) => r.date),
-      values: (payload.rows || []).map((r) => r.value),
-    });
+    const mapSeries = (payload) => {
+      const rows = Array.isArray(payload?.rows) ? payload.rows.filter((r) => r && r.date !== undefined) : [];
+      return {
+        dates: rows.map((r) => r.date ?? null),
+        values: rows.map((r) => r.value ?? null),
+      };
+    };
     const trendSeries = mapSeries(trend);
     base.dates = trendSeries.dates;
     base.trend = trendSeries.values;
@@ -1198,7 +1203,8 @@ function applyCosts(equitySeries, costBps = 0.0) {
     const currentContext = currentContextRaw || (await optionalJson("./public/data/context/current_context.json"));
     const conditionalContextStats = conditionalContextStatsRaw || (await optionalJson("./public/data/context/conditional_stats.json"));
 
-    const priceDates = prices.dates.map((d) => new Date(d));
+    const priceDateStrings = Array.isArray(prices?.dates) ? prices.dates.filter(Boolean) : [];
+    const priceDates = priceDateStrings.map((d) => new Date(d));
   const state = {
     range: "3m",
     lang: detectLang(),
@@ -1209,8 +1215,8 @@ function applyCosts(equitySeries, costBps = 0.0) {
     showSensitivity: false,
     costBps: 10,
     slippageBps: 5,
-    startDate: prices.dates[0],
-    endDate: prices.dates[prices.dates.length - 1],
+    startDate: priceDateStrings[0] ?? "",
+    endDate: priceDateStrings[priceDateStrings.length - 1] ?? "",
     dateRangePreset: "all",
     maWindow: 50,
     rsiPeriod: 14,
@@ -1481,6 +1487,7 @@ function applyCosts(equitySeries, costBps = 0.0) {
   function aggregateWeekly(rows) {
     const buckets = {};
     rows.forEach((row) => {
+      if (!row?.date) return;
       const key = isoWeekKey(row.date);
       buckets[key] = row;
     });
@@ -1495,7 +1502,7 @@ function applyCosts(equitySeries, costBps = 0.0) {
   function renderHeatmap() {
     const mode = state.heatmapMode;
     const payload = heatmaps[mode];
-    const rows = Array.isArray(payload?.rows) ? payload.rows : [];
+    const rows = Array.isArray(payload?.rows) ? payload.rows.filter((r) => r && r.date) : [];
     const noteEl = document.getElementById("heatmapNote");
     if (!rows.length) {
       document.getElementById("heatmap").textContent = t("perfSeriesUnavailable");
@@ -1506,10 +1513,12 @@ function applyCosts(equitySeries, costBps = 0.0) {
     const months = state.heatmapRange === "3m" ? 3 : state.heatmapRange === "1y" ? 12 : null;
     let filtered = state.heatmapWeekly ? aggregateWeekly(rows) : rows.slice();
     if (months) {
-      const lastDate = new Date(filtered[filtered.length - 1].date);
+      const last = filtered[filtered.length - 1];
+      if (!last?.date) return;
+      const lastDate = new Date(last.date);
       const start = new Date(lastDate);
       start.setMonth(start.getMonth() - months);
-      filtered = filtered.filter((r) => new Date(r.date) >= start);
+      filtered = filtered.filter((r) => r?.date && new Date(r.date) >= start);
     }
 
     const mapping =
@@ -1662,6 +1671,7 @@ function applyCosts(equitySeries, costBps = 0.0) {
     const rangeStart = (() => {
       if (!months) return null;
       const lastDate = priceDates[priceDates.length - 1];
+      if (!lastDate) return null;
       const start = new Date(lastDate);
       start.setMonth(start.getMonth() - months);
       return start;
@@ -1710,11 +1720,14 @@ function applyCosts(equitySeries, costBps = 0.0) {
     }
 
     const turningPoints = (cycleStats?.turning_points ?? []).filter((p) => {
+      if (!p?.date) return false;
       const d = new Date(p.date);
       if (state.startDate && d < new Date(state.startDate)) return false;
       if (state.endDate && d > new Date(state.endDate)) return false;
       if (!months) return true;
-      const start = new Date(priceDates[priceDates.length - 1]);
+      const lastPriceDate = priceDates[priceDates.length - 1];
+      if (!lastPriceDate) return false;
+      const start = new Date(lastPriceDate);
       start.setMonth(start.getMonth() - months);
       return d >= start;
     });
@@ -2342,8 +2355,10 @@ function applyCosts(equitySeries, costBps = 0.0) {
 
     const applyDateRangePreset = (preset) => {
       state.dateRangePreset = preset;
-      const lastDateStr = prices.dates[prices.dates.length - 1];
-      const firstDateStr = prices.dates[0];
+      const dateStrings = Array.isArray(prices?.dates) ? prices.dates.filter(Boolean) : [];
+      const lastDateStr = dateStrings[dateStrings.length - 1];
+      const firstDateStr = dateStrings[0];
+      if (!firstDateStr || !lastDateStr) return;
       if (preset === "custom") { updateDateRangeUi(); return; }
       const months = preset === "1y" ? 12 : preset === "3y" ? 36 : preset === "5y" ? 60 : null;
       if (months) {
