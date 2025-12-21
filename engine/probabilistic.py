@@ -128,6 +128,11 @@ class ScenarioFrame:
     scenario_ids: List[str]
     ma50: List[float | None]
     ma200: List[float | None]
+    rsi: List[float | None]
+    adx: List[float | None]
+    atr: List[float | None]
+    boll_upper: List[float | None]
+    boll_lower: List[float | None]
 
 
 def _prepare_scenarios(
@@ -169,7 +174,103 @@ def _prepare_scenarios(
         }
         scenario_ids.append(build_scenario_id(context))
 
-    return ScenarioFrame(list(closes), list(dates), scenario_ids, ma50, ma200)
+    return ScenarioFrame(
+        list(closes),
+        list(dates),
+        scenario_ids,
+        ma50,
+        ma200,
+        rsi_series,
+        adx_series,
+        atr_series,
+        boll_upper,
+        boll_lower,
+    )
+
+
+def _feature_map(idx: int, scenarios: ScenarioFrame) -> dict[str, float]:
+    close = scenarios.closes[idx]
+    features: dict[str, float] = {}
+
+    ma50 = scenarios.ma50[idx]
+    if ma50:
+        features["rel_ma50"] = (close - ma50) / ma50
+
+    ma200 = scenarios.ma200[idx]
+    if ma200:
+        features["rel_ma200"] = (close - ma200) / ma200
+
+    rsi_val = scenarios.rsi[idx]
+    if rsi_val is not None:
+        features["rsi"] = rsi_val / 100.0
+
+    adx_val = scenarios.adx[idx]
+    if adx_val is not None:
+        features["adx"] = adx_val / 100.0
+
+    atr_val = scenarios.atr[idx]
+    if atr_val:
+        features["atr_ratio"] = atr_val / close if close else 0.0
+
+    upper = scenarios.boll_upper[idx]
+    lower = scenarios.boll_lower[idx]
+    if upper and lower:
+        mid = (upper + lower) / 2
+        std = (upper - lower) / 4
+        if std:
+            features["bollinger_z"] = (close - mid) / std
+
+    return features
+
+
+def _distance(features_a: dict[str, float], features_b: dict[str, float]) -> float | None:
+    keys = set(features_a).intersection(features_b)
+    if not keys:
+        return None
+
+    diffs = [(features_a[k] - features_b[k]) ** 2 for k in keys]
+    return float(np.sqrt(sum(diffs) / len(keys)))
+
+
+def _build_knn_analogies(scenarios: ScenarioFrame, latest_idx: int, k: int = 5) -> list[dict]:
+    latest_features = _feature_map(latest_idx, scenarios)
+    if not latest_features:
+        return []
+
+    candidates: list[tuple[float, int]] = []
+    for idx in range(len(scenarios.closes)):
+        if idx == latest_idx or idx + 10 >= len(scenarios.closes):
+            continue
+
+        feat = _feature_map(idx, scenarios)
+        if not feat:
+            continue
+
+        dist = _distance(latest_features, feat)
+        if dist is None:
+            continue
+
+        candidates.append((dist, idx))
+
+    if not candidates:
+        return []
+
+    candidates.sort(key=lambda pair: pair[0])
+    analogs: list[dict] = []
+    for dist, idx in candidates[:k]:
+        start = scenarios.closes[idx]
+        ret5 = scenarios.closes[idx + 5] / start - 1 if start else None
+        ret10 = scenarios.closes[idx + 10] / start - 1 if start else None
+        analogs.append(
+            {
+                "start_date": scenarios.dates[idx],
+                "similarity": round(1 / (1 + dist), 3),
+                "forward_5d": round(ret5, 4) if ret5 is not None else None,
+                "forward_10d": round(ret10, 4) if ret10 is not None else None,
+            }
+        )
+
+    return analogs
 
 
 def compute_historical_outcomes(
@@ -264,20 +365,21 @@ def build_probabilistic_signal(
     if regime.vol_state == "HIGH":
         confidence = max(0, confidence - 10)
 
-    analogies = []
-    for idx in outcomes.get("matches", [])[-5:]:
-        if idx + 10 >= len(scenarios.closes):
-            continue
-        ret5 = scenarios.closes[idx + 5] / scenarios.closes[idx] - 1 if scenarios.closes[idx] else None
-        ret10 = scenarios.closes[idx + 10] / scenarios.closes[idx] - 1 if scenarios.closes[idx] else None
-        analogies.append(
-            {
-                "start_date": dates[idx],
-                "similarity": 1.0,
-                "forward_5d": round(ret5, 4) if ret5 is not None else None,
-                "forward_10d": round(ret10, 4) if ret10 is not None else None,
-            }
-        )
+    analogies = _build_knn_analogies(scenarios, latest_idx, k=6)
+    if not analogies:
+        for idx in outcomes.get("matches", [])[-5:]:
+            if idx + 10 >= len(scenarios.closes):
+                continue
+            ret5 = scenarios.closes[idx + 5] / scenarios.closes[idx] - 1 if scenarios.closes[idx] else None
+            ret10 = scenarios.closes[idx + 10] / scenarios.closes[idx] - 1 if scenarios.closes[idx] else None
+            analogies.append(
+                {
+                    "start_date": dates[idx],
+                    "similarity": 1.0,
+                    "forward_5d": round(ret5, 4) if ret5 is not None else None,
+                    "forward_10d": round(ret10, 4) if ret10 is not None else None,
+                }
+            )
 
     boll_row = bollinger_raw[-1] if bollinger_raw else {}
     evidence = []
