@@ -9,6 +9,7 @@
     "legacyPrices": "slv_prices.json",
     "prices": "raw/slv_daily.json",
     "probabilistic": "signals/probabilistic.json",
+    "signalLatest": "signal_latest.json",
     "anomalies": "anomalies/latest.json",
     "perfSummary": "perf/summary.json",
     "equityCurve": "perf/equity_curve.json",
