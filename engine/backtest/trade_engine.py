@@ -71,6 +71,46 @@ def _compute_ulcer_index(equity: Sequence[float]) -> float:
     return (sum(peaks) / len(peaks)) ** 0.5 if peaks else 0.0
 
 
+def _drawdown_durations(equity: Sequence[float]) -> dict[str, float]:
+    """Measure drawdown length characteristics in bars.
+
+    The function tracks each drawdown stretch from a peak until recovery and
+    reports the longest duration observed, the average length of all
+    drawdowns, and the length of the current ongoing drawdown (if any).
+    """
+
+    if not equity:
+        return {"max_duration": 0.0, "avg_duration": 0.0, "current_duration": 0.0}
+
+    peak = equity[0]
+    duration = 0
+    durations: list[int] = []
+    current_duration = 0
+
+    for value in equity:
+        if value >= peak:
+            peak = value
+            if duration:
+                durations.append(duration)
+            duration = 0
+            current_duration = 0
+        else:
+            duration += 1
+            current_duration = duration
+
+    if duration:
+        durations.append(duration)
+
+    max_duration = max(durations) if durations else 0
+    avg_duration = (sum(durations) / len(durations)) if durations else 0.0
+
+    return {
+        "max_duration": float(max_duration),
+        "avg_duration": float(avg_duration),
+        "current_duration": float(current_duration),
+    }
+
+
 def _total_return(series: Sequence[Mapping], key: str) -> float:
     if not series:
         return 0.0
@@ -315,11 +355,15 @@ def trade_engine_cycle_basic(
             returns.append((equity_values[idx] - prior) / prior)
 
     sharpe = 0.0
+    return_volatility = 0.0
     if returns:
         mean_ret = sum(returns) / len(returns)
         variance = sum((r - mean_ret) ** 2 for r in returns) / len(returns)
         stddev = variance ** 0.5
         sharpe = mean_ret / stddev if stddev else 0.0
+        return_volatility = stddev
+
+    drawdown_duration_stats = _drawdown_durations(equity_values)
 
     risk_metrics = {
         "total_return_net": round(total_return_net, 4),
@@ -327,6 +371,10 @@ def trade_engine_cycle_basic(
         "max_drawdown": round(_max_drawdown(equity_values), 4),
         "sharpe": round(sharpe, 4),
         "ulcer_index": round(_compute_ulcer_index(equity_values), 4),
+        "return_volatility": round(return_volatility, 4),
+        "drawdown_duration_max": round(drawdown_duration_stats["max_duration"], 2),
+        "drawdown_duration_avg": round(drawdown_duration_stats["avg_duration"], 2),
+        "drawdown_duration_current": round(drawdown_duration_stats["current_duration"], 2),
         "win_rate": round(
             len([t for t in trades if t.get("net_return", 0) > 0]) / len(trades),
             4,
