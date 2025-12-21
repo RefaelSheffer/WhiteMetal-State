@@ -47,6 +47,7 @@
     .toggle input { accent-color: var(--accent); }
     .header-top { display: flex; justify-content: space-between; gap: 12px; }
     .header-content { flex: 1; min-width: 0; }
+    #langSelect { width: auto; min-width: 120px; }
     .meta-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
     .badge { display: inline-block; padding: 4px 8px; border-radius: 8px; background: rgba(255,255,255,0.06); font-size: 12px; margin-right: 6px; }
     .badge.soft { background: rgba(99, 102, 241, 0.12); color: #c7d2fe; border: 1px solid var(--border); }
@@ -123,7 +124,7 @@
             <span class="badge soft" id="eventContextBadge">—</span>
           </div>
         </div>
-        <button class="btn" id="langToggle" aria-label="Switch language">English</button>
+        <select class="btn" id="langSelect" aria-label="Switch language"></select>
       </div>
       <div class="alert" data-i18n="alert">
         המלצות המערכת הן תוצאה של עיבוד סטטיסטי ואינן מהוות ייעוץ או הנחיה לביצוע פעולה מיידית. מומלץ לשלב את האיתותים עם גורמים נוספים כמו חדשות מאקרו, מדיניות מוניטרית ושיקולים אישיים אחרים.
@@ -678,12 +679,18 @@ async function loadDecomposition() {
 
 function detectLang() {
   const stored = localStorage.getItem("lang");
-  if (stored) return stored;
-  const nav = navigator.language || navigator.userLanguage || "";
-  return nav.toLowerCase().startsWith("he") ? "he" : "en";
+  if (stored && supportedLanguages.includes(stored)) return stored;
+
+  const navCandidates = Array.isArray(navigator.languages) ? navigator.languages : [navigator.language || navigator.userLanguage || ""];
+  for (const candidate of navCandidates) {
+    const normalized = (candidate || "").toLowerCase().slice(0, 2);
+    if (supportedLanguages.includes(normalized)) return normalized;
+  }
+
+  return "en";
 }
 
-const translations = {
+const baseLanguageStrings = {
   he: {
     title: "SLV Monitor",
     subtitle: "דשבורד סטטי ב-GitHub Pages + “מוח” שרץ ב-GitHub Actions ומעדכן JSON.",
@@ -819,8 +826,11 @@ const translations = {
     decompToggle: "Decomposition",
     langToggleEnglish: "English",
     langToggleHebrew: "עברית",
+    langToggleSpanish: "ספרדית",
     switchToEnglishAria: "Switch to English",
     switchToHebrewAria: "החלף לעברית",
+    switchToSpanishAria: "החלף לספרדית",
+    languageSelectorAria: "בחירת שפה",
     anomalyNowTitle: "התראות חריגות (Layer 1)",
     anomalyScoreLabel: "מדד חריגות",
     adxLabel: "ADX",
@@ -1018,8 +1028,11 @@ const translations = {
     decompToggle: "Decomposition",
     langToggleEnglish: "English",
     langToggleHebrew: "עברית",
+    langToggleSpanish: "Spanish",
     switchToEnglishAria: "Switch to English",
     switchToHebrewAria: "Switch to Hebrew",
+    switchToSpanishAria: "Switch to Spanish",
+    languageSelectorAria: "Language selector",
     anomalyNowTitle: "Layer 1 · Alerts",
     anomalyScoreLabel: "Anomaly score",
     adxLabel: "ADX",
@@ -1083,6 +1096,44 @@ const translations = {
     tradeHold: "Hold"
   }
 };
+
+const translationOverrides = {
+  es: {
+    langToggleEnglish: "Inglés",
+    langToggleHebrew: "Hebreo",
+    langToggleSpanish: "Español",
+    switchToEnglishAria: "Cambiar a inglés",
+    switchToHebrewAria: "Cambiar a hebreo",
+    switchToSpanishAria: "Cambiar a español",
+    languageSelectorAria: "Seleccionar idioma",
+  },
+};
+
+const supportedLanguages = ["en", "he", "es"];
+
+const translations = buildTranslationTable(baseLanguageStrings, translationOverrides, supportedLanguages);
+
+function buildTranslationTable(base, overrides, languages) {
+  const table = {};
+  const languageList = languages || Array.from(new Set([...Object.keys(base || {}), ...Object.keys(overrides || {})]));
+  const sources = { ...base, ...overrides };
+
+  languageList.forEach((lang) => {
+    const dict = sources[lang] || {};
+    Object.entries(dict).forEach(([key, value]) => {
+      if (!table[key]) table[key] = {};
+      table[key][lang] = value;
+    });
+  });
+
+  Object.values(table).forEach((entry) => {
+    languageList.forEach((lang) => {
+      if (!entry[lang] && entry.en) entry[lang] = entry.en;
+    });
+  });
+
+  return table;
+}
 
 function fmt(x, d = 2) {
   if (x === null || x === undefined || Number.isNaN(x)) return "—";
@@ -1200,7 +1251,11 @@ let state = {
   isAdvancedOpen: false,
 };
 
-function t(key) { return translations[state.lang]?.[key] ?? translations.en[key] ?? key; }
+function t(key, lang = state.lang) {
+  const entry = translations[key];
+  if (!entry) return key;
+  return entry[lang] ?? entry.en ?? Object.values(entry)[0] ?? key;
+}
 
 function updateAdvancedCopy() {
   const heading = document.getElementById("advancedHeading");
@@ -1278,6 +1333,28 @@ updateAdvancedCopy();
       stats: statsByBand,
     };
 
+  function languageKey(lang) {
+    if (lang === "he") return "langToggleHebrew";
+    if (lang === "es") return "langToggleSpanish";
+    return "langToggleEnglish";
+  }
+
+  function renderLanguageSelector() {
+    const langSelect = document.getElementById("langSelect");
+    if (!langSelect) return;
+
+    langSelect.innerHTML = "";
+    supportedLanguages.forEach((lang) => {
+      const option = document.createElement("option");
+      option.value = lang;
+      option.textContent = t(languageKey(lang));
+      langSelect.appendChild(option);
+    });
+
+    langSelect.value = state.lang;
+    langSelect.setAttribute("aria-label", t("languageSelectorAria"));
+  }
+
   function applyLanguage() {
     document.documentElement.lang = state.lang;
     document.body.dir = state.lang === "he" ? "rtl" : "ltr";
@@ -1285,9 +1362,7 @@ updateAdvancedCopy();
       const key = el.getAttribute("data-i18n");
       el.textContent = t(key);
     });
-    const langBtn = document.getElementById("langToggle");
-    langBtn.textContent = state.lang === "he" ? translations.en.langToggleEnglish : translations.he.langToggleHebrew;
-    langBtn.setAttribute("aria-label", state.lang === "he" ? translations.en.switchToEnglishAria : translations.he.switchToHebrewAria);
+    renderLanguageSelector();
   }
 
   function updateDateRangeUi() {
@@ -2346,7 +2421,17 @@ updateAdvancedCopy();
   document.getElementById("toggleBoll").addEventListener("change", (e) => { state.showBoll = e.target.checked; renderPrice(state.range); });
   document.getElementById("toggleCycles").addEventListener("change", (e) => { state.showCycles = e.target.checked; renderPrice(state.range); });
 
-  document.getElementById("langToggle").addEventListener("click", () => { state.lang = state.lang === "he" ? "en" : "he"; localStorage.setItem("lang", state.lang); renderAll(); });
+  const langSelect = document.getElementById("langSelect");
+  if (langSelect) {
+    langSelect.addEventListener("change", (e) => {
+      const selected = e.target.value;
+      if (supportedLanguages.includes(selected)) {
+        state.lang = selected;
+        localStorage.setItem("lang", state.lang);
+        renderAll();
+      }
+    });
+  }
 
     const startInput = document.getElementById("startDate");
     const endInput = document.getElementById("endDate");
