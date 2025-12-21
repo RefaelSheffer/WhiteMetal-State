@@ -2386,7 +2386,13 @@ updateAdvancedCopy();
 
       const selectedStats = computeStats(chosen);
       const benchStats = computeStats(buyHold);
-      const risk = computeRisk(chosen, datesMasked);
+      const riskSeries = computeRisk(chosen, datesMasked);
+      const riskSummary = backtestRiskMetrics?.summary ?? {};
+      const risk = {
+        dd: riskSeries.dd ?? riskSummary.max_drawdown ?? null,
+        ulcer: riskSeries.ulcer ?? riskSummary.ulcer_index ?? null,
+        worst: riskSeries.worst ?? riskSummary.worst_month ?? null,
+      };
       document.getElementById("riskDd").textContent = fmtPct(risk.dd, 2);
       document.getElementById("riskUlcer").textContent = fmt(risk.ulcer, 2);
       document.getElementById("riskWorst").textContent = fmtPct(risk.worst, 2);
