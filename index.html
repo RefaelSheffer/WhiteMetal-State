@@ -29,6 +29,27 @@
     .alert { margin-top: 10px; background: rgba(255, 159, 64, 0.12); border: 1px solid #ff9f40; color: #ffd7a2; padding: 10px 12px; border-radius: 10px; line-height: 1.5; }
     .alert-card { margin-top: 10px; background: #0d1424; border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; }
     .alert-card .title { font-weight: 700; }
+    .action-meta { display: flex; gap: 16px; flex-wrap: wrap; font-size: 14px; color: var(--muted); margin: 6px 0 10px; }
+    .action-badge { padding: 6px 12px; border-radius: 10px; border: 1px solid var(--border); font-weight: 800; letter-spacing: 0.5px; }
+    .action-badge.positive { background: rgba(34, 197, 94, 0.14); color: var(--success); }
+    .action-badge.negative { background: rgba(244, 63, 94, 0.16); color: var(--danger); }
+    .action-badge.neutral { background: rgba(255,255,255,0.08); color: var(--text); }
+    .action-score-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin: 10px 0; }
+    .score-block { background: #0d1424; border: 1px solid var(--border); border-radius: 10px; padding: 10px; }
+    .score-block .label { font-size: 12px; color: var(--muted); }
+    .score-block .value { font-size: 20px; font-weight: 700; margin-top: 4px; }
+    .action-breakdown { display: grid; gap: 8px; margin-top: 8px; }
+    .breakdown-row { display: grid; grid-template-columns: 1.4fr 0.6fr 3fr; gap: 8px; align-items: center; background: #0d1424; border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; }
+    .breakdown-name { font-weight: 700; }
+    .breakdown-points { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; text-align: right; color: var(--muted); }
+    .breakdown-summary { color: var(--muted); font-size: 13px; }
+    .action-breakdown-panel summary, .action-rationale summary, .action-backtest summary { cursor: pointer; font-weight: 700; }
+    .action-rationale, .action-breakdown-panel, .action-backtest { background: #0d1424; border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin: 10px 0; }
+    .rationale-headline { font-weight: 700; margin-bottom: 6px; }
+    .action-disclaimer { margin-top: 10px; display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: #fbbf24; }
+    .warning-icon { font-size: 16px; }
+    .tooltip-bubble { position: fixed; z-index: 9999; background: #111a2b; color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 12px; max-width: 240px; box-shadow: 0 10px 25px rgba(0,0,0,0.35); }
+    [data-tooltip] { cursor: help; }
     .badge-inline { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; margin-inline-end: 6px; border: 1px solid var(--border); }
     .sev-info { background: rgba(76, 156, 255, 0.15); color: #8bb2ff; }
     .sev-warn { background: rgba(255, 159, 64, 0.18); color: #ffb86c; }
@@ -256,6 +277,10 @@
       <div id="contextItems" class="context-grid"></div>
       <div class="context-note" id="contextFooter" data-i18n="contextFooter">Context only; not a trade idea.</div>
     </div>
+
+    <div style="height:16px"></div>
+
+    <div class="card" id="action-recommendation"></div>
 
     <div style="height:16px"></div>
 
@@ -669,6 +694,8 @@
 import { buildFeatureRows, knnAnalogProbability } from "./src/lib/probability-engine.js";
 import { FetchAllCandidatesError } from "./src/lib/fetchJson.js";
 import { createDataHub } from "./src/lib/data-hub.js";
+import { renderActionRecommendation } from "./src/ui/render-action-recommendation.js";
+import { attachTooltips } from "./src/ui/tooltips.js";
 
 function setGlobalStatus(message, tone = "info") {
   const el = document.getElementById("global-status");
@@ -1404,6 +1431,7 @@ let meta = {};
 let prices = { dates: [], close: [] };
 let priceDates = [];
 let probabilistic = null;
+let actionSignal = null;
 let anomalies = {};
 let perfSummary = {};
 let equityCurve = {};
@@ -1513,6 +1541,7 @@ function attachAdvancedToggle() {
 
 attachAdvancedToggle();
 updateAdvancedCopy();
+attachTooltips(document);
 
 let latestHubState = null;
 hub.subscribe((state) => {
@@ -1548,6 +1577,7 @@ hub.subscribe((state) => {
       legacyPrices: hub.getDataset("legacyPrices"),
       prices: hub.getDataset("prices"),
       probabilistic: hub.getDataset("probabilistic"),
+      signalLatest: hub.getDataset("signalLatest"),
       anomalies: hub.getDataset("anomalies"),
       perfSummary: hub.getDataset("perfSummary"),
       equityCurve: hub.getDataset("equityCurve"),
@@ -1605,6 +1635,7 @@ hub.subscribe((state) => {
       momentum: datasets.heatmapMomentum,
       stats: datasets.statsByBand,
     };
+    actionSignal = datasets.signalLatest;
     probabilistic = datasets.probabilistic || {};
     anomalies = datasets.anomalies || {};
     perfSummary = datasets.perfSummary || {};
@@ -2987,6 +3018,7 @@ hub.subscribe((state) => {
   function renderAll() {
     applyLanguage();
     updateAdvancedCopy();
+    renderActionRecommendation(actionSignal, dataErrors.signalLatest);
     renderEventContext(eventContext, eventImpactStats, dataErrors.eventContext);
     renderContextPanel(currentContext, conditionalContextStats, dataErrors.crossMarketCurrent);
     renderProbabilistic(probabilistic, dataErrors.probabilistic);
