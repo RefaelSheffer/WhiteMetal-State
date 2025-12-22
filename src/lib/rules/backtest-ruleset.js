@@ -3,6 +3,9 @@ import { summarizeKpis, calcMaxDrawdown } from "../trading/metrics.js";
 import { DEFAULT_RULESET, evaluateRules, normalizeSeriesForRules } from "./ruleset-simple.js";
 import { percentile } from "./volatility.js";
 
+// Re-export the default ruleset so UI modules can rely on a single import source.
+export { DEFAULT_RULESET } from "./ruleset-simple.js";
+
 function clone(obj) {
   return typeof structuredClone === "function" ? structuredClone(obj) : JSON.parse(JSON.stringify(obj || {}));
 }
