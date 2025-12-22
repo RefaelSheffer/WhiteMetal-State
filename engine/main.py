@@ -229,6 +229,37 @@ def run_pipeline() -> None:
     momentum_payload = compute_momentum_heatmap(closes, dates)
     stats_by_band = compute_stats_by_band(closes, deviation_payload["bands"])
 
+    files_map = {
+        "legacyPrices": "raw/slv_daily.json",
+        "prices": "raw/slv_daily.json",
+        "probabilistic": "signals/probabilistic.json",
+        "signalLatest": "signal_latest.json",
+        "anomalies": "anomalies/latest.json",
+        "perfSummary": "perf/summary.json",
+        "equityCurve": "perf/equity_curve.json",
+        "cycleStats": "events/cycle_stats.json",
+        "heatmapDeviation": "heatmap/deviation.json",
+        "heatmapVolatility": "heatmap/volatility.json",
+        "heatmapMomentum": "heatmap/momentum.json",
+        "statsByBand": "heatmap/stats_by_band.json",
+        "eventContext": "events/current_event_context.json",
+        "eventImpactStats": "events/event_impact_stats.json",
+        "crossMarketCurrent": "context/cross_market_current.json",
+        "crossMarketConditional": "context/cross_market_conditional.json",
+        "probabilityDaily": "probability_daily.json",
+        "backtestEquity": "backtest/equity_curves.json",
+        "backtestFeesImpact": "backtest/fees_impact.json",
+        "backtestFeesSensitivity": "backtest/fees_sensitivity.json",
+        "backtestTradeLog": "backtest/trade_log.json",
+        "backtestRiskMetrics": "backtest/risk_metrics.json",
+        "perfAtr": "perf/atr.json",
+        "perfAdx": "perf/adx.json",
+        "decompositionMeta": "diagnostics/decomposition_meta.json",
+        "decompositionTrend": "diagnostics/decomposition_trend.json",
+        "decompositionSeasonal": "diagnostics/decomposition_seasonal.json",
+        "decompositionResidual": "diagnostics/decomposition_residual.json",
+    }
+
     write_json(
         BASE_PATH / "meta.json",
         {
@@ -238,6 +269,7 @@ def run_pipeline() -> None:
             "end": raw_data[-1]["date"],
             "rows": len(raw_data),
             "last_updated_utc": last_updated,
+            "files": files_map,
         },
     )
 
