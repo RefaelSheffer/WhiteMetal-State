@@ -155,16 +155,9 @@ export function renderRulesBacktest(series, initialResult) {
       <thead><tr><th>Entry</th><th>Exit</th><th>Hold</th><th>Return</th><th>Reason</th><th>Size</th></tr></thead>
       <tbody id="rulesTrades"></tbody>
     </table>
-    <details style="margin-top:12px;">
-      <summary>Glossary</summary>
-      <ul class="plain-list">
-        <li>P(up): Probability of gain over horizon (model-derived).</li>
-        <li>similarCount: Number of similar historical states (effective sample size).</li>
-        <li>vol20: 20-day volatility (std of daily returns). Threshold = 70th percentile fallback.</li>
-        <li>Execution: Decision on day t executes on close of t+1 (no lookahead).</li>
-        <li>Fees: 0.10% per trade + 0.02% slippage when enabled.</li>
-      </ul>
-    </details>
+    <div class="muted small" style="margin-top:12px;">
+      <a href="./docs/glossary-he.html" target="_blank" rel="noopener">Glossary · מילון מונחים</a>
+    </div>
     <div class="action-disclaimer" style="margin-top:12px;">
       <span class="warning-icon" aria-hidden="true">⚠️</span>
       <span>${DISCLAIMER}</span>

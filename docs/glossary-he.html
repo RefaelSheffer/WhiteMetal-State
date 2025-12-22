@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>מילון מונחים – SLV Monitor</title>
+  <style>
+    body { font-family: system-ui, Arial; margin: 0; background: #0b0f17; color: #e8eefc; line-height: 1.6; }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 24px; }
+    h1, h2 { color: #8bb2ff; }
+    section { margin-bottom: 24px; background: #111a2b; border: 1px solid #1e2a45; border-radius: 12px; padding: 18px; }
+    ul { padding-right: 20px; }
+    code { background: rgba(255,255,255,0.08); padding: 2px 4px; border-radius: 6px; }
+    .muted { color: #a8b4d6; font-size: 14px; }
+    a { color: #9cc2ff; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>📚 מילון מונחים (SLV Monitor)</h1>
+    <p class="muted">הסברים קצרים למונחים ולקיצורים שמופיעים בדשבורד, בסימולציות ובגרפים. המידע מחקרי בלבד ואינו ייעוץ.</p>
+
+    <section>
+      <h2>מדדים טכניים</h2>
+      <ul>
+        <li><strong>RSI (14)</strong> – ממוצע עליות מול ירידות ב-14 ימי מסחר. ערך מעל 70 מצביע על קניות יתר; מתחת 30 על מכירות יתר.</li>
+        <li><strong>ATR (14)</strong> / <strong>ATR%</strong> – ממוצע נע של <em>true range</em> ל-14 ימים. משמש למדידת תנודתיות ולחישוב גודל פוזיציה או סטופים יחסיים.</li>
+        <li><strong>Z-Score</strong> – מרחק המחיר מהממוצע הנע מחולק בסטיית התקן הגלגלת. חיובי גבוה → מעל הרצועה; שלילי → מתחת.</li>
+        <li><strong>Bollinger Bands (20, 2σ)</strong> – רצועות סביב ממוצע נע 20 עם רוחב של 2 סטיות תקן למדידת סטייה קיצונית.</li>
+        <li><strong>MACD (12/26/9)</strong> – ממוצעים נעים אקספוננציאליים ומהם נגזר קו אות (Signal). חיובי מצביע על מומנטום עולה.</li>
+        <li><strong>ROC / ret_X</strong> – Rate of Change או תשואה גלגלת על פני X ימים (5/20/60).</li>
+        <li><strong>vol_X</strong> – סטיית תקן של תשואה יומית על פני X ימים (מדד תנודתיות).</li>
+        <li><strong>OBV</strong> – On-Balance Volume. סכימת נפחים עם סימן כיוון היום כדי לשער זרימת כסף.</li>
+        <li><strong>MAs (MA50 / MA200 / MA1000)</strong> – ממוצעים נעים המשמשים להבנה מהירה של מגמת יסוד.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>מנוע הסתברות (kNN)</h2>
+      <ul>
+        <li><strong>kNN</strong> – <em>k-Nearest Neighbors</em>: חיפוש קווי דמיון היסטוריים בין יום נוכחי לימים בעבר לפי מרחק אוקלידי מנורמל.</li>
+        <li><strong>K</strong> – מספר ה"שכנים" (דוגמאות היסטוריות) שמשמשים להסקה.</li>
+        <li><strong>Weighting</strong> – שיטת משקולות לשכנים: <em>inverse distance</em> (1/d) או <em>softmax</em> שמדגיש שכנים קרובים.</li>
+        <li><strong>P(up)</strong> – אומדן הסתברותי שהשכנים מרמזים על תשואה חיובית מעל סף הצלחה (0% / 1% / 2%). לא התחייבות.</li>
+        <li><strong>Median</strong> – חציון משוקלל של תשואות השכנים באופק הנבחר (5/20/60 ימים).</li>
+        <li><strong>Range 10–90%</strong> – טווח אחוזוני משוקלל (p10–p90) כדי לאמוד פיזור אפשרי סביב החציון.</li>
+        <li><strong>similarCount / N</strong> – מספר הדוגמאות שנמצאו בבסיס הנתונים לפני שקלול.</li>
+        <li><strong>Effective N</strong> – גודל מדגם אפקטיבי אחרי משקולות. ערך נמוך מרמז שהמודל נשען על מעט תצפיות.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>ביצועים ובק-טסט</h2>
+      <ul>
+        <li><strong>Net Return</strong> / <strong>Total Return</strong> – תשואה מצטברת על פני התקופה.</li>
+        <li><strong>CAGR</strong> – תשואה שנתית ממוצעת במונחים מצטברים (<em>Compound Annual Growth Rate</em>).</li>
+        <li><strong>Max Drawdown (DD)</strong> – הירידה החדה ביותר משיא לשפל.</li>
+        <li><strong>Sharpe Ratio</strong> – תשואה עודפת חלקי סטיית תקן של התשואות. מודד תמורה לסיכון.</li>
+        <li><strong>Sortino Ratio</strong> – דומה לשארפ אך מחלק רק בסטיית תקן של ירידות (downside deviation).</li>
+        <li><strong>Ulcer Index</strong> – עומק ומשך של ירידות ממושכות, רגיש ל"כאב" מסוחטי.</li>
+        <li><strong>Win rate</strong> – אחוז העסקאות שהסתיימו ברווח.</li>
+        <li><strong>Hold</strong> – משך ההחזקה בימים בין כניסה ליציאה.</li>
+        <li><strong>Exposure</strong> – חלק מהזמן או מההון שהיו מושקעים בשוק.</li>
+        <li><strong>Fees</strong> / <strong>Slippage</strong> – דמי עסקה וחיכוך ביצוע (לדוגמה 0.10% + 0.02%).</li>
+        <li><strong>Execution (t → t+1)</strong> – החלטה ביום t מתבצעת על סגירת t+1 (אין <em>lookahead</em>).</li>
+        <li><strong>Take Profit</strong> – יעד רווח באחוזים שמסיים פוזיציה אוטומטית.</li>
+        <li><strong>Cooldown</strong> – מספר הימים שממתינים לפני כניסה נוספת לאחר יציאה.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>ניהול סיכונים וגודל פוזיציה</h2>
+      <ul>
+        <li><strong>ATR sizing</strong> – התאמת כמות יחידות כך שתנודה של <code>ATR × מכפיל</code> תייצר סיכון רצוי.</li>
+        <li><strong>Stop-Loss</strong> – רמת מחיר חותכת שמסיימת טרייד בהפסד מוגבל.</li>
+        <li><strong>Trailing Stop</strong> – סטופ שעולה/יורד עם המחיר כדי לנעול רווחים תוך מתן מרחב נשימה.</li>
+        <li><strong>VaR</strong> – <em>Value at Risk</em>: הערכת הפסד מקסימלי צפוי ברמת ביטחון נתונה (למשל 95%).</li>
+        <li><strong>VaR sizing</strong> – התאמת גודל הפוזיציה כך שהפסד VaR יעמוד במסגרת אחוז מההון (למשל 1%).</li>
+        <li><strong>Risk budget</strong> – חלק מההון שמוקצה לסיכון בעסקה אחת.</li>
+        <li><strong>Vol threshold</strong> – סף תנודתיות שממנו אפשר להגביל כניסות (למשל אחוזון 70 של <code>vol20</code>).</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>מילון קצר לתרשימים</h2>
+      <ul>
+        <li><strong>Heatmap / Percentile</strong> – צביעה לפי אחוזון היסטורי של סטייה או תנודתיות; נותן הקשר, לא סיגנל.</li>
+        <li><strong>Cycle Peaks/Troughs</strong> – זיהוי שיאים/תחתיות היסטוריים כדי להבין מחזורי מחיר.</li>
+        <li><strong>Equity Curve</strong> – התפתחות ערך התיק לאורך זמן נטו/ברוטו.</li>
+        <li><strong>Benchmark</strong> – קו השוואה (לרוב SLV או קנייה-החזקה) לבדיקת ערך מוסף.</li>
+        <li><strong>Confidence badge</strong> – תווית שמדרגת ביטחון המודל (נמוך/בינוני/גבוה) לפי Effective N ופיזור התוצאות.</li>
+      </ul>
+    </section>
+
+    <p class="muted">עוד מונחים בדרך? כתבו לנו כדי להוסיף.</p>
+  </div>
+</body>
+</html>
