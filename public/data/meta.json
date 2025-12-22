@@ -4,7 +4,7 @@
   "start": "2008-01-02",
   "end": "2025-12-12",
   "rows": 4516,
-  "last_updated_utc": "2025-12-21T22:41:38Z",
+  "last_updated_utc": "2025-12-22T22:43:09Z",
   "files": {
     "legacyPrices": "raw/slv_daily.json",
     "prices": "raw/slv_daily.json",
