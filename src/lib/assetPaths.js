@@ -47,21 +47,22 @@ export function buildCandidateUrls(relativePath) {
   const repoBase = getRepoBaseFromLocation(); // "/" or "/<repo>/"
   const repoBaseNorm = repoBase.endsWith("/") ? repoBase : repoBase + "/";
 
-  // The most useful candidates for GH Pages:
+  // Prefer the committed public/data/ payloads (authoritative for the UI),
+  // then fall back to /data/ in case someone manually copied files there.
   const candidates = [
-    // 1) repo base + data
-    `${origin}${repoBaseNorm}data/${rel}`,
+    // 1) repo base + public data
     `${origin}${repoBaseNorm}public/data/${rel}`,
+    `${origin}${repoBaseNorm}data/${rel}`,
 
-    // 2) root + data (in case user site or you actually deployed to root)
-    `${origin}/data/${rel}`,
+    // 2) root + public data (in case user site or you actually deployed to root)
     `${origin}/public/data/${rel}`,
+    `${origin}/data/${rel}`,
 
     // 3) relative (works if you run locally / or base tag is set)
-    `data/${rel}`,
     `public/data/${rel}`,
-    `./data/${rel}`,
+    `data/${rel}`,
     `./public/data/${rel}`,
+    `./data/${rel}`,
   ];
 
   // Normalize and dedupe
