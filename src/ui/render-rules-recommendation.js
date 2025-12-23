@@ -64,7 +64,7 @@ function renderChecks(checks = []) {
   `;
 }
 
-export function renderRulesRecommendation(result, error) {
+export function renderRulesRecommendation(result, error, lang = "en") {
   const root = document.getElementById("simpleRulesRecommendation");
   if (!root) return;
 
@@ -90,12 +90,12 @@ export function renderRulesRecommendation(result, error) {
     </div>
     <div class="action-meta">
       <div><span class="muted">Why</span> <span>${reasonCopy(decision.reasonCode)}</span></div>
-      <div><span class="muted">P(up)</span> <span class="mono">${fmtPct(values.pUp, 1)}</span></div>
-      <div><span class="muted">Confidence</span> <span class="mono">${values.confidence || "—"}</span></div>
-      <div><span class="muted">Similar states</span> <span class="mono">${fmtNum(values.similarCount, 0)}</span></div>
-      <div><span class="muted">Vol20</span> <span class="mono">${fmtNum(values.vol20, 3)}</span></div>
-      <div><span class="muted">COT bias</span> <span class="mono">${cotBias}</span></div>
-      <div><span class="muted">Return vs entry</span> <span class="mono">${fmtPct(values.returnSinceEntry, 1)}</span></div>
+      <div><span class="muted" data-glossary="probability_daily">P(up)</span> <span class="mono">${fmtPct(values.pUp, 1)}</span></div>
+      <div><span class="muted" data-glossary="confidence_level">Confidence</span> <span class="mono">${values.confidence || "—"}</span></div>
+      <div><span class="muted" data-glossary="similar_states">Similar states</span> <span class="mono">${fmtNum(values.similarCount, 0)}</span></div>
+      <div><span class="muted" data-glossary="vol20">Vol20</span> <span class="mono">${fmtNum(values.vol20, 3)}</span></div>
+      <div><span class="muted" data-glossary="cot_bias">COT bias</span> <span class="mono">${cotBias}</span></div>
+      <div><span class="muted" data-glossary="return_since_entry">Return vs entry</span> <span class="mono">${fmtPct(values.returnSinceEntry, 1)}</span></div>
     </div>
     <details class="action-rationale" open>
       <summary>Today\'s checklist</summary>
@@ -107,10 +107,10 @@ export function renderRulesRecommendation(result, error) {
     </div>
   `;
 
-  attachTooltips(root);
+  attachTooltips(root, lang);
 }
 
-export function renderRulesExplain(result) {
+export function renderRulesExplain(result, lang = "en") {
   const root = document.getElementById("simpleRulesExplain");
   if (!root) return;
 
@@ -130,28 +130,28 @@ export function renderRulesExplain(result) {
       <div>
         <div class="subtitle">Entry</div>
         <ul class="plain-list">
-          <li>P(up) ≥ ${fmtPct(r.entryThreshold, 0)}</li>
-          <li>Confidence ≥ ${r.minConfidence}</li>
-          <li>Similar states ≥ ${r.minSimilarCount}</li>
-          <li>COT tailwind (commercial pct≤10% or bias bullish) lifts borderline entries.</li>
+          <li data-glossary="probability_daily">P(up) ≥ ${fmtPct(r.entryThreshold, 0)}</li>
+          <li data-glossary="confidence_level">Confidence ≥ ${r.minConfidence}</li>
+          <li data-glossary="similar_states">Similar states ≥ ${r.minSimilarCount}</li>
+          <li data-glossary="cot_tailwind">COT tailwind (commercial pct≤10% or bias bullish) lifts borderline entries.</li>
         </ul>
       </div>
       <div>
         <div class="subtitle">Exit</div>
         <ul class="plain-list">
-          <li>Take profit: +${fmtPct(r.takeProfitPct, 0)}</li>
-          <li>P(up) < ${fmtPct(r.exitThreshold, 0)}</li>
-          <li>Vol spike ≥ ${fmtNum(r.volThreshold, 3)} (70th pct fallback)</li>
-          <li>COT headwind can force SELL when longs are crowded.</li>
+          <li data-glossary="take_profit">Take profit: +${fmtPct(r.takeProfitPct, 0)}</li>
+          <li data-glossary="probability_daily">P(up) < ${fmtPct(r.exitThreshold, 0)}</li>
+          <li data-glossary="volatility_threshold">Vol spike ≥ ${fmtNum(r.volThreshold, 3)} (70th pct fallback)</li>
+          <li data-glossary="cot_headwind">COT headwind can force SELL when longs are crowded.</li>
         </ul>
       </div>
       <div>
         <div class="subtitle">Add</div>
         <ul class="plain-list">
-          <li>P(up) ≥ ${fmtPct(r.addThreshold, 0)} & confidence HIGH</li>
-          <li>Similar states ≥ ${r.addMinSimilarCount}</li>
-          <li>Cooldown ${r.addCooldownDays}d · Add size ${(r.sizing?.add ?? 0.25) * 100}%</li>
-          <li>COT support allows adds when commercials are stretched long.</li>
+          <li data-glossary="probability_daily">P(up) ≥ ${fmtPct(r.addThreshold, 0)} & confidence HIGH</li>
+          <li data-glossary="similar_states">Similar states ≥ ${r.addMinSimilarCount}</li>
+          <li data-glossary="cooldown">Cooldown ${r.addCooldownDays}d · Add size ${(r.sizing?.add ?? 0.25) * 100}%</li>
+          <li data-glossary="cot_support">COT support allows adds when commercials are stretched long.</li>
         </ul>
       </div>
     </div>
@@ -162,5 +162,5 @@ export function renderRulesExplain(result) {
     </div>
   `;
 
-  attachTooltips(root);
+  attachTooltips(root, lang);
 }

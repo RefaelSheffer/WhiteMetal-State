@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="he" dir="rtl">
+<html lang="es">
 <head>
   <meta charset="utf-8" />
-  <title>מילון מונחים – SLV Monitor</title>
+  <title>Glosario – SLV Monitor</title>
   <style>
     body { font-family: system-ui, Arial; margin: 0; background: #0b0f17; color: #e8eefc; line-height: 1.6; }
     .wrap { max-width: 1080px; margin: 0 auto; padding: 24px; }
@@ -16,12 +16,12 @@
 </head>
 <body>
   <div class="wrap">
-    <h1>📚 מילון מונחים (SLV Monitor)</h1>
-    <p class="muted">הסברים קצרים למונחים ולמדדים שמופיעים בדשבורד, בבקטסט ובטולטיפים. המידע מחקרי בלבד ואינו ייעוץ.</p>
+    <h1>📚 Glosario (SLV Monitor)</h1>
+    <p class="muted">Definiciones rápidas de los términos y métricas del panel, backtests y tooltips. Solo investigación; no es consejo financiero.</p>
     <div id="glossary"></div>
   </div>
   <script>
-    const LANG = "he";
+    const LANG = "es";
     const CATEGORY_TITLES = {
       "Probability Engine": { en: "Probability Engine", he: "מנוע הסתברות", es: "Motor de probabilidad" },
       "Performance & Backtest": { en: "Performance & Backtest", he: "ביצועים ובקטסט", es: "Rendimiento y backtest" },
@@ -86,7 +86,7 @@
       .then((data) => renderGlossary(data))
       .catch((err) => {
         const container = document.getElementById("glossary");
-        container.innerHTML = `<div class="muted">שגיאה בטעינת נתוני המילון: ${escapeHtml(err?.message || err)}</div>`;
+        container.innerHTML = `<div class="muted">Error al cargar el glosario: ${escapeHtml(err?.message || err)}</div>`;
       });
   </script>
 </body>

@@ -19,13 +19,13 @@ function renderKpis(container, result) {
   const b = result?.benchmark || {};
   container.innerHTML = `
     <div class="kpis">
-      <div class="kpi"><div class="muted" data-tooltip="תשואה מצטברת של האסטרטגיה לאורך כל התקופה">Net Return</div><div class="v mono">${fmtPct(k.totalReturnPct)}</div></div>
-      <div class="kpi"><div class="muted" data-tooltip="CAGR: שיעור תשואה שנתית ממוצעת במונחים מצטברים">CAGR</div><div class="v mono">${fmtPct(k.cagrPct)}</div></div>
-      <div class="kpi"><div class="muted" data-tooltip="Max Drawdown: הירידה החדה ביותר משיא לשפל">Max DD</div><div class="v mono">${fmtPct(k.maxDrawdownPct)}</div></div>
-      <div class="kpi"><div class="muted" data-tooltip="Sharpe Ratio: תשואה עודפת חלקי סטיית תקן של התשואות">Sharpe</div><div class="v mono">${fmtNum(k.sharpe)}</div></div>
-      <div class="kpi"><div class="muted" data-tooltip="Win rate: אחוז העסקאות שנסגרו ברווח">Win rate</div><div class="v mono">${fmtPct(k.winRatePct)}</div></div>
-      <div class="kpi"><div class="muted" data-tooltip="מספר העסקאות שבוצעו בסימולציה"># Trades</div><div class="v mono">${k.tradesCount ?? 0}</div></div>
-      <div class="kpi"><div class="muted" data-tooltip="Exposure: חלק מהזמן או מההון שהיה מושקע בשוק">Exposure</div><div class="v mono">${fmtPct(k.exposurePct)}</div></div>
+      <div class="kpi"><div class="muted" data-glossary="net_return">Net Return</div><div class="v mono">${fmtPct(k.totalReturnPct)}</div></div>
+      <div class="kpi"><div class="muted" data-glossary="cagr">CAGR</div><div class="v mono">${fmtPct(k.cagrPct)}</div></div>
+      <div class="kpi"><div class="muted" data-glossary="max_drawdown">Max DD</div><div class="v mono">${fmtPct(k.maxDrawdownPct)}</div></div>
+      <div class="kpi"><div class="muted" data-glossary="sharpe_ratio">Sharpe</div><div class="v mono">${fmtNum(k.sharpe)}</div></div>
+      <div class="kpi"><div class="muted" data-glossary="win_rate">Win rate</div><div class="v mono">${fmtPct(k.winRatePct)}</div></div>
+      <div class="kpi"><div class="muted" data-glossary="trades_count"># Trades</div><div class="v mono">${k.tradesCount ?? 0}</div></div>
+      <div class="kpi"><div class="muted" data-glossary="exposure">Exposure</div><div class="v mono">${fmtPct(k.exposurePct)}</div></div>
     </div>
     <div class="muted" style="margin-top:8px;">Buy & Hold: ${fmtPct(b.buyHoldTotalReturnPct)} · MaxDD ${fmtPct(b.buyHoldMaxDrawdownPct)}</div>
   `;
@@ -133,7 +133,18 @@ function buildFees(feesEnabled) {
   return { perTradePct: 0.001, slippagePct: 0.0002 };
 }
 
-export function renderRulesBacktest(series, initialResult) {
+function glossaryLabel(lang) {
+  if (lang === "he") return "Glossary · מילון מונחים";
+  if (lang === "es") return "Glossary · Glosario";
+  return "Glossary";
+}
+
+function glossaryHref(lang) {
+  const safe = ["en", "he", "es"].includes(lang) ? lang : "en";
+  return `./docs/glossary-${safe}.html`;
+}
+
+export function renderRulesBacktest(series, initialResult, lang = "en") {
   const root = document.getElementById("simpleRulesBacktest");
   if (!root) return;
   if (!Array.isArray(series) || !series.length) {
@@ -156,7 +167,7 @@ export function renderRulesBacktest(series, initialResult) {
       <tbody id="rulesTrades"></tbody>
     </table>
     <div class="muted small" style="margin-top:12px;">
-      <a href="./docs/glossary-he.html" target="_blank" rel="noopener">Glossary · מילון מונחים</a>
+      <a href="${glossaryHref(lang)}" target="_blank" rel="noopener">${glossaryLabel(lang)}</a>
     </div>
     <div class="action-disclaimer" style="margin-top:12px;">
       <span class="warning-icon" aria-hidden="true">⚠️</span>
@@ -182,7 +193,7 @@ export function renderRulesBacktest(series, initialResult) {
     renderKpis(kpiContainer, result);
     renderTrades(tradesContainer, result.trades);
     plotEquity(result.timeline, result.benchmark);
-    attachTooltips(root);
+    attachTooltips(root, lang);
     return result;
   }
 
