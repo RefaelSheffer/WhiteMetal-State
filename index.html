@@ -75,6 +75,7 @@
     .toggle { display: inline-flex; gap: 6px; align-items: center; padding: 6px 10px; background: #0d1424; border: 1px solid var(--border); border-radius: 10px; cursor: pointer; }
     .toggle input { accent-color: var(--accent); }
     .header-top { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .header-content { flex: 1; min-width: 0; }
     #langSelect { width: auto; min-width: 120px; }
     .meta-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
@@ -187,7 +188,11 @@
             <span class="badge soft" id="eventContextBadge">—</span>
           </div>
         </div>
-        <select class="btn" id="langSelect" aria-label="Switch language"></select>
+        <div class="header-actions">
+          <button class="btn" id="howItWorksBtn" type="button" data-i18n="howItWorksLabel">ℹ️ איך זה עובד?</button>
+          <button class="btn" id="advancedShortcut" type="button" data-i18n="advancedShortcut">Advanced Analysis</button>
+          <select class="btn" id="langSelect" aria-label="Switch language"></select>
+        </div>
       </div>
       <div class="alert" data-i18n="alert">
         המלצות המערכת הן תוצאה של עיבוד סטטיסטי ואינן מהוות ייעוץ או הנחיה לביצוע פעולה מיידית. מומלץ לשלב את האיתותים עם גורמים נוספים כמו חדשות מאקרו, מדיניות מוניטרית ושיקולים אישיים אחרים.
@@ -795,6 +800,22 @@ import { renderRulesBacktest } from "./src/ui/render-rules-backtest.js";
 import { renderCotCard } from "./src/ui/render-cot.js";
 import { attachTooltips } from "./src/ui/tooltips.js";
 
+const HOW_IT_WORKS_BY_LANG = {
+  he: "docs/how-it-works-he.html",
+  en: "docs/how-it-works-en.html",
+  es: "docs/how-it-works-es.html",
+};
+
+function getHowItWorksUrl(lang) {
+  const url = HOW_IT_WORKS_BY_LANG[lang];
+  return url || HOW_IT_WORKS_BY_LANG.en || HOW_IT_WORKS_BY_LANG.he;
+}
+
+function openHowItWorks(lang) {
+  const url = getHowItWorksUrl(lang);
+  window.open(url, "_blank", "noopener");
+}
+
 function setGlobalStatus(message, tone = "info") {
   const el = document.getElementById("global-status");
   if (!el) return;
@@ -930,6 +951,8 @@ const baseLanguageStrings = {
   he: {
     title: "לוח בקרה ל-SLV",
     subtitle: "דשבורד סטטי ב-GitHub Pages + “מוח” שרץ ב-GitHub Actions ומעדכן JSON.",
+    howItWorksLabel: "איך זה עובד?",
+    howItWorksTooltip: "פתח הסבר על המנוע והדשבורד",
     alert: "המלצות המערכת הן תוצאה של עיבוד סטטיסטי ואינן מהוות ייעוץ או הנחיה לביצוע פעולה מיידית. מומלץ לשלב את האיתותים עם גורמים נוספים כמו חדשות מאקרו, מדיניות מוניטרית ושיקולים אישיים אחרים.",
     priceTitle: "מחיר",
     rangeLabel: "טווח זמן:",
@@ -1078,6 +1101,8 @@ const baseLanguageStrings = {
     advancedOpenTitle: "מצב מתקדם פתוח",
     advancedClosedSubtitle: "פתיחת גרפים, בקטסט ומדדי סיכון.",
     advancedOpenSubtitle: "מצב מתקדם פתוח. השתמשו בהגדרות הבקטסט להתאמות.",
+    advancedShortcut: "ניתוח מתקדם",
+    advancedShortcutHint: "פתח וגלול לניתוח המתקדם",
     showAdvanced: "פתח ניתוח מתקדם",
     hideAdvanced: "סגור ניתוח מתקדם",
     advancedAnalysisTitle: "ניתוח מתקדם",
@@ -1183,6 +1208,8 @@ const baseLanguageStrings = {
   en: {
     title: "SLV Monitor",
     subtitle: "Static dashboard on GitHub Pages + a 'brain' running in GitHub Actions updating JSON.",
+    howItWorksLabel: "How it works",
+    howItWorksTooltip: "Open the explainer for the dashboard and Probability Engine",
     alert: "System recommendations are the result of statistical processing and do not constitute advice or a call for immediate action. Combine signals with other factors like macro news, monetary policy, and personal considerations.",
     priceTitle: "Price",
     rangeLabel: "Range:",
@@ -1242,6 +1269,7 @@ const baseLanguageStrings = {
     analogiesTitle: "Analogies",
     analogiesNote: "Historical peers · No instructions",
     probEngineTitle: "Probability Engine",
+    probEngineInfoTooltip: "Open explainer for the Probability Engine",
     probEngineInfoLabel: "🔍 Info",
     probEngineSettingsLabel: "Settings",
     probEngineProbLabel: "P(up)",
@@ -1331,6 +1359,8 @@ const baseLanguageStrings = {
     advancedOpenTitle: "Advanced is open",
     advancedClosedSubtitle: "Open advanced charts, backtest, risk metrics, and diagnostics.",
     advancedOpenSubtitle: "Advanced is open. Use Backtest Settings to customize the simulation.",
+    advancedShortcut: "Advanced Analysis",
+    advancedShortcutHint: "Open and scroll to Advanced Analysis",
     showAdvanced: "Show Advanced Analysis",
     hideAdvanced: "Hide Advanced Analysis",
     advancedAnalysisTitle: "Advanced Analysis",
@@ -1444,6 +1474,11 @@ const translationOverrides = {
     switchToHebrewAria: "Cambiar a hebreo",
     switchToSpanishAria: "Cambiar a español",
     languageSelectorAria: "Seleccionar idioma",
+    howItWorksLabel: "Cómo funciona",
+    howItWorksTooltip: "Abrir la explicación del panel y del Motor de Probabilidad",
+    probEngineInfoTooltip: "Abrir la explicación del Motor de Probabilidad",
+    advancedShortcut: "Análisis avanzado",
+    advancedShortcutHint: "Abrir y desplazarse al Análisis avanzado",
   },
 };
 
@@ -1587,6 +1622,19 @@ let perfAtr = null;
 let perfAdx = null;
 let decomposition = { status: "missing", meta: null, trend: [], seasonal: [], residual: [], dates: [], error: "missing" };
 
+const ADVANCED_STORAGE_KEY = "advanced_open";
+
+function readAdvancedPreference() {
+  try {
+    const stored = localStorage.getItem(ADVANCED_STORAGE_KEY);
+    if (stored === null) return true;
+    return stored === "true";
+  } catch (err) {
+    console.warn("Could not read advanced panel preference", err);
+    return true;
+  }
+}
+
 let state = {
   range: "3m",
   lang: detectLang(),
@@ -1621,7 +1669,7 @@ let state = {
   heatmapMode: "deviation",
   heatmapRange: "all",
   heatmapWeekly: false,
-  isAdvancedOpen: false,
+  isAdvancedOpen: readAdvancedPreference(),
   probabilityEngine: {
     horizon: 20,
     k: 150,
@@ -1663,6 +1711,28 @@ function updateAdvancedCopy() {
   toggle.textContent = state.isAdvancedOpen ? t("hideAdvanced") : t("showAdvanced");
   toggle.setAttribute("aria-expanded", state.isAdvancedOpen ? "true" : "false");
   panel.style.display = state.isAdvancedOpen ? "block" : "none";
+  try {
+    localStorage.setItem(ADVANCED_STORAGE_KEY, state.isAdvancedOpen ? "true" : "false");
+  } catch (err) {
+    console.warn("Could not persist advanced panel preference", err);
+  }
+}
+
+function openAdvancedSection(shouldScroll = true) {
+  if (!state.isAdvancedOpen) {
+    state.isAdvancedOpen = true;
+    updateAdvancedCopy();
+  } else {
+    updateAdvancedCopy();
+  }
+
+  const target =
+    document.getElementById("advancedShell") ||
+    document.getElementById("advancedAnalysisCard") ||
+    document.getElementById("advancedPanel");
+  if (shouldScroll && target) {
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 }
 
 function attachAdvancedToggle() {
@@ -1831,6 +1901,12 @@ hub.subscribe((state) => {
       const key = el.getAttribute("data-i18n");
       el.textContent = t(key);
     });
+    const probInfoBtn = document.getElementById("probEngineInfoBtn");
+    if (probInfoBtn) probInfoBtn.title = t("probEngineInfoTooltip");
+    const howItWorksBtn = document.getElementById("howItWorksBtn");
+    if (howItWorksBtn) howItWorksBtn.title = t("howItWorksTooltip");
+    const advancedShortcut = document.getElementById("advancedShortcut");
+    if (advancedShortcut) advancedShortcut.title = t("advancedShortcutHint");
     renderLanguageSelector();
   }
 
@@ -3352,8 +3428,18 @@ hub.subscribe((state) => {
   const probInfoBtn = document.getElementById("probEngineInfoBtn");
   if (probInfoBtn) {
     probInfoBtn.addEventListener("click", () => {
-      window.open("./docs/how-it-works-he.html", "_blank", "noopener");
+      openHowItWorks(state.lang);
     });
+  }
+
+  const howItWorksBtn = document.getElementById("howItWorksBtn");
+  if (howItWorksBtn) {
+    howItWorksBtn.addEventListener("click", () => openHowItWorks(state.lang));
+  }
+
+  const advancedShortcut = document.getElementById("advancedShortcut");
+  if (advancedShortcut) {
+    advancedShortcut.addEventListener("click", () => openAdvancedSection(true));
   }
 
   const probSettingsToggle = document.getElementById("probEngineSettingsToggle");
