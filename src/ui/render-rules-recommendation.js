@@ -4,13 +4,38 @@ import { attachTooltips } from "./tooltips.js";
 const DISCLAIMER = "This is an educational research tool. Rules-based signals and backtests are simplified and may be wrong. Not investment advice.";
 
 function fmtPct(value, decimals = 0) {
-  if (value === null || value === undefined || Number.isNaN(value)) return "—";
-  return `${(Number(value) * 100).toFixed(decimals)}%`;
+  const num = toNumberOrNull(value);
+  if (num === null) return "—";
+  return `${(Number(num) * 100).toFixed(decimals)}%`;
 }
 
 function fmtNum(value, decimals = 2) {
-  if (value === null || value === undefined || Number.isNaN(value)) return "—";
-  return Number(value).toFixed(decimals);
+  const num = toNumberOrNull(value);
+  if (num === null) return "—";
+  return Number(num).toFixed(decimals);
+}
+
+function toNumberOrNull(x) {
+  if (x === null || x === undefined) return null;
+  if (typeof x === "string") {
+    const trimmed = x.trim();
+    if (["NaN", "nan", "", "null"].includes(trimmed)) return null;
+    const parsed = Number(trimmed);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  if (typeof x === "number") {
+    return Number.isFinite(x) ? x : null;
+  }
+  return null;
+}
+
+function fmtValue(value, decimals = 3) {
+  const num = toNumberOrNull(value);
+  if (num === null) {
+    if (typeof value === "string" && value.trim()) return value.trim();
+    return "—";
+  }
+  return fmtNum(num, decimals);
 }
 
 function toneClass(action) {
@@ -48,17 +73,30 @@ function renderChecks(checks = []) {
   return `
     <div class="rule-checks">
       ${checks
-        .map((c) => `
-          <div class="rule-check ${c.pass ? "pass" : "fail"}">
-            <span class="marker">${c.pass ? "✅" : "❌"}</span>
+        .map((c) => {
+          const status = (c.status || (c.pass ? "PASS" : "FAIL")).toUpperCase();
+          const statusClass = status === "PASS" ? "pass" : status === "NA" ? "na" : "fail";
+          const marker = status === "PASS" ? "✅" : status === "NA" ? "—" : "❌";
+          const valueCopy = fmtValue(c.value, 3);
+          const thresholdCopy =
+            c.threshold !== undefined && c.threshold !== null ? fmtValue(c.threshold, 3) : null;
+          const detailParts = [`Value: ${valueCopy}`];
+          if (thresholdCopy) {
+            const op = c.op ? ` (${c.op})` : "";
+            detailParts.push(`Threshold ${thresholdCopy}${op}`);
+          }
+          if (c.note) detailParts.push(c.note);
+          if (status === "NA" && c.missing_reason) detailParts.push(`Missing: ${c.missing_reason}`);
+          return `
+          <div class="rule-check ${statusClass}">
+            <span class="marker">${marker}</span>
             <div>
-              <div class="name">${c.name}</div>
-              <div class="small muted">Value: ${fmtNum(c.value ?? c.value === 0 ? c.value : null, 3)}${
-                c.threshold !== undefined && c.threshold !== null ? ` · Threshold ${fmtNum(c.threshold, 3)}` : ""
-              }</div>
+              <div class="name">${c.label || c.name}</div>
+              <div class="small muted">${detailParts.join(" · ")}</div>
             </div>
           </div>
-        `)
+        `;
+        })
         .join("")}
     </div>
   `;
@@ -91,7 +129,7 @@ export function renderRulesRecommendation(result, error, lang = "en") {
     <div class="action-meta">
       <div><span class="muted">Why</span> <span>${reasonCopy(decision.reasonCode)}</span></div>
       <div><span class="muted" data-glossary="probability_daily">P(up)</span> <span class="mono">${fmtPct(values.pUp, 1)}</span></div>
-      <div><span class="muted" data-glossary="confidence_level">Confidence</span> <span class="mono">${values.confidence || "—"}</span></div>
+      <div><span class="muted" data-glossary="confidence_level">Confidence</span> <span class="mono">${fmtValue(values.confidence)}</span></div>
       <div><span class="muted" data-glossary="similar_states">Similar states</span> <span class="mono">${fmtNum(values.similarCount, 0)}</span></div>
       <div><span class="muted" data-glossary="vol20">Vol20</span> <span class="mono">${fmtNum(values.vol20, 3)}</span></div>
       <div><span class="muted" data-glossary="cot_bias">COT bias</span> <span class="mono">${cotBias}</span></div>
