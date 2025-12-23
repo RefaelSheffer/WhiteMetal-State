@@ -4,7 +4,7 @@
   "start": "2008-01-02",
   "end": "2025-12-12",
   "rows": 4516,
-  "last_updated_utc": "2025-12-23T08:30:23Z",
+  "last_updated_utc": "2025-12-23T11:55:00Z",
   "files": {
     "legacyPrices": "raw/slv_daily.json",
     "prices": "raw/slv_daily.json",
@@ -22,6 +22,7 @@
     "eventImpactStats": "events/event_impact_stats.json",
     "crossMarketCurrent": "context/cross_market_current.json",
     "crossMarketConditional": "context/cross_market_conditional.json",
+    "crossMarketContext": "context/cross_market_context.json",
     "probabilityDaily": "probability_daily.json",
     "backtestEquity": "backtest/equity_curves.json",
     "backtestFeesImpact": "backtest/fees_impact.json",
