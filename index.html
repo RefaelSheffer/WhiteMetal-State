@@ -47,8 +47,12 @@
     .rationale-headline { font-weight: 700; margin-bottom: 6px; }
     .action-disclaimer { margin-top: 10px; display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: #fbbf24; }
     .warning-icon { font-size: 16px; }
-    .tooltip-bubble { position: fixed; z-index: 9999; background: #111a2b; color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 12px; max-width: 240px; box-shadow: 0 10px 25px rgba(0,0,0,0.35); }
-    [data-tooltip] { cursor: help; }
+    .tooltip-bubble { position: fixed; z-index: 9999; background: #111a2b; color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 12px; max-width: 260px; box-shadow: 0 10px 25px rgba(0,0,0,0.35); }
+    .tooltip-title { font-weight: 700; margin-bottom: 4px; color: #e8eefc; }
+    .tooltip-body { color: var(--text); line-height: 1.5; }
+    .tooltip-link { margin-top: 8px; text-align: right; }
+    .tooltip-link a { color: var(--accent); font-weight: 700; text-decoration: none; }
+    [data-tooltip], [data-glossary] { cursor: help; }
     .badge-inline { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; margin-inline-end: 6px; border: 1px solid var(--border); }
     .sev-info { background: rgba(76, 156, 255, 0.15); color: #8bb2ff; }
     .sev-warn { background: rgba(255, 159, 64, 0.18); color: #ffb86c; }
@@ -1649,7 +1653,7 @@ function attachAdvancedToggle() {
 
 attachAdvancedToggle();
 updateAdvancedCopy();
-attachTooltips(document);
+attachTooltips(document, state.lang);
 
 let latestHubState = null;
 hub.subscribe((state) => {
@@ -1741,12 +1745,12 @@ hub.subscribe((state) => {
     featureRows = buildFeatureRows(priceDateStrings, Array.isArray(prices?.close) ? prices.close : []);
     state.probabilityResult = featureRows.length ? knnAnalogProbability(featureRows, state.probabilityEngine) : null;
     probabilityDaily = injectCotIntoDaily(datasets.probabilityDaily || [], datasets.cotHistory);
-    renderCotCard(datasets.cotLatest, datasets.cotHistory, dataErrors.cotLatest || dataErrors.cotHistory);
+    renderCotCard(datasets.cotLatest, datasets.cotHistory, dataErrors.cotLatest || dataErrors.cotHistory, state.lang);
     renderTradingSimulationCard(probabilityDaily);
     simpleRulesResult = backtestRuleset(probabilityDaily);
-    renderRulesRecommendation(simpleRulesResult, dataErrors.probabilityDaily);
-    renderRulesExplain(simpleRulesResult);
-    renderRulesBacktest(probabilityDaily, simpleRulesResult);
+    renderRulesRecommendation(simpleRulesResult, dataErrors.probabilityDaily, state.lang);
+    renderRulesExplain(simpleRulesResult, state.lang);
+    renderRulesBacktest(probabilityDaily, simpleRulesResult, state.lang);
     heatmaps = {
       deviation: datasets.heatmapDeviation,
       volatility: datasets.heatmapVolatility,
@@ -3165,7 +3169,7 @@ hub.subscribe((state) => {
   function renderAll() {
     applyLanguage();
     updateAdvancedCopy();
-    renderActionRecommendation(actionSignal, dataErrors.signalLatest);
+    renderActionRecommendation(actionSignal, dataErrors.signalLatest, state.lang);
     renderEventContext(eventContext, eventImpactStats, dataErrors.eventContext);
     renderContextPanel(currentContext, conditionalContextStats, dataErrors.crossMarketCurrent);
     renderProbabilistic(probabilistic, dataErrors.probabilistic);

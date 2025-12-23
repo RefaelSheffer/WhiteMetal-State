@@ -1,0 +1,636 @@
+{
+  "terms": [
+    {
+      "id": "probability_daily",
+      "category": "Probability Engine",
+      "title": { "en": "P(up) probability", "he": "הסתברות P(up)", "es": "Probabilidad P(up)" },
+      "short": {
+        "en": "Modeled chance that the next period closes higher than a threshold.",
+        "he": "אומדן הסתברות שהסגירה הקרובה תהיה חיובית מעל סף מוגדר.",
+        "es": "Probabilidad estimada de que el siguiente cierre sea positivo por encima de un umbral."
+      },
+      "long": {
+        "en": "Derived from kNN analogs. A higher P(up) means more historical neighbors ended with positive returns for the chosen horizon.",
+        "he": "נגזר מאנלוגיות kNN. ערך גבוה מרמז שיותר שכנים היסטוריים הסתיימו בתשואה חיובית באופק שנבחר.",
+        "es": "Se calcula con análogos kNN. Un P(up) alto indica que más vecinos históricos terminaron con retornos positivos en el horizonte elegido."
+      },
+      "tags": ["probability", "model"]
+    },
+    {
+      "id": "confidence_level",
+      "category": "Recommendations",
+      "title": { "en": "Confidence", "he": "ביטחון", "es": "Confianza" },
+      "short": {
+        "en": "Self-reported quality of the signal (LOW / MEDIUM / HIGH).",
+        "he": "אינדיקציה פנימית לאיכות הסיגנל (נמוך/בינוני/גבוה).",
+        "es": "Calidad declarada de la señal (BAJA / MEDIA / ALTA)."
+      },
+      "long": {
+        "en": "Combines sample size, dispersion of outcomes, and stability of inputs. Lower confidence means treat the recommendation with caution.",
+        "he": "משלב גודל מדגם, פיזור תוצאות ויציבות קלטים. ביטחון נמוך מצריך זהירות גבוהה יותר בהחלטה.",
+        "es": "Combina tamaño de muestra, dispersión de resultados y estabilidad de insumos. Confianza baja exige cautela."
+      },
+      "tags": ["signal", "quality"]
+    },
+    {
+      "id": "total_score",
+      "category": "Recommendations",
+      "title": { "en": "Total score", "he": "ציון כולל", "es": "Puntaje total" },
+      "short": {
+        "en": "Composite score out of 100 that blends price, positioning, and macro factors.",
+        "he": "ציון משוקלל מתוך 100 שמשלב מחיר, פוזיציות ומאקרו.",
+        "es": "Puntaje compuesto sobre 100 que mezcla precio, posicionamiento y factores macro."
+      },
+      "long": {
+        "en": "Used to rank the setup quality. Higher scores lean bullish; low or negative scores lean cautious/neutral.",
+        "he": "משמש לדירוג איכות הסיגנל. ציון גבוה מרמז על נטייה שורית; ציון נמוך או שלילי מרמז על זהירות או ניטרליות.",
+        "es": "Sirve para clasificar la calidad del set‑up. Puntajes altos sugieren sesgo alcista; bajos indican cautela o neutralidad."
+      }
+    },
+    {
+      "id": "last_close",
+      "category": "Market Structure",
+      "title": { "en": "Last close", "he": "סגירה אחרונה", "es": "Cierre más reciente" },
+      "short": {
+        "en": "Most recent settlement price used as the reference for scores and returns.",
+        "he": "מחיר הסגירה האחרון שמשמש כבסיס לחישובי ציונים ותשואות.",
+        "es": "Precio de cierre más reciente usado como referencia para puntajes y retornos."
+      },
+      "long": {
+        "en": "Provides the anchor for probability and backtest calculations. Sudden gaps or stale closes can distort short-term metrics.",
+        "he": "משמש כעוגן לחישובי הסתברות ובקטסט. פערים חדים או סגירה לא עדכנית עלולים לעוות מדדים קצרי טווח.",
+        "es": "Sirve de ancla para los cálculos de probabilidad y backtest. Gaps bruscos o cierres desactualizados pueden distorsionar métricas de corto plazo."
+      }
+    },
+    {
+      "id": "similar_states",
+      "category": "Probability Engine",
+      "title": { "en": "Similar states", "he": "מצבים דומים", "es": "Estados similares" },
+      "short": {
+        "en": "Number of historical days that match today across the feature set.",
+        "he": "מספר הימים ההיסטוריים הדומים למצב הנוכחי לפי מאפיינים נבחרים.",
+        "es": "Cantidad de días históricos que se parecen al día actual según las variables."
+      },
+      "long": {
+        "en": "Higher counts mean the kNN model has a broader sample to learn from. Very low values weaken the reliability of P(up) and median ranges.",
+        "he": "כמות גבוהה מצביעה על מדגם רחב יותר למודל kNN. ערך נמוך מחליש את מהימנות ההסתברות והחציון.",
+        "es": "Un conteo alto indica que el modelo kNN tiene más ejemplos. Valores muy bajos debilitan la confianza en P(up) y en los rangos medianos."
+      }
+    },
+    {
+      "id": "effective_n",
+      "category": "Probability Engine",
+      "title": { "en": "Effective N", "he": "גודל מדגם אפקטיבי", "es": "N efectivo" },
+      "short": {
+        "en": "Sample size after weighting neighbors by distance.",
+        "he": "גודל מדגם לאחר שקלול שכנים לפי מרחק.",
+        "es": "Tamaño de muestra tras ponderar a los vecinos por distancia."
+      },
+      "long": {
+        "en": "If Effective N is far below K, the model effectively leans on a handful of close analogs; treat outputs with caution.",
+        "he": "כאשר הערך נמוך בהרבה מ-K, המודל נשען בפועל על מעט אנלוגיות קרובות ולכן האמינות מוגבלת.",
+        "es": "Si el N efectivo es muy inferior a K, el modelo depende de pocos análogos cercanos; usar con cautela."
+      }
+    },
+    {
+      "id": "k_neighbors",
+      "category": "Probability Engine",
+      "title": { "en": "K (neighbors)", "he": "K – מספר שכנים", "es": "K vecinos" },
+      "short": {
+        "en": "How many historical examples are consulted for the forecast.",
+        "he": "מספר הדוגמאות ההיסטוריות שמשמשות להסקה.",
+        "es": "Cantidad de ejemplos históricos usados en el pronóstico."
+      },
+      "long": {
+        "en": "Higher K smooths noisy results but may dilute extreme patterns. Lower K focuses on the closest matches at the cost of stability.",
+        "he": "K גבוה מחליק רעש אך מדלל תבניות קיצון; K נמוך מדגיש התאמות קרובות אך פחות יציב.",
+        "es": "Un K alto suaviza el ruido pero diluye patrones extremos; K bajo resalta coincidencias cercanas con menor estabilidad."
+      }
+    },
+    {
+      "id": "weighting",
+      "category": "Probability Engine",
+      "title": { "en": "Weighting", "he": "שקלול", "es": "Ponderación" },
+      "short": {
+        "en": "Scheme for emphasizing close neighbors (inverse distance or softmax).",
+        "he": "שיטה להדגשת שכנים קרובים (היפוך מרחק או softmax).",
+        "es": "Esquema para resaltar vecinos cercanos (inversa de la distancia o softmax)."
+      },
+      "long": {
+        "en": "Controls how much influence each analog has. Sharper weighting gives more voice to the closest matches.",
+        "he": "קובע כמה השפעה יש לכל אנלוגיה. שקלול חד נותן משקל גבוה להתאמות הקרובות ביותר.",
+        "es": "Controla la influencia de cada análogo. Una ponderación más fuerte favorece a las coincidencias más próximas."
+      }
+    },
+    {
+      "id": "median_return",
+      "category": "Probability Engine",
+      "title": { "en": "Median return", "he": "חציון תשואה", "es": "Retorno mediano" },
+      "short": {
+        "en": "Weighted median of neighbor outcomes for the chosen horizon.",
+        "he": "חציון משוקלל של תוצאות השכנים באופק שנבחר.",
+        "es": "Mediana ponderada de los resultados de los vecinos para el horizonte elegido."
+      },
+      "long": {
+        "en": "Offers a robust central tendency that is less affected by outliers than the mean.",
+        "he": "מדד מרכזי חסין יותר לקצוות מאשר ממוצע, ולכן מתאים לאומדן ריאלי יותר.",
+        "es": "Entrega una tendencia central robusta, menos afectada por valores atípicos que la media."
+      }
+    },
+    {
+      "id": "percentile_range",
+      "category": "Probability Engine",
+      "title": { "en": "10–90% range", "he": "טווח 10–90%", "es": "Rango 10–90%" },
+      "short": {
+        "en": "Interpercentile band to show typical upside/downside around the median.",
+        "he": "רצועת אחוזונים שמציגה טווח עליות/ירידות אופייני סביב החציון.",
+        "es": "Banda de percentiles que muestra el rango típico alrededor de la mediana."
+      },
+      "long": {
+        "en": "Not a promise—just the spread of historical analogs. Wider bands imply higher uncertainty.",
+        "he": "לא הבטחה אלא פיזור אנלוגיות היסטוריות. טווח רחב מרמז על חוסר ודאות גבוה יותר.",
+        "es": "No es una promesa; muestra la dispersión de análogos históricos. Bandas amplias implican mayor incertidumbre."
+      }
+    },
+    {
+      "id": "net_return",
+      "category": "Performance & Backtest",
+      "title": { "en": "Net return", "he": "תשואה נטו", "es": "Retorno neto" },
+      "short": {
+        "en": "Cumulative performance after costs over the tested period.",
+        "he": "ביצוע מצטבר לאחר עלויות לאורך התקופה שנבדקה.",
+        "es": "Rendimiento acumulado después de costos en el período probado."
+      },
+      "long": {
+        "en": "Includes transaction fees and slippage assumptions when enabled. Useful for comparing strategies to buy & hold.",
+        "he": "כולל עמלות וחיכוך ביצוע (אם הופעל). מאפשר להשוות לאסטרטגיית קנייה והחזקה.",
+        "es": "Incluye comisiones y deslizamientos cuando están activos. Útil para comparar contra comprar y mantener."
+      }
+    },
+    {
+      "id": "cagr",
+      "category": "Performance & Backtest",
+      "title": { "en": "CAGR", "he": "תשואה שנתית ממוצעת", "es": "CAGR" },
+      "short": {
+        "en": "Compound annual growth rate implied by the backtest.",
+        "he": "שיעור צמיחה שנתי מצטבר שמתקבל מהבקטסט.",
+        "es": "Tasa de crecimiento anual compuesta implícita del backtest."
+      },
+      "long": {
+        "en": "Translates the multi-year curve into an annualized number for easier comparison across strategies.",
+        "he": "ממיר את העקומה הרב-שנתית למספר שנתי להשוואה קלה בין אסטרטגיות.",
+        "es": "Convierte la curva de varios años en un número anualizado para comparar estrategias."
+      }
+    },
+    {
+      "id": "max_drawdown",
+      "category": "Performance & Backtest",
+      "title": { "en": "Max drawdown", "he": "נסיגה מקסימלית", "es": "Máxima caída" },
+      "short": {
+        "en": "Largest peak-to-trough decline in the equity curve.",
+        "he": "הירידה החדה ביותר משיא לשפל בעקומת ההון.",
+        "es": "Mayor descenso desde un pico hasta un valle en la curva de capital."
+      },
+      "long": {
+        "en": "Highlights worst historical pain. Deep drawdowns may be unacceptable even if returns are strong.",
+        "he": "ממחישה את הכאב ההיסטורי המרבי. נסיגה עמוקה עלולה להיות בלתי נסבלת גם אם התשואה הכוללת טובה.",
+        "es": "Resalta la peor racha histórica. Caídas profundas pueden ser inaceptables aunque el retorno sea bueno."
+      }
+    },
+    {
+      "id": "sharpe_ratio",
+      "category": "Performance & Backtest",
+      "title": { "en": "Sharpe ratio", "he": "יחס שארפ", "es": "Ratio de Sharpe" },
+      "short": {
+        "en": "Excess return divided by volatility of returns.",
+        "he": "תשואה עודפת חלקי תנודתיות התשואות.",
+        "es": "Retorno en exceso dividido por la volatilidad de los retornos."
+      },
+      "long": {
+        "en": "Measures risk-adjusted performance. Higher Sharpe suggests better reward per unit of volatility.",
+        "he": "מודד ביצוע מתואם סיכון. יחס גבוה מצביע על תמורה טובה יותר לכל יחידת תנודתיות.",
+        "es": "Mide el desempeño ajustado por riesgo. Un Sharpe alto indica mejor recompensa por unidad de volatilidad."
+      }
+    },
+    {
+      "id": "sortino_ratio",
+      "category": "Performance & Backtest",
+      "title": { "en": "Sortino ratio", "he": "יחס סורטינו", "es": "Ratio de Sortino" },
+      "short": {
+        "en": "Like Sharpe but penalizes only downside volatility.",
+        "he": "דומה לשארפ אך מעניש רק תנודתיות שלילית.",
+        "es": "Similar al Sharpe pero penaliza solo la volatilidad a la baja."
+      },
+      "long": {
+        "en": "Useful when upside volatility is less concerning than drawdowns.",
+        "he": "שימושי כשהתנודתיות החיובית פחות מטרידה מהירידות.",
+        "es": "Útil cuando la volatilidad al alza importa menos que las caídas."
+      }
+    },
+    {
+      "id": "ulcer_index",
+      "category": "Performance & Backtest",
+      "title": { "en": "Ulcer index", "he": "מדד Ulcer", "es": "Índice de Ulcer" },
+      "short": {
+        "en": "Captures depth and duration of drawdowns to reflect investor pain.",
+        "he": "מודד עומק ומשך נסיגות כדי לשקף את הכאב למשקיע.",
+        "es": "Captura profundidad y duración de caídas para reflejar el dolor del inversor."
+      },
+      "long": {
+        "en": "Lower values indicate smoother equity curves; higher values mean prolonged or deep pullbacks.",
+        "he": "ערך נמוך מעיד על עקומת הון חלקה יותר; ערך גבוה משקף נסיגות ממושכות או עמוקות.",
+        "es": "Valores bajos indican curvas de capital más suaves; altos señalan retrocesos profundos o prolongados."
+      }
+    },
+    {
+      "id": "win_rate",
+      "category": "Performance & Backtest",
+      "title": { "en": "Win rate", "he": "שיעור פגיעה", "es": "Porcentaje de aciertos" },
+      "short": {
+        "en": "Share of trades that closed with positive return.",
+        "he": "אחוז העסקאות שהסתיימו ברווח.",
+        "es": "Proporción de operaciones que cerraron con ganancia."
+      },
+      "long": {
+        "en": "High win rate is helpful, but combine with payoff ratio; many small wins can hide large occasional losses.",
+        "he": "שיעור פגיעה גבוה חשוב, אך צריך לבחון גם יחס רווח/הפסד – הרבה רווחים קטנים עלולים להסתיר הפסד גדול מדי פעם.",
+        "es": "Un alto porcentaje ayuda, pero combinar con el ratio beneficio/pérdida; muchas ganancias pequeñas pueden ocultar pocas pérdidas grandes."
+      }
+    },
+    {
+      "id": "trades_count",
+      "category": "Performance & Backtest",
+      "title": { "en": "Number of trades", "he": "מספר עסקאות", "es": "Número de operaciones" },
+      "short": {
+        "en": "How many entries/exits the backtest executed.",
+        "he": "כמה עסקאות נפתחו ונסגרו בבקטסט.",
+        "es": "Cantidad de entradas/salidas ejecutadas en el backtest."
+      },
+      "long": {
+        "en": "Gives a sense of turnover and whether results rely on a handful of trades or many observations.",
+        "he": "מספק תחושה על מחזוריות והאם התוצאות נשענות על מעט טריידים או על מדגם רחב.",
+        "es": "Indica el nivel de rotación y si los resultados dependen de pocas operaciones o de muchas observaciones."
+      }
+    },
+    {
+      "id": "exposure",
+      "category": "Performance & Backtest",
+      "title": { "en": "Exposure", "he": "חשיפה", "es": "Exposición" },
+      "short": {
+        "en": "Percentage of time or capital invested during the simulation.",
+        "he": "אחוז מהזמן או מההון שהיה מושקע במהלך הסימולציה.",
+        "es": "Porcentaje del tiempo o capital invertido durante la simulación."
+      },
+      "long": {
+        "en": "Lower exposure with similar returns often means better capital efficiency.",
+        "he": "חשיפה נמוכה עם תשואה דומה מרמזת על שימוש יעיל יותר בהון.",
+        "es": "Menor exposición con retornos similares implica mejor eficiencia de capital."
+      }
+    },
+    {
+      "id": "take_profit",
+      "category": "Risk Management",
+      "title": { "en": "Take profit", "he": "יעד רווח", "es": "Toma de ganancias" },
+      "short": {
+        "en": "Pre-set gain that closes the position automatically.",
+        "he": "יעד רווח שמסיים את הפוזיציה באופן אוטומטי.",
+        "es": "Ganancia predeterminada que cierra la posición automáticamente."
+      },
+      "long": {
+        "en": "Prevents winners from turning into losers but can cap upside if the trend persists.",
+        "he": "מונע מסחר ברווח להפוך להפסד אך עלול לחסום המשך מגמה חזקה.",
+        "es": "Evita que una operación en ganancia se revierta, aunque puede limitar el upside si la tendencia sigue."
+      }
+    },
+    {
+      "id": "cooldown",
+      "category": "Risk Management",
+      "title": { "en": "Cooldown", "he": "תקופת צינון", "es": "Enfriamiento" },
+      "short": {
+        "en": "Mandatory wait in days before entering again after an exit/add.",
+        "he": "המתנה מחייבת בימים לפני כניסה נוספת לאחר יציאה/הוספה.",
+        "es": "Espera obligatoria en días antes de volver a entrar tras salir o añadir."
+      },
+      "long": {
+        "en": "Reduces churn and over-trading when signals flip frequently.",
+        "he": "מפחית שחיקה וטרייד יתר כאשר הסיגנלים מתהפכים לעיתים קרובות.",
+        "es": "Reduce el sobre‑trading cuando las señales cambian con frecuencia."
+      }
+    },
+    {
+      "id": "execution_t_plus_one",
+      "category": "Performance & Backtest",
+      "title": { "en": "Execution t → t+1", "he": "ביצוע t → t+1", "es": "Ejecución t → t+1" },
+      "short": {
+        "en": "Signals generated on day t are executed on the next close.",
+        "he": "החלטות ביום t מבוצעות על סגירת היום הבא.",
+        "es": "Las señales del día t se ejecutan al cierre del día siguiente."
+      },
+      "long": {
+        "en": "Avoids lookahead bias and reflects a realistic delay between decision and trade.",
+        "he": "נמנע מהטיית מבט קדימה ומדמה עיכוב ריאלי בין החלטה לביצוע.",
+        "es": "Evita sesgo de anticipación y refleja el retardo realista entre decisión y operación."
+      }
+    },
+    {
+      "id": "fees_slippage",
+      "category": "Performance & Backtest",
+      "title": { "en": "Fees & slippage", "he": "עמלות וחיכוך", "es": "Comisiones y slippage" },
+      "short": {
+        "en": "Assumed trading costs deducted from each entry/exit.",
+        "he": "עלויות מסחר מניחות שמנוכים בכל כניסה/יציאה.",
+        "es": "Costos de trading asumidos que se descuentan en cada entrada/salida."
+      },
+      "long": {
+        "en": "Backtests can overstate performance without realistic friction. Turning fees on yields more conservative, credible results.",
+        "he": "בקטסט ללא עלויות עלול להציג ביצועים מנופחים. הפעלת עמלות יוצרת תוצאות שמרניות ואמינות יותר.",
+        "es": "Los backtests sin costos pueden exagerar resultados. Activar comisiones da cifras más conservadoras y creíbles."
+      }
+    },
+    {
+      "id": "atr_sizing",
+      "category": "Risk Management",
+      "title": { "en": "ATR sizing", "he": "גודל פוזיציה לפי ATR", "es": "Tamaño por ATR" },
+      "short": {
+        "en": "Adjusts position so an ATR move equals the planned risk.",
+        "he": "מתאים את הגודל כך שתנועה של ATR משקפת את הסיכון הרצוי.",
+        "es": "Ajusta la posición para que un movimiento de ATR iguale el riesgo planificado."
+      },
+      "long": {
+        "en": "Volatility-aware sizing keeps dollar risk consistent across regimes.",
+        "he": "התאמת גודל לפי תנודתיות שומרת על סיכון דולרי עקבי בין תקופות שונות.",
+        "es": "El tamaño sensible a la volatilidad mantiene el riesgo monetario constante entre regímenes."
+      }
+    },
+    {
+      "id": "stop_loss",
+      "category": "Risk Management",
+      "title": { "en": "Stop-loss", "he": "סטופ-לוס", "es": "Stop-loss" },
+      "short": {
+        "en": "Price level that cuts losses automatically.",
+        "he": "רמת מחיר שמפסיקה את הפוזיציה להפסד מוגבל.",
+        "es": "Nivel de precio que corta pérdidas automáticamente."
+      },
+      "long": {
+        "en": "Keeps downside bounded and enforces discipline when the thesis breaks.",
+        "he": "שומר על הפסד מוגבל ומחייב משמעת כאשר ההנחה נשברת.",
+        "es": "Mantiene pérdidas acotadas y aplica disciplina cuando la tesis falla."
+      }
+    },
+    {
+      "id": "trailing_stop",
+      "category": "Risk Management",
+      "title": { "en": "Trailing stop", "he": "סטופ נגרר", "es": "Stop dinámico" },
+      "short": {
+        "en": "Stop that follows price to lock in gains while leaving room to breathe.",
+        "he": "סטופ שעוקב אחרי המחיר כדי לנעול רווחים תוך מתן מרחב נשימה.",
+        "es": "Stop que se mueve con el precio para asegurar ganancias dejando margen."
+      },
+      "long": {
+        "en": "Useful in trending markets: it cuts the tail risk while letting the trend extend.",
+        "he": "שימושי בשווקים מגמתיים – מצמצם סיכון זנב ומאפשר למגמה להמשיך.",
+        "es": "Útil en mercados tendenciales: reduce el riesgo de cola permitiendo que la tendencia continúe."
+      }
+    },
+    {
+      "id": "var",
+      "category": "Risk Management",
+      "title": { "en": "Value at Risk (VaR)", "he": "VaR – ערך בסיכון", "es": "VaR (Valor en Riesgo)" },
+      "short": {
+        "en": "Estimated loss at a given confidence level over a lookback window.",
+        "he": "הפסד משוער ברמת ביטחון נתונה על פני חלון זמן מוגדר.",
+        "es": "Pérdida estimada a cierto nivel de confianza en una ventana de observación."
+      },
+      "long": {
+        "en": "Sizing by VaR keeps each trade's worst-case (within the percentile) near a fixed share of capital.",
+        "he": "גודל לפי VaR מוודא שהפסד קצה (באחוזון שנבחר) נשאר חלק קבוע מההון.",
+        "es": "Dimensionar por VaR mantiene la posible pérdida (en el percentil elegido) cerca de una fracción fija del capital."
+      }
+    },
+    {
+      "id": "risk_budget",
+      "category": "Risk Management",
+      "title": { "en": "Risk budget", "he": "תקציב סיכון", "es": "Presupuesto de riesgo" },
+      "short": {
+        "en": "Portion of capital allowed to be at risk per trade.",
+        "he": "חלק מההון שמוקצה לסיכון בכל עסקה.",
+        "es": "Parte del capital que se permite arriesgar por operación."
+      },
+      "long": {
+        "en": "Combines with sizing rules (ATR or VaR) to cap portfolio drawdowns across a series of trades.",
+        "he": "משולב עם כללי גודל (ATR או VaR) כדי להגביל נסיגה כוללת ברצף עסקאות.",
+        "es": "Se combina con reglas de tamaño (ATR o VaR) para limitar caídas del portafolio en varias operaciones."
+      }
+    },
+    {
+      "id": "volatility_threshold",
+      "category": "Risk Management",
+      "title": { "en": "Volatility threshold", "he": "סף תנודתיות", "es": "Umbral de volatilidad" },
+      "short": {
+        "en": "If realized vol exceeds this level, rules may block entries or force exits.",
+        "he": "אם התנודתיות בפועל עוברת את הסף – הכללים עשויים לחסום כניסות או להאיץ יציאות.",
+        "es": "Si la volatilidad realizada supera este nivel, las reglas pueden bloquear entradas o forzar salidas."
+      },
+      "long": {
+        "en": "Protects the system from trading during extreme turbulence where model estimates are less reliable.",
+        "he": "מגן על המערכת מפני מסחר בסביבה סוערת במיוחד שבה אומדני המודל פחות אמינים.",
+        "es": "Protege de operar en turbulencias extremas donde las estimaciones del modelo son menos fiables."
+      }
+    },
+    {
+      "id": "vol20",
+      "category": "Volatility",
+      "title": { "en": "Vol20", "he": "Vol20", "es": "Vol20" },
+      "short": {
+        "en": "20-day realized volatility of daily returns.",
+        "he": "תנודתיות יומית ממוצעת על פני 20 ימים.",
+        "es": "Volatilidad realizada de 20 días en retornos diarios."
+      },
+      "long": {
+        "en": "Used as a backdrop for risk controls and to detect unusual turbulence versus history.",
+        "he": "משמש רקע לשליטה בסיכון ולזיהוי חריגות תנודתיות מול היסטוריה.",
+        "es": "Sirve de contexto para controles de riesgo y para detectar turbulencia inusual frente a la historia."
+      }
+    },
+    {
+      "id": "contango_backwardation",
+      "category": "Market Structure",
+      "title": { "en": "Contango / Backwardation", "he": "קונטנגו / בקוורדיישן", "es": "Contango / Backwardation" },
+      "short": {
+        "en": "Shape of the futures curve: contango = upward sloping, backwardation = downward.",
+        "he": "צורת עקומת החוזים: קונטנגו – עולים ככל שמתרחקים; בקוורדיישן – יורדים.",
+        "es": "Forma de la curva de futuros: contango ascendente, backwardation descendente."
+      },
+      "long": {
+        "en": "Signals storage/financing pressure and can influence roll yield for commodity positions.",
+        "he": "מרמז על לחץ אחסון/מימון ועלול להשפיע על תשואת הגלגול בפוזיציות סחורות.",
+        "es": "Indica presión de almacenamiento/financiación y puede afectar el roll yield en materias primas."
+      }
+    },
+    {
+      "id": "open_interest",
+      "category": "Positioning & Sentiment",
+      "title": { "en": "Open interest", "he": "אופן אינטרסט", "es": "Interés abierto" },
+      "short": {
+        "en": "Total outstanding futures contracts that are not closed or delivered.",
+        "he": "מספר חוזים פתוחים שטרם נסגרו או סופקו.",
+        "es": "Total de contratos de futuros abiertos que no se han cerrado ni entregado."
+      },
+      "long": {
+        "en": "Growing OI often signals fresh participation; shrinking OI can mean profit taking or position reduction.",
+        "he": "עלייה ב-OI מצביעה על כניסת שחקנים חדשים; ירידה יכולה להעיד על מימושים או הקטנת פוזיציות.",
+        "es": "Un OI creciente sugiere nueva participación; decreciente puede indicar toma de beneficios o reducción de posiciones."
+      }
+    },
+    {
+      "id": "cot_overview",
+      "category": "Positioning & Sentiment",
+      "title": { "en": "COT report", "he": "דוח COT", "es": "Informe COT" },
+      "short": {
+        "en": "CFTC weekly breakdown of positions (commercials, noncommercials, small traders).",
+        "he": "פירוט שבועי מה-CFTC של פוזיציות (מסחריים, ספקולנטים, קטנים).",
+        "es": "Desglose semanal de la CFTC sobre posiciones (comerciales, no comerciales y pequeños)."
+      },
+      "long": {
+        "en": "Used to gauge crowding and hedging flows. Extreme positioning can add tailwind or headwind to signals.",
+        "he": "משמש להערכת צפיפות פוזיציות וזרמי גידור. קיצון בפוזיציות עשוי לייצר רוח גבית או חזיתית לסיגנלים.",
+        "es": "Sirve para medir concentración y flujos de cobertura. Posicionamientos extremos pueden ser viento a favor o en contra."
+      }
+    },
+    {
+      "id": "cot_bias",
+      "category": "Positioning & Sentiment",
+      "title": { "en": "COT bias", "he": "הטיית COT", "es": "Sesgo COT" },
+      "short": {
+        "en": "Directional read based on net positions and z-scores of trader groups.",
+        "he": "כיוון מועדף לפי פוזיציה נטו ו-Z של קבוצות הסוחרים.",
+        "es": "Lectura direccional basada en posiciones netas y z-scores de los grupos."
+      },
+      "long": {
+        "en": "Bullish bias often when commercials are stretched long or specs heavily short; bearish bias when the opposite holds.",
+        "he": "נטייה שורית כאשר המסחריים ארוכים במיוחד או הספקולנטים קצרים; נטייה דובית במצב הפוך.",
+        "es": "Sesgo alcista cuando comerciales están muy largos o los especuladores muy cortos; bajista en el escenario opuesto."
+      }
+    },
+    {
+      "id": "cot_tailwind",
+      "category": "Positioning & Sentiment",
+      "title": { "en": "COT tailwind", "he": "רוח גבית מ-COT", "es": "Viento de cola COT" },
+      "short": {
+        "en": "Supportive positioning that strengthens borderline entries or adds.",
+        "he": "פוזיציות תומכות שמחזקות כניסות גבוליות או הוספות.",
+        "es": "Posicionamiento favorable que refuerza entradas o añadidos marginales."
+      },
+      "long": {
+        "en": "Commercial washouts or fading speculative longs can improve odds for long setups.",
+        "he": "שטיפת מסחריים או היחלשות לונגים ספקולטיביים יכולים לשפר סיכויי עסקת לונג.",
+        "es": "Lavados comerciales o reducción de largos especulativos pueden mejorar las probabilidades de posiciones largas."
+      }
+    },
+    {
+      "id": "cot_headwind",
+      "category": "Positioning & Sentiment",
+      "title": { "en": "COT headwind", "he": "רוח חזית מ-COT", "es": "Viento en contra COT" },
+      "short": {
+        "en": "Crowded positioning that can force trims or exits despite decent probabilities.",
+        "he": "צפיפות פוזיציות שיכולה לחייב קיטון או יציאה גם כשההסתברות נראית סבירה.",
+        "es": "Posicionamiento saturado que puede forzar recortes o salidas aun con buenas probabilidades."
+      },
+      "long": {
+        "en": "Example: specs extremely long while probability weakens—rules may de-risk to avoid squeeze.",
+        "he": "לדוגמה: ספקולנטים ארוכים מאוד בזמן שההסתברות נחלשת – הכללים יכולים להקטין חשיפה כדי להימנע מסקוויז.",
+        "es": "Ejemplo: especuladores muy largos mientras la probabilidad cae; las reglas reducen riesgo para evitar un squeeze."
+      }
+    },
+    {
+      "id": "cot_support",
+      "category": "Positioning & Sentiment",
+      "title": { "en": "COT support", "he": "תמיכת COT", "es": "Soporte COT" },
+      "short": {
+        "en": "When commercials are stretched long or specs cut longs, adds may be allowed sooner.",
+        "he": "כאשר המסחריים ארוכים במיוחד או הספקולנטים מקטינים לונג, ניתן להוסיף פוזיציה מהר יותר.",
+        "es": "Cuando los comerciales están muy largos o los especuladores recortan, se permite añadir posiciones antes."
+      },
+      "long": {
+        "en": "Acts as a filter to favor adds only when positioning provides a tailwind rather than a headwind.",
+        "he": "משמש כמסנן שמאפשר הוספות רק כאשר הפוזיציות מספקות רוח גבית ולא חזיתית.",
+        "es": "Funciona como filtro para añadir solo cuando el posicionamiento aporta viento de cola y no en contra."
+      }
+    },
+    {
+      "id": "return_since_entry",
+      "category": "Recommendations",
+      "title": { "en": "Return vs entry", "he": "תשואה מאז כניסה", "es": "Retorno desde entrada" },
+      "short": {
+        "en": "Performance of the open trade relative to its entry price.",
+        "he": "ביצוע העסקה הפתוחה ביחס למחיר הכניסה.",
+        "es": "Desempeño de la operación abierta relativo a su precio de entrada."
+      },
+      "long": {
+        "en": "Helps explain SELL or HOLD recommendations when take-profit thresholds or drops in P(up) are triggered.",
+        "he": "מסביר המלצות SELL או HOLD כאשר הופעלו יעדי רווח או ירידה בהסתברות.",
+        "es": "Ayuda a explicar recomendaciones de VENDER o MANTENER cuando se activan objetivos de ganancia o baja P(up)."
+      }
+    },
+    {
+      "id": "knn_engine",
+      "category": "Probability Engine",
+      "title": { "en": "kNN engine", "he": "מנוע kNN", "es": "Motor kNN" },
+      "short": {
+        "en": "k‑Nearest Neighbors finds historical days most similar to today.",
+        "he": "kNN מאתר את הימים ההיסטוריים הדומים ביותר להיום.",
+        "es": "k‑NN encuentra los días históricos más similares al actual."
+      },
+      "long": {
+        "en": "Similarity is computed on normalized features (returns, volatility, positioning). Results drive P(up), medians, and ranges.",
+        "he": "הדמיון מחושב על מאפיינים מנורמלים (תשואות, תנודתיות, פוזיציות). התוצאות מזינות את P(up), החציון והטווחים.",
+        "es": "La similitud se calcula sobre características normalizadas (retornos, volatilidad, posicionamiento). Alimenta P(up), medianas y rangos."
+      }
+    },
+    {
+      "id": "volatility_regime",
+      "category": "Volatility",
+      "title": { "en": "Volatility regime", "he": "משטר תנודתיות", "es": "Régimen de volatilidad" },
+      "short": {
+        "en": "Context label (low/normal/high) based on realized vol percentiles.",
+        "he": "תיוג הקשר (נמוך/רגיל/גבוה) לפי אחוזוני תנודתיות בפועל.",
+        "es": "Etiqueta de contexto (bajo/normal/alto) según percentiles de volatilidad realizada."
+      },
+      "long": {
+        "en": "Regime shifts can change how signals are interpreted and when risk limits tighten.",
+        "he": "שינוי משטר משנה את אופן הפרשנות של סיגנלים ואת הידוק מגבלות הסיכון.",
+        "es": "Cambios de régimen modifican la interpretación de señales y cuándo se ajustan los límites de riesgo."
+      }
+    },
+    {
+      "id": "heatmap_percentile",
+      "category": "Charts & Context",
+      "title": { "en": "Heatmap / Percentile", "he": "מפת חום / אחוזון", "es": "Mapa de calor / Percentil" },
+      "short": {
+        "en": "Color map showing how current values rank versus history.",
+        "he": "מפת צבעים שמראה איך הערך הנוכחי מדורג מול ההיסטוריה.",
+        "es": "Mapa de colores que muestra la posición actual frente a la historia."
+      },
+      "long": {
+        "en": "Provides context only; not a trading signal. Hover or tap for exact Z-scores/percentiles.",
+        "he": "מספק הקשר בלבד; לא סיגנל מסחר. רחף או לחץ להצגת Z-score ואחוזון מדויק.",
+        "es": "Solo da contexto; no es señal de trading. Pasa el cursor o toca para ver z-scores/percentiles exactos."
+      }
+    },
+    {
+      "id": "equity_curve",
+      "category": "Charts & Context",
+      "title": { "en": "Equity curve", "he": "עקומת הון", "es": "Curva de capital" },
+      "short": {
+        "en": "Evolution of portfolio value over time.",
+        "he": "התפתחות ערך התיק לאורך זמן.",
+        "es": "Evolución del valor del portafolio en el tiempo."
+      },
+      "long": {
+        "en": "Shows whether returns arrived steadily or via abrupt swings. Pair with drawdown stats for risk insight.",
+        "he": "מראה אם התשואה נבנתה בצורה חלקה או בתנודות חדות. מומלץ לשלב עם נתוני נסיגה להבנת סיכון.",
+        "es": "Muestra si los retornos fueron graduales o con oscilaciones fuertes. Combina con drawdowns para ver riesgo."
+      }
+    }
+  ]
+}

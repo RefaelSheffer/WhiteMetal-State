@@ -34,7 +34,7 @@ function renderGroupRow(label, group) {
   `;
 }
 
-export function renderCotCard(latest, history, error) {
+export function renderCotCard(latest, history, error, lang = "en") {
   const root = document.getElementById("cotCard");
   if (!root) return;
   if (error) {
@@ -53,7 +53,7 @@ export function renderCotCard(latest, history, error) {
 
   root.innerHTML = `
     <div class="section-title flex">
-      <span>COT (Silver)</span>
+      <span data-glossary="cot_overview">COT (Silver)</span>
       <span class="chip ${bias.tone}">${bias.label}</span>
     </div>
     <div class="muted" style="margin-bottom:6px;">As of ${fmtDate(latest.as_of)} · ${latest.market || "COMEX Silver"}</div>
@@ -61,17 +61,17 @@ export function renderCotCard(latest, history, error) {
       ${renderGroupRow("Commercial", comm)}
       ${renderGroupRow("Noncommercial", nonc)}
       <div class="cot-row">
-        <div class="cot-label">Open interest</div>
+        <div class="cot-label" data-glossary="open_interest">Open interest</div>
         <div class="cot-value mono">${fmtNumber(oi)}</div>
         <div class="cot-sub muted">Δ4w ${fmtNumber(latest?.open_interest_change_4w)}</div>
       </div>
     </div>
     <div class="cot-foot">
-      <div class="muted small">Confidence: ${latest?.signals?.confidence || "—"}</div>
-      <div class="muted small">Reasons: ${(latest?.signals?.reason || []).join(", ") || "—"}</div>
+      <div class="muted small" data-glossary="confidence_level">Confidence: ${latest?.signals?.confidence || "—"}</div>
+      <div class="muted small" data-glossary="cot_bias">Reasons: ${(latest?.signals?.reason || []).join(", ") || "—"}</div>
       <div class="muted small">Updated: ${fmtDate(latest?.last_updated_utc)}</div>
       <div class="muted small">Source: ${latest?.source?.provider || "CFTC"}</div>
     </div>
   `;
-  attachTooltips(root);
+  attachTooltips(root, lang);
 }

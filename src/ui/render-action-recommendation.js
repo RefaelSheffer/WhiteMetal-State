@@ -162,12 +162,12 @@ function renderLoading(root) {
   `;
 }
 
-export function renderActionRecommendation(signalData, error) {
+export function renderActionRecommendation(signalData, error, lang = "en") {
   const root = document.getElementById("action-recommendation");
   if (!root) return;
 
-  if (error) { renderError(root, error); attachTooltips(root); return; }
-  if (!signalData) { renderLoading(root); attachTooltips(root); return; }
+  if (error) { renderError(root, error); attachTooltips(root, lang); return; }
+  if (!signalData) { renderLoading(root); attachTooltips(root, lang); return; }
 
   let normalized;
   try {
@@ -191,15 +191,15 @@ export function renderActionRecommendation(signalData, error) {
     </div>
     <div class="action-meta">
       <div><span class="muted">As of</span> <span class="mono">${fmtDate(normalized.asOf)}</span></div>
-      <div><span class="muted">Price</span> <span class="mono">${fmtNumber(normalized.price)}</span></div>
+      <div><span class="muted" data-glossary="last_close">Price</span> <span class="mono">${fmtNumber(normalized.price)}</span></div>
     </div>
     <div class="action-score-row">
       <div class="score-block">
-        <div class="label" data-tooltip="Composite score out of 100">Total Score</div>
+        <div class="label" data-glossary="total_score">Total Score</div>
         <div class="value mono">${fmtNumber(normalized.scoreTotal, 0)}/100</div>
       </div>
       <div class="score-block">
-        <div class="label" data-tooltip="Self-reported confidence level">Confidence</div>
+        <div class="label" data-glossary="confidence_level">Confidence</div>
         <div class="value mono">${escapeHtml(normalized.confidence)}</div>
       </div>
     </div>
@@ -222,7 +222,7 @@ export function renderActionRecommendation(signalData, error) {
     </div>
   `;
 
-  attachTooltips(root);
+  attachTooltips(root, lang);
 
   const backtestContainer = root.querySelector("#backtestLiteContainer");
   renderBacktestLite(backtestContainer, { actionToday: normalized.action });
