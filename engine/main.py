@@ -61,7 +61,7 @@ from engine.heatmap import (
     compute_volatility_heatmap,
 )
 from engine.probabilistic import build_probabilistic_signal
-from engine.utils.io import ensure_parent, write_json
+from engine.utils.io import ensure_parent, sanitize_for_json, write_json
 from engine.validation.sanity import validate_ohlcv
 
 BASE_PATH = Path("public/data")
@@ -423,7 +423,7 @@ def append_jsonl(path: Path, record: dict) -> None:
 def json_dumps(record: dict) -> str:
     import json
 
-    return json.dumps(record)
+    return json.dumps(sanitize_for_json(record))
 
 
 if __name__ == "__main__":
