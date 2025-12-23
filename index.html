@@ -66,6 +66,9 @@
     .pill.up { background: rgba(34, 197, 94, 0.12); color: var(--success); }
     .pill.down { background: rgba(244, 63, 94, 0.12); color: var(--danger); }
     .pill.neutral { background: rgba(255,255,255,0.06); color: var(--text); }
+    .pill.fresh { background: rgba(34, 197, 94, 0.14); color: var(--success); }
+    .pill.recent { background: rgba(255,255,255,0.08); color: var(--text); }
+    .pill.stale { background: rgba(244, 63, 94, 0.18); color: var(--danger); }
     .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0 8px; }
     .btn { background: #0d1424; color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 6px 10px; cursor: pointer; }
     .btn.active { background: #1f2d4a; border-color: var(--accent); }
@@ -137,6 +140,7 @@
     .stat-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; width: 100%; }
     .context-low-confidence { opacity: 0.82; }
     .context-note { color: var(--muted); font-size: 13px; line-height: 1.5; margin-top: 6px; }
+    .context-warning { color: #fbbf24; font-size: 12px; line-height: 1.5; }
     .context-warning { color: #fbbf24; font-size: 12px; }
     .rule-checks { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
     .rule-check { display: flex; gap: 10px; padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); }
@@ -294,6 +298,8 @@
         <span class="chip muted" id="contextAsOf">—</span>
       </div>
       <div class="context-note" data-i18n="contextNote">Dollar / gold / rates framing; not a signal.</div>
+      <div class="context-note" id="contextMetaNote"></div>
+      <div class="context-warning" id="contextWarnings" style="display:none;"></div>
       <div id="contextItems" class="context-grid"></div>
       <div class="context-note" id="contextFooter" data-i18n="contextFooter">Context only; not a trade idea.</div>
     </div>
@@ -1010,12 +1016,20 @@ const baseLanguageStrings = {
       contextDisclaimer: "הקשר היסטורי בלבד; לא הבטחה.",
       contextLowSample: "מדגם קטן; הסקה חלשה.",
       contextValueLabel: "ערך נוכחי",
+      contextDateLabel: "תאריך אחרון",
       contextZLabel: "ציון Z",
       contextPctLabel: "אחוזון",
+      contextChangeLabel: "שינוי מול התחלה",
+      contextSourceLabel: "מקורות",
       contextPUp5d: "הסתברות לעלייה (5 ימים)",
       contextMedian5d: "חציון 5 ימים",
       contextPUp10d: "הסתברות לעלייה (10 ימים)",
       contextMedian10d: "חציון 10 ימים",
+    localTimeLabel: "זמן מקומי",
+    freshLabel: "עדכני",
+    staleLabel: "Stale",
+    recentLabel: "עדכון אחרון",
+    missingData: "חסר נתון",
     eventPhasePre: "לפני אירוע",
     eventPhaseToday: "יום אירוע",
     eventPhasePost: "אחרי אירוע",
@@ -1255,12 +1269,20 @@ const baseLanguageStrings = {
       contextDisclaimer: "Historical context only; not a promise.",
       contextLowSample: "Low sample size; weak context.",
       contextValueLabel: "Value",
+      contextDateLabel: "Last date",
       contextZLabel: "Z-score",
       contextPctLabel: "Percentile",
+      contextChangeLabel: "Change vs start",
+      contextSourceLabel: "Sources",
       contextPUp5d: "P(up 5d)",
       contextMedian5d: "Median 5d",
       contextPUp10d: "P(up 10d)",
       contextMedian10d: "Median 10d",
+    localTimeLabel: "Local time",
+    freshLabel: "Fresh",
+    staleLabel: "Stale",
+    recentLabel: "Recent",
+    missingData: "Missing",
     eventPhasePre: "Pre-event",
     eventPhaseToday: "Event day",
     eventPhasePost: "Post-event",
@@ -1550,6 +1572,7 @@ let heatmaps = { deviation: null, volatility: null, momentum: null, stats: null 
 let eventContext = { nearest: null };
 let eventImpactStats = {};
 let currentContext = null;
+let crossMarketContext = null;
 let conditionalContextStats = null;
 let buyHoldCurve = [];
 let featureRows = [];
@@ -1703,6 +1726,7 @@ hub.subscribe((state) => {
       eventImpactStats: hub.getDataset("eventImpactStats"),
       crossMarketCurrent: hub.getDataset("crossMarketCurrent"),
       crossMarketConditional: hub.getDataset("crossMarketConditional"),
+      crossMarketContext: hub.getDataset("crossMarketContext"),
       probabilityDaily: hub.getDataset("probabilityDaily"),
       cotLatest: hub.getDataset("cotLatest"),
       cotHistory: hub.getDataset("cotHistory"),
@@ -1733,6 +1757,7 @@ hub.subscribe((state) => {
     eventContext = datasets.eventContext || { nearest: null };
     eventImpactStats = datasets.eventImpactStats || {};
     currentContext = datasets.crossMarketCurrent;
+    crossMarketContext = datasets.crossMarketContext;
     conditionalContextStats = datasets.crossMarketConditional;
     perfAtr = datasets.perfAtr;
     perfAdx = datasets.perfAdx;
@@ -1898,9 +1923,123 @@ hub.subscribe((state) => {
     document.getElementById("eventContextFooter").textContent = `${t("eventContextFooter")}`;
   }
 
-  function renderContextPanel(currentContext, conditionalStats, error) {
+  function freshnessBadge(dateStr) {
+    if (!dateStr) return { label: t("missingData"), className: "neutral" };
+    const dt = new Date(dateStr);
+    if (Number.isNaN(dt.getTime())) return { label: t("missingData"), className: "neutral" };
+    const days = (Date.now() - dt.getTime()) / (1000 * 60 * 60 * 24);
+    if (days <= 2) return { label: t("freshLabel"), className: "fresh" };
+    if (days >= 5) return { label: t("staleLabel"), className: "stale" };
+    return { label: t("recentLabel"), className: "recent" };
+  }
+
+  function percentChange(history) {
+    if (!Array.isArray(history) || history.length < 2) return null;
+    const first = history.find((p) => typeof p?.value === "number");
+    const last = [...history].reverse().find((p) => typeof p?.value === "number");
+    if (!first || !last || !first.value) return null;
+    return (last.value / first.value - 1) * 100;
+  }
+
+  function formatUtcDateTime(value) {
+    try {
+      const dt = new Date(value);
+      if (Number.isNaN(dt.getTime())) return null;
+      return dt.toISOString().slice(0, 16).replace("T", " ");
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function formatLocalDateTime(value) {
+    try {
+      const dt = new Date(value);
+      if (Number.isNaN(dt.getTime())) return null;
+      return dt.toLocaleString();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function renderCrossMarketContextCard(newContext, legacyContext, conditionalStats, error) {
     const card = document.getElementById("contextCard");
     if (!card) return;
+
+    if (newContext && newContext.series) {
+      const asOf = newContext.meta?.generated_at_utc;
+      const utcText = asOf ? `${t("updatedPrefix")}: ${formatUtcDateTime(asOf)} UTC` : null;
+      const localText = asOf ? `${t("localTimeLabel")}: ${formatLocalDateTime(asOf)}` : null;
+      const updatedBits = [utcText, localText].filter(Boolean);
+      document.getElementById("contextAsOf").textContent = updatedBits.join(" / ") || "—";
+      const metaNote = document.getElementById("contextMetaNote");
+      const sources = newContext.meta?.sources || {};
+      if (metaNote) {
+        const sourceList = Object.values(sources).filter(Boolean).join(" · ");
+        metaNote.textContent = sourceList ? `${t("contextSourceLabel")}: ${sourceList}` : "";
+      }
+
+      const warningEl = document.getElementById("contextWarnings");
+      const warnings = Array.isArray(newContext.meta?.warnings) ? newContext.meta.warnings : [];
+      if (warningEl) {
+        if (warnings.length) {
+          warningEl.style.display = "block";
+          warningEl.innerHTML = warnings.map((w) => `⚠️ ${escapeHtml(w)}`).join("<br/>");
+        } else {
+          warningEl.style.display = "none";
+          warningEl.textContent = "";
+        }
+      }
+
+      const container = document.getElementById("contextItems");
+      const entries = Object.entries(newContext.series || {});
+      container.innerHTML = entries
+        .map(([key, series]) => {
+          const badge = freshnessBadge(series?.last_date);
+          const change = percentChange(series?.history || []);
+          const statBlock = (label, value, formatter = (v) => fmt(v, 2)) => `
+            <div class="stat-block">
+              <div class="stat-label">${label}</div>
+              <div class="stat-value">${formatter(value)}</div>
+            </div>`;
+          return `
+            <div class="context-item-card">
+              <div class="context-row">
+                <div class="context-name">${key.toUpperCase()}</div>
+                <span class="pill ${badge.className}">${badge.label}</span>
+              </div>
+              <div class="context-row stat-pair">
+                ${statBlock(t("contextValueLabel"), series?.last_value)}
+                ${statBlock(t("contextDateLabel"), series?.last_date, (v) => v || "—")}
+                ${statBlock(t("contextChangeLabel"), change, (v) => fmtPct(v, 1))}
+              </div>
+              <div class="context-note">${sources[key] ? `${t("contextSourceLabel")}: ${sources[key]}` : ""}</div>
+              <div class="context-note">${t("contextDisclaimer")}</div>
+            </div>
+          `;
+        })
+        .join("");
+
+      const footer = document.getElementById("contextFooter");
+      if (footer) footer.textContent = t("contextFooter");
+      card.style.display = entries.length ? "block" : "none";
+      return;
+    }
+
+    if (error) {
+      renderCardError("contextCard", t("contextTitle"), error);
+      return;
+    }
+
+    renderLegacyContextPanel(legacyContext, conditionalStats, error);
+  }
+
+  function renderLegacyContextPanel(currentContext, conditionalStats, error) {
+    const card = document.getElementById("contextCard");
+    if (!card) return;
+    const metaNote = document.getElementById("contextMetaNote");
+    if (metaNote) metaNote.textContent = "";
+    const warningEl = document.getElementById("contextWarnings");
+    if (warningEl) { warningEl.style.display = "none"; warningEl.textContent = ""; }
     if (error) { renderCardError("contextCard", t("contextTitle"), error); return; }
     if (!currentContext || !Array.isArray(currentContext.items) || !currentContext.items.length) {
       card.style.display = "none";
@@ -3172,7 +3311,12 @@ hub.subscribe((state) => {
     updateAdvancedCopy();
     renderActionRecommendation(actionSignal, dataErrors.signalLatest, state.lang);
     renderEventContext(eventContext, eventImpactStats, dataErrors.eventContext);
-    renderContextPanel(currentContext, conditionalContextStats, dataErrors.crossMarketCurrent);
+    renderCrossMarketContextCard(
+      crossMarketContext,
+      currentContext,
+      conditionalContextStats,
+      dataErrors.crossMarketContext || dataErrors.crossMarketCurrent,
+    );
     renderProbabilistic(probabilistic, dataErrors.probabilistic);
     renderProbabilityEngine(state.probabilityResult, state.probabilityEngine, dataErrors.prices || dataErrors.legacyPrices);
     renderProbabilitySettings(state.probabilityEngine);

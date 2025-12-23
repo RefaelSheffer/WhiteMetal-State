@@ -1,0 +1,68 @@
+{
+  "meta": {
+    "generated_at_utc": "2025-12-23T11:55:00Z",
+    "sources": {
+      "gold": "stooq:GC.C",
+      "silver": "stooq:SI.C",
+      "usd": "fred:DTWEXBGS",
+      "us10y": "fred:DGS10"
+    },
+    "warnings": [
+      "Stooq fetch failed in CI; using cached snapshot."
+    ]
+  },
+  "series": {
+    "gold": {
+      "last_date": "2025-12-19",
+      "last_value": 2051.3,
+      "history": [
+        {"date": "2025-12-11", "value": 2030.1},
+        {"date": "2025-12-12", "value": 2038.4},
+        {"date": "2025-12-15", "value": 2041.9},
+        {"date": "2025-12-16", "value": 2045.5},
+        {"date": "2025-12-17", "value": 2048.0},
+        {"date": "2025-12-18", "value": 2050.2},
+        {"date": "2025-12-19", "value": 2051.3}
+      ]
+    },
+    "silver": {
+      "last_date": "2025-12-19",
+      "last_value": 24.96,
+      "history": [
+        {"date": "2025-12-11", "value": 24.25},
+        {"date": "2025-12-12", "value": 24.31},
+        {"date": "2025-12-15", "value": 24.52},
+        {"date": "2025-12-16", "value": 24.61},
+        {"date": "2025-12-17", "value": 24.72},
+        {"date": "2025-12-18", "value": 24.88},
+        {"date": "2025-12-19", "value": 24.96}
+      ]
+    },
+    "usd": {
+      "last_date": "2025-12-18",
+      "last_value": 119.72,
+      "history": [
+        {"date": "2025-12-10", "value": 119.02},
+        {"date": "2025-12-11", "value": 119.10},
+        {"date": "2025-12-12", "value": 119.16},
+        {"date": "2025-12-15", "value": 119.32},
+        {"date": "2025-12-16", "value": 119.44},
+        {"date": "2025-12-17", "value": 119.59},
+        {"date": "2025-12-18", "value": 119.72}
+      ]
+    },
+    "us10y": {
+      "last_date": "2025-12-18",
+      "last_value": 4.16,
+      "history": [
+        {"date": "2025-12-10", "value": 4.08},
+        {"date": "2025-12-11", "value": 4.04},
+        {"date": "2025-12-12", "value": 4.06},
+        {"date": "2025-12-15", "value": 4.11},
+        {"date": "2025-12-16", "value": 4.12},
+        {"date": "2025-12-17", "value": 4.15},
+        {"date": "2025-12-18", "value": 4.16}
+      ]
+    }
+  }
+}

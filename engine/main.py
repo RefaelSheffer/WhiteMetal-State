@@ -31,6 +31,7 @@ from engine.context_macro import (
     fetch_macro_assets,
     write_macro_outputs,
 )
+from engine.cross_market_context import generate_cross_market_context
 from engine.backtest.trade_engine import (
     TradeSettings,
     build_fees_impact,
@@ -107,6 +108,11 @@ def run_pipeline() -> None:
             write_macro_outputs(macro_enrichment, macro_meta or {}, source=source)
         except Exception as exc:  # noqa: PERF203
             print(f"[macro] Unable to build macro enrichment: {exc}")
+
+    try:
+        generate_cross_market_context()
+    except Exception as exc:  # noqa: PERF203
+        print(f"[cross-market] Unable to refresh cross-market context: {exc}")
 
     calendar_path = Path("data/events_calendar.json")
     known_events, calendar_meta = load_events_calendar(calendar_path)
@@ -246,6 +252,7 @@ def run_pipeline() -> None:
         "eventImpactStats": "events/event_impact_stats.json",
         "crossMarketCurrent": "context/cross_market_current.json",
         "crossMarketConditional": "context/cross_market_conditional.json",
+        "crossMarketContext": "context/cross_market_context.json",
         "probabilityDaily": "probability_daily.json",
         "backtestEquity": "backtest/equity_curves.json",
         "backtestFeesImpact": "backtest/fees_impact.json",
