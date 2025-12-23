@@ -3,8 +3,8 @@ name: Update SLV Dashboard Data
 on:
   workflow_dispatch:
   schedule:
-    # כל יום ב-22:30 UTC (אחרי סגירת שוק ארה"ב)
-    - cron: "30 22 * * *"
+    # ארבע פעמים ביום ב-06:30, 12:30, 18:30 ו-22:30 UTC (אחרי סגירת שוק ארה"ב)
+    - cron: "30 6,12,18,22 * * *"
 
 permissions:
   contents: write
