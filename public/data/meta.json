@@ -4,7 +4,7 @@
   "start": "2008-01-02",
   "end": "2025-12-12",
   "rows": 4516,
-  "last_updated_utc": "2025-12-22T22:43:09Z",
+  "last_updated_utc": "2025-12-23T08:30:23Z",
   "files": {
     "legacyPrices": "raw/slv_daily.json",
     "prices": "raw/slv_daily.json",
@@ -33,6 +33,9 @@
     "decompositionMeta": "diagnostics/decomposition_meta.json",
     "decompositionTrend": "diagnostics/decomposition_trend.json",
     "decompositionSeasonal": "diagnostics/decomposition_seasonal.json",
-    "decompositionResidual": "diagnostics/decomposition_residual.json"
+    "decompositionResidual": "diagnostics/decomposition_residual.json",
+    "cotLatest": "cot/silver_cot_latest.json",
+    "cotHistory": "cot/silver_cot_history.json",
+    "cotMetadata": "cot/metadata.json"
   }
 }

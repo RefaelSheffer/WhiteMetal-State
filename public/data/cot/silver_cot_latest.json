@@ -1,0 +1,40 @@
+{
+  "as_of": "2025-12-19",
+  "report_type": "legacy_futures_only",
+  "market": "COMEX Silver",
+  "open_interest": 152070,
+  "groups": {
+    "commercial": {
+      "long": 59690,
+      "short": 45185,
+      "net": 14505,
+      "net_change_1w": 60.31037803206709,
+      "net_change_2w": 115.07717734559992,
+      "z_52w": -0.8283171733728228,
+      "pct_52w": 0.36538461538461536
+    },
+    "noncommercial": {
+      "long": 55154,
+      "short": 39876,
+      "net": 15278,
+      "net_change_1w": -33.924587643043196,
+      "net_change_2w": -64.73091225689859,
+      "z_52w": 0.8283171733728206,
+      "pct_52w": 0.6538461538461539
+    }
+  },
+  "signals": {
+    "cot_bias": "neutral",
+    "confidence": "low",
+    "reason": [
+      "no_extreme_detected"
+    ]
+  },
+  "open_interest_change_4w": 208.6575312257046,
+  "last_updated_utc": "2025-12-23T08:32:53Z",
+  "source": {
+    "provider": "CFTC",
+    "dataset": "COT",
+    "url": "https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm"
+  }
+}
