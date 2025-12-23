@@ -1,5 +1,6 @@
 // src/ui/render-action-recommendation.js
 import { attachTooltips } from "./tooltips.js";
+import { renderBacktestLite } from "./render-backtest-lite.js";
 
 function escapeHtml(str) {
   return (str || "")
@@ -213,7 +214,7 @@ export function renderActionRecommendation(signalData, error) {
     </details>
     <details class="action-backtest" open>
       <summary>What-if (backtest lite)</summary>
-      <div class="muted">Backtest coming soon: will simulate acting on BUY/ADD/SELL/HOLD over time.</div>
+      <div id="backtestLiteContainer" class="muted">Loading…</div>
     </details>
     <div class="action-disclaimer">
       <span class="warning-icon" aria-hidden="true">⚠️</span>
@@ -222,4 +223,7 @@ export function renderActionRecommendation(signalData, error) {
   `;
 
   attachTooltips(root);
+
+  const backtestContainer = root.querySelector("#backtestLiteContainer");
+  renderBacktestLite(backtestContainer, { actionToday: normalized.action });
 }
