@@ -1,0 +1,1206 @@
+{
+  "report_type": "legacy_futures_only",
+  "market": "COMEX Silver",
+  "series": [
+    {
+      "as_of": "2023-09-08",
+      "open_interest": 150000,
+      "commercial_net": 15000,
+      "noncommercial_net": 15000,
+      "commercial_net_z52": null,
+      "noncommercial_net_z52": null,
+      "commercial_net_pct52": 1.0,
+      "noncommercial_net_pct52": 1.0
+    },
+    {
+      "as_of": "2023-09-15",
+      "open_interest": 150069,
+      "commercial_net": 15079,
+      "noncommercial_net": 14955,
+      "commercial_net_z52": null,
+      "noncommercial_net_z52": null,
+      "commercial_net_pct52": 1.0,
+      "noncommercial_net_pct52": 0.5
+    },
+    {
+      "as_of": "2023-09-22",
+      "open_interest": 150139,
+      "commercial_net": 15158,
+      "noncommercial_net": 14910,
+      "commercial_net_z52": null,
+      "noncommercial_net_z52": null,
+      "commercial_net_pct52": 1.0,
+      "noncommercial_net_pct52": 0.3333333333333333
+    },
+    {
+      "as_of": "2023-09-29",
+      "open_interest": 150207,
+      "commercial_net": 15236,
+      "noncommercial_net": 14867,
+      "commercial_net_z52": null,
+      "noncommercial_net_z52": null,
+      "commercial_net_pct52": 1.0,
+      "noncommercial_net_pct52": 0.25
+    },
+    {
+      "as_of": "2023-10-06",
+      "open_interest": 150274,
+      "commercial_net": 15311,
+      "noncommercial_net": 14824,
+      "commercial_net_z52": 1.3983309813456435,
+      "noncommercial_net_z52": -1.398330981345584,
+      "commercial_net_pct52": 1.0,
+      "noncommercial_net_pct52": 0.2
+    },
+    {
+      "as_of": "2023-10-13",
+      "open_interest": 150339,
+      "commercial_net": 15383,
+      "noncommercial_net": 14784,
+      "commercial_net_z52": 1.4356741338877368,
+      "noncommercial_net_z52": -1.4356741338877748,
+      "commercial_net_pct52": 1.0,
+      "noncommercial_net_pct52": 0.16666666666666666
+    },
+    {
+      "as_of": "2023-10-20",
+      "open_interest": 150402,
+      "commercial_net": 15451,
+      "noncommercial_net": 14745,
+      "commercial_net_z52": 1.455652839288513,
+      "noncommercial_net_z52": -1.4556528392885355,
+      "commercial_net_pct52": 1.0,
+      "noncommercial_net_pct52": 0.14285714285714285
+    },
+    {
+      "as_of": "2023-10-27",
+      "open_interest": 150462,
+      "commercial_net": 15515,
+      "noncommercial_net": 14710,
+      "commercial_net_z52": 1.4628747099539274,
+      "noncommercial_net_z52": -1.4628747099539594,
+      "commercial_net_pct52": 1.0,
+      "noncommercial_net_pct52": 0.125
+    },
+    {
+      "as_of": "2023-11-03",
+      "open_interest": 150518,
+      "commercial_net": 15573,
+      "noncommercial_net": 14677,
+      "commercial_net_z52": 1.459801670870866,
+      "noncommercial_net_z52": -1.4598016708708832,
+      "commercial_net_pct52": 1.0,
+      "noncommercial_net_pct52": 0.1111111111111111
+    },
+    {
+      "as_of": "2023-11-10",
+      "open_interest": 150571,
+      "commercial_net": 15626,
+      "noncommercial_net": 14647,
+      "commercial_net_z52": 1.447758444226749,
+      "noncommercial_net_z52": -1.4477584442267233,
+      "commercial_net_pct52": 1.0,
+      "noncommercial_net_pct52": 0.1
+    },
+    {
+      "as_of": "2023-11-17",
+      "open_interest": 150620,
+      "commercial_net": 15673,
+      "noncommercial_net": 14621,
+      "commercial_net_z52": 1.4273946078583293,
+      "noncommercial_net_z52": -1.4273946078583788,
+      "commercial_net_pct52": 1.0,
+      "noncommercial_net_pct52": 0.09090909090909091
+    },
+    {
+      "as_of": "2023-11-24",
+      "open_interest": 150665,
+      "commercial_net": 15712,
+      "noncommercial_net": 14598,
+      "commercial_net_z52": 1.3989123457632853,
+      "noncommercial_net_z52": -1.3989123457633292,
+      "commercial_net_pct52": 1.0,
+      "noncommercial_net_pct52": 0.08333333333333333
+    },
+    {
+      "as_of": "2023-12-01",
+      "open_interest": 150706,
+      "commercial_net": 15745,
+      "noncommercial_net": 14580,
+      "commercial_net_z52": 1.3621820862431682,
+      "noncommercial_net_z52": -1.3621820862431862,
+      "commercial_net_pct52": 1.0,
+      "noncommercial_net_pct52": 0.07692307692307693
+    },
+    {
+      "as_of": "2023-12-08",
+      "open_interest": 150741,
+      "commercial_net": 15770,
+      "noncommercial_net": 14566,
+      "commercial_net_z52": 1.3167992924847995,
+      "noncommercial_net_z52": -1.316799292484823,
+      "commercial_net_pct52": 1.0,
+      "noncommercial_net_pct52": 0.07142857142857142
+    },
+    {
+      "as_of": "2023-12-15",
+      "open_interest": 150772,
+      "commercial_net": 15788,
+      "noncommercial_net": 14556,
+      "commercial_net_z52": 1.2621078075065413,
+      "noncommercial_net_z52": -1.262107807506562,
+      "commercial_net_pct52": 1.0,
+      "noncommercial_net_pct52": 0.06666666666666667
+    },
+    {
+      "as_of": "2023-12-22",
+      "open_interest": 150798,
+      "commercial_net": 15797,
+      "noncommercial_net": 14551,
+      "commercial_net_z52": 1.197203194654335,
+      "noncommercial_net_z52": -1.1972031946543569,
+      "commercial_net_pct52": 1.0,
+      "noncommercial_net_pct52": 0.0625
+    },
+    {
+      "as_of": "2023-12-29",
+      "open_interest": 150819,
+      "commercial_net": 15799,
+      "noncommercial_net": 14550,
+      "commercial_net_z52": 1.1209246372426005,
+      "noncommercial_net_z52": -1.1209246372425996,
+      "commercial_net_pct52": 1.0,
+      "noncommercial_net_pct52": 0.058823529411764705
+    },
+    {
+      "as_of": "2024-01-05",
+      "open_interest": 150835,
+      "commercial_net": 15793,
+      "noncommercial_net": 14553,
+      "commercial_net_z52": 1.0318429964409146,
+      "noncommercial_net_z52": -1.0318429964409035,
+      "commercial_net_pct52": 0.8888888888888888,
+      "noncommercial_net_pct52": 0.16666666666666666
+    },
+    {
+      "as_of": "2024-01-12",
+      "open_interest": 150846,
+      "commercial_net": 15779,
+      "noncommercial_net": 14561,
+      "commercial_net_z52": 0.9282546840368765,
+      "noncommercial_net_z52": -0.9282546840368517,
+      "commercial_net_pct52": 0.7894736842105263,
+      "noncommercial_net_pct52": 0.2631578947368421
+    },
+    {
+      "as_of": "2024-01-19",
+      "open_interest": 150853,
+      "commercial_net": 15757,
+      "noncommercial_net": 14574,
+      "commercial_net_z52": 0.8081962818543675,
+      "noncommercial_net_z52": -0.8081962818543822,
+      "commercial_net_pct52": 0.7,
+      "noncommercial_net_pct52": 0.35
+    },
+    {
+      "as_of": "2024-01-26",
+      "open_interest": 150854,
+      "commercial_net": 15727,
+      "noncommercial_net": 14590,
+      "commercial_net_z52": 0.6695039845869374,
+      "noncommercial_net_z52": -0.6695039845869489,
+      "commercial_net_pct52": 0.6190476190476191,
+      "noncommercial_net_pct52": 0.42857142857142855
+    },
+    {
+      "as_of": "2024-02-02",
+      "open_interest": 150851,
+      "commercial_net": 15690,
+      "noncommercial_net": 14611,
+      "commercial_net_z52": 0.5099551693785284,
+      "noncommercial_net_z52": -0.5099551693785047,
+      "commercial_net_pct52": 0.5454545454545454,
+      "noncommercial_net_pct52": 0.5
+    },
+    {
+      "as_of": "2024-02-09",
+      "open_interest": 150844,
+      "commercial_net": 15646,
+      "noncommercial_net": 14636,
+      "commercial_net_z52": 0.32754445072065985,
+      "noncommercial_net_z52": -0.3275444507206551,
+      "commercial_net_pct52": 0.4782608695652174,
+      "noncommercial_net_pct52": 0.5652173913043478
+    },
+    {
+      "as_of": "2024-02-16",
+      "open_interest": 150832,
+      "commercial_net": 15596,
+      "noncommercial_net": 14664,
+      "commercial_net_z52": 0.12095465426844133,
+      "noncommercial_net_z52": -0.12095465426846454,
+      "commercial_net_pct52": 0.4166666666666667,
+      "noncommercial_net_pct52": 0.625
+    },
+    {
+      "as_of": "2024-02-23",
+      "open_interest": 150817,
+      "commercial_net": 15540,
+      "noncommercial_net": 14696,
+      "commercial_net_z52": -0.10973697203416156,
+      "noncommercial_net_z52": 0.10973697203413824,
+      "commercial_net_pct52": 0.36,
+      "noncommercial_net_pct52": 0.68
+    },
+    {
+      "as_of": "2024-03-01",
+      "open_interest": 150799,
+      "commercial_net": 15478,
+      "noncommercial_net": 14730,
+      "commercial_net_z52": -0.362160649059704,
+      "noncommercial_net_z52": 0.36216064905972395,
+      "commercial_net_pct52": 0.3076923076923077,
+      "noncommercial_net_pct52": 0.7307692307692307
+    },
+    {
+      "as_of": "2024-03-08",
+      "open_interest": 150777,
+      "commercial_net": 15412,
+      "noncommercial_net": 14768,
+      "commercial_net_z52": -0.6307841664125847,
+      "noncommercial_net_z52": 0.6307841664125936,
+      "commercial_net_pct52": 0.25925925925925924,
+      "noncommercial_net_pct52": 0.7777777777777778
+    },
+    {
+      "as_of": "2024-03-15",
+      "open_interest": 150753,
+      "commercial_net": 15341,
+      "noncommercial_net": 14807,
+      "commercial_net_z52": -0.9065215038313794,
+      "noncommercial_net_z52": 0.9065215038313676,
+      "commercial_net_pct52": 0.21428571428571427,
+      "noncommercial_net_pct52": 0.8214285714285714
+    },
+    {
+      "as_of": "2024-03-22",
+      "open_interest": 150727,
+      "commercial_net": 15267,
+      "noncommercial_net": 14849,
+      "commercial_net_z52": -1.177366618374827,
+      "noncommercial_net_z52": 1.1773666183748246,
+      "commercial_net_pct52": 0.1724137931034483,
+      "noncommercial_net_pct52": 0.8620689655172413
+    },
+    {
+      "as_of": "2024-03-29",
+      "open_interest": 150699,
+      "commercial_net": 15191,
+      "noncommercial_net": 14892,
+      "commercial_net_z52": -1.4302870071049694,
+      "noncommercial_net_z52": 1.4302870071049383,
+      "commercial_net_pct52": 0.13333333333333333,
+      "noncommercial_net_pct52": 0.9
+    },
+    {
+      "as_of": "2024-04-05",
+      "open_interest": 150670,
+      "commercial_net": 15112,
+      "noncommercial_net": 14936,
+      "commercial_net_z52": -1.6538716742100812,
+      "noncommercial_net_z52": 1.6538716742100747,
+      "commercial_net_pct52": 0.0967741935483871,
+      "noncommercial_net_pct52": 0.9354838709677419
+    },
+    {
+      "as_of": "2024-04-12",
+      "open_interest": 150640,
+      "commercial_net": 15033,
+      "noncommercial_net": 14981,
+      "commercial_net_z52": -1.8405958984161659,
+      "noncommercial_net_z52": 1.8405958984161608,
+      "commercial_net_pct52": 0.0625,
+      "noncommercial_net_pct52": 0.96875
+    },
+    {
+      "as_of": "2024-04-19",
+      "open_interest": 150610,
+      "commercial_net": 14953,
+      "noncommercial_net": 15026,
+      "commercial_net_z52": -1.9877113028968316,
+      "noncommercial_net_z52": 1.987711302896826,
+      "commercial_net_pct52": 0.030303030303030304,
+      "noncommercial_net_pct52": 1.0
+    },
+    {
+      "as_of": "2024-04-26",
+      "open_interest": 150581,
+      "commercial_net": 14873,
+      "noncommercial_net": 15070,
+      "commercial_net_z52": -2.0966296978067236,
+      "noncommercial_net_z52": 2.096629697806725,
+      "commercial_net_pct52": 0.029411764705882353,
+      "noncommercial_net_pct52": 1.0
+    },
+    {
+      "as_of": "2024-05-03",
+      "open_interest": 150552,
+      "commercial_net": 14795,
+      "noncommercial_net": 15114,
+      "commercial_net_z52": -2.171450663225432,
+      "noncommercial_net_z52": 2.1714506632254245,
+      "commercial_net_pct52": 0.02857142857142857,
+      "noncommercial_net_pct52": 1.0
+    },
+    {
+      "as_of": "2024-05-10",
+      "open_interest": 150524,
+      "commercial_net": 14719,
+      "noncommercial_net": 15157,
+      "commercial_net_z52": -2.2174303763356265,
+      "noncommercial_net_z52": 2.2174303763356358,
+      "commercial_net_pct52": 0.027777777777777776,
+      "noncommercial_net_pct52": 1.0
+    },
+    {
+      "as_of": "2024-05-17",
+      "open_interest": 150498,
+      "commercial_net": 14645,
+      "noncommercial_net": 15199,
+      "commercial_net_z52": -2.2398600799091537,
+      "noncommercial_net_z52": 2.239860079909162,
+      "commercial_net_pct52": 0.02702702702702703,
+      "noncommercial_net_pct52": 1.0
+    },
+    {
+      "as_of": "2024-05-24",
+      "open_interest": 150475,
+      "commercial_net": 14576,
+      "noncommercial_net": 15238,
+      "commercial_net_z52": -2.2434440182077298,
+      "noncommercial_net_z52": 2.243444018207737,
+      "commercial_net_pct52": 0.02631578947368421,
+      "noncommercial_net_pct52": 1.0
+    },
+    {
+      "as_of": "2024-05-31",
+      "open_interest": 150454,
+      "commercial_net": 14510,
+      "noncommercial_net": 15275,
+      "commercial_net_z52": -2.2320623086743585,
+      "noncommercial_net_z52": 2.232062308674344,
+      "commercial_net_pct52": 0.02564102564102564,
+      "noncommercial_net_pct52": 1.0
+    },
+    {
+      "as_of": "2024-06-07",
+      "open_interest": 150436,
+      "commercial_net": 14449,
+      "noncommercial_net": 15309,
+      "commercial_net_z52": -2.208762469605413,
+      "noncommercial_net_z52": 2.2087624696054053,
+      "commercial_net_pct52": 0.025,
+      "noncommercial_net_pct52": 1.0
+    },
+    {
+      "as_of": "2024-06-14",
+      "open_interest": 150421,
+      "commercial_net": 14394,
+      "noncommercial_net": 15340,
+      "commercial_net_z52": -2.175857755646285,
+      "noncommercial_net_z52": 2.1758577556462875,
+      "commercial_net_pct52": 0.024390243902439025,
+      "noncommercial_net_pct52": 1.0
+    },
+    {
+      "as_of": "2024-06-21",
+      "open_interest": 150410,
+      "commercial_net": 14345,
+      "noncommercial_net": 15368,
+      "commercial_net_z52": -2.1350585438501746,
+      "noncommercial_net_z52": 2.1350585438501755,
+      "commercial_net_pct52": 0.023809523809523808,
+      "noncommercial_net_pct52": 1.0
+    },
+    {
+      "as_of": "2024-06-28",
+      "open_interest": 150404,
+      "commercial_net": 14302,
+      "noncommercial_net": 15392,
+      "commercial_net_z52": -2.087599902546006,
+      "noncommercial_net_z52": 2.0875999025459997,
+      "commercial_net_pct52": 0.023255813953488372,
+      "noncommercial_net_pct52": 1.0
+    },
+    {
+      "as_of": "2024-07-05",
+      "open_interest": 150401,
+      "commercial_net": 14267,
+      "noncommercial_net": 15412,
+      "commercial_net_z52": -2.034350753746702,
+      "noncommercial_net_z52": 2.034350753746702,
+      "commercial_net_pct52": 0.022727272727272728,
+      "noncommercial_net_pct52": 1.0
+    },
+    {
+      "as_of": "2024-07-12",
+      "open_interest": 150404,
+      "commercial_net": 14238,
+      "noncommercial_net": 15428,
+      "commercial_net_z52": -1.9759014975261058,
+      "noncommercial_net_z52": 1.9759014975261113,
+      "commercial_net_pct52": 0.022222222222222223,
+      "noncommercial_net_pct52": 1.0
+    },
+    {
+      "as_of": "2024-07-19",
+      "open_interest": 150411,
+      "commercial_net": 14217,
+      "noncommercial_net": 15439,
+      "commercial_net_z52": -1.912631982809473,
+      "noncommercial_net_z52": 1.9126319828094624,
+      "commercial_net_pct52": 0.021739130434782608,
+      "noncommercial_net_pct52": 1.0
+    },
+    {
+      "as_of": "2024-07-26",
+      "open_interest": 150423,
+      "commercial_net": 14205,
+      "noncommercial_net": 15447,
+      "commercial_net_z52": -1.844763387064992,
+      "noncommercial_net_z52": 1.844763387065002,
+      "commercial_net_pct52": 0.02127659574468085,
+      "noncommercial_net_pct52": 1.0
+    },
+    {
+      "as_of": "2024-08-02",
+      "open_interest": 150440,
+      "commercial_net": 14200,
+      "noncommercial_net": 15449,
+      "commercial_net_z52": -1.7723977217833407,
+      "noncommercial_net_z52": 1.7723977217833478,
+      "commercial_net_pct52": 0.020833333333333332,
+      "noncommercial_net_pct52": 1.0
+    },
+    {
+      "as_of": "2024-08-09",
+      "open_interest": 150461,
+      "commercial_net": 14203,
+      "noncommercial_net": 15448,
+      "commercial_net_z52": -1.6955482531573876,
+      "noncommercial_net_z52": 1.6955482531573856,
+      "commercial_net_pct52": 0.04081632653061224,
+      "noncommercial_net_pct52": 0.9795918367346939
+    },
+    {
+      "as_of": "2024-08-16",
+      "open_interest": 150488,
+      "commercial_net": 14214,
+      "noncommercial_net": 15442,
+      "commercial_net_z52": -1.6141635594660402,
+      "noncommercial_net_z52": 1.6141635594660384,
+      "commercial_net_pct52": 0.08,
+      "noncommercial_net_pct52": 0.94
+    },
+    {
+      "as_of": "2024-08-23",
+      "open_interest": 150520,
+      "commercial_net": 14232,
+      "noncommercial_net": 15431,
+      "commercial_net_z52": -1.528147419993745,
+      "noncommercial_net_z52": 1.528147419993758,
+      "commercial_net_pct52": 0.11764705882352941,
+      "noncommercial_net_pct52": 0.9019607843137255
+    },
+    {
+      "as_of": "2024-08-30",
+      "open_interest": 150557,
+      "commercial_net": 14259,
+      "noncommercial_net": 15416,
+      "commercial_net_z52": -1.4373763014482932,
+      "noncommercial_net_z52": 1.4373763014482865,
+      "commercial_net_pct52": 0.15384615384615385,
+      "noncommercial_net_pct52": 0.8653846153846154
+    },
+    {
+      "as_of": "2024-09-06",
+      "open_interest": 150598,
+      "commercial_net": 14293,
+      "noncommercial_net": 15397,
+      "commercial_net_z52": -1.3316095864427666,
+      "noncommercial_net_z52": 1.3316095864427735,
+      "commercial_net_pct52": 0.19230769230769232,
+      "noncommercial_net_pct52": 0.8269230769230769
+    },
+    {
+      "as_of": "2024-09-13",
+      "open_interest": 150643,
+      "commercial_net": 14334,
+      "noncommercial_net": 15374,
+      "commercial_net_z52": -1.2192534916909818,
+      "noncommercial_net_z52": 1.2192534916909776,
+      "commercial_net_pct52": 0.23076923076923078,
+      "noncommercial_net_pct52": 0.7884615384615384
+    },
+    {
+      "as_of": "2024-09-20",
+      "open_interest": 150693,
+      "commercial_net": 14381,
+      "noncommercial_net": 15347,
+      "commercial_net_z52": -1.1012317505039122,
+      "noncommercial_net_z52": 1.1012317505038964,
+      "commercial_net_pct52": 0.2692307692307692,
+      "noncommercial_net_pct52": 0.75
+    },
+    {
+      "as_of": "2024-09-27",
+      "open_interest": 150747,
+      "commercial_net": 14435,
+      "noncommercial_net": 15317,
+      "commercial_net_z52": -0.9781325035017656,
+      "noncommercial_net_z52": 0.9781325035017693,
+      "commercial_net_pct52": 0.3076923076923077,
+      "noncommercial_net_pct52": 0.7115384615384616
+    },
+    {
+      "as_of": "2024-10-04",
+      "open_interest": 150804,
+      "commercial_net": 14494,
+      "noncommercial_net": 15284,
+      "commercial_net_z52": -0.8502734986807041,
+      "noncommercial_net_z52": 0.8502734986807033,
+      "commercial_net_pct52": 0.34615384615384615,
+      "noncommercial_net_pct52": 0.6730769230769231
+    },
+    {
+      "as_of": "2024-10-11",
+      "open_interest": 150864,
+      "commercial_net": 14559,
+      "noncommercial_net": 15247,
+      "commercial_net_z52": -0.7177628153877329,
+      "noncommercial_net_z52": 0.7177628153877323,
+      "commercial_net_pct52": 0.38461538461538464,
+      "noncommercial_net_pct52": 0.6346153846153846
+    },
+    {
+      "as_of": "2024-10-18",
+      "open_interest": 150927,
+      "commercial_net": 14628,
+      "noncommercial_net": 15209,
+      "commercial_net_z52": -0.5805551192481884,
+      "noncommercial_net_z52": 0.5805551192481736,
+      "commercial_net_pct52": 0.4230769230769231,
+      "noncommercial_net_pct52": 0.5961538461538461
+    },
+    {
+      "as_of": "2024-10-25",
+      "open_interest": 150993,
+      "commercial_net": 14700,
+      "noncommercial_net": 15168,
+      "commercial_net_z52": -0.43850579820850205,
+      "noncommercial_net_z52": 0.438505798208497,
+      "commercial_net_pct52": 0.46153846153846156,
+      "noncommercial_net_pct52": 0.5576923076923077
+    },
+    {
+      "as_of": "2024-11-01",
+      "open_interest": 151060,
+      "commercial_net": 14776,
+      "noncommercial_net": 15125,
+      "commercial_net_z52": -0.29142682862992836,
+      "noncommercial_net_z52": 0.2914268286299305,
+      "commercial_net_pct52": 0.5,
+      "noncommercial_net_pct52": 0.5192307692307693
+    },
+    {
+      "as_of": "2024-11-08",
+      "open_interest": 151128,
+      "commercial_net": 14854,
+      "noncommercial_net": 15081,
+      "commercial_net_z52": -0.13914921189919152,
+      "noncommercial_net_z52": 0.13914921189919138,
+      "commercial_net_pct52": 0.5384615384615384,
+      "noncommercial_net_pct52": 0.4807692307692308
+    },
+    {
+      "as_of": "2024-11-15",
+      "open_interest": 151198,
+      "commercial_net": 14933,
+      "noncommercial_net": 15037,
+      "commercial_net_z52": 0.018402615300552486,
+      "noncommercial_net_z52": -0.018402615300542116,
+      "commercial_net_pct52": 0.5769230769230769,
+      "noncommercial_net_pct52": 0.4423076923076923
+    },
+    {
+      "as_of": "2024-11-22",
+      "open_interest": 151268,
+      "commercial_net": 15013,
+      "noncommercial_net": 14992,
+      "commercial_net_z52": 0.18111909903582094,
+      "noncommercial_net_z52": -0.1811190990358191,
+      "commercial_net_pct52": 0.6153846153846154,
+      "noncommercial_net_pct52": 0.40384615384615385
+    },
+    {
+      "as_of": "2024-11-29",
+      "open_interest": 151338,
+      "commercial_net": 15093,
+      "noncommercial_net": 14947,
+      "commercial_net_z52": 0.348592721077899,
+      "noncommercial_net_z52": -0.3485927210778782,
+      "commercial_net_pct52": 0.6538461538461539,
+      "noncommercial_net_pct52": 0.36538461538461536
+    },
+    {
+      "as_of": "2024-12-06",
+      "open_interest": 151407,
+      "commercial_net": 15172,
+      "noncommercial_net": 14903,
+      "commercial_net_z52": 0.5199838686147238,
+      "noncommercial_net_z52": -0.5199838686147421,
+      "commercial_net_pct52": 0.6923076923076923,
+      "noncommercial_net_pct52": 0.3269230769230769
+    },
+    {
+      "as_of": "2024-12-13",
+      "open_interest": 151475,
+      "commercial_net": 15249,
+      "noncommercial_net": 14859,
+      "commercial_net_z52": 0.6938728249271364,
+      "noncommercial_net_z52": -0.6938728249271553,
+      "commercial_net_pct52": 0.7307692307692307,
+      "noncommercial_net_pct52": 0.28846153846153844
+    },
+    {
+      "as_of": "2024-12-20",
+      "open_interest": 151542,
+      "commercial_net": 15323,
+      "noncommercial_net": 14817,
+      "commercial_net_z52": 0.8681176298925137,
+      "noncommercial_net_z52": -0.8681176298925246,
+      "commercial_net_pct52": 0.7692307692307693,
+      "noncommercial_net_pct52": 0.25
+    },
+    {
+      "as_of": "2024-12-27",
+      "open_interest": 151607,
+      "commercial_net": 15395,
+      "noncommercial_net": 14777,
+      "commercial_net_z52": 1.0397540744447382,
+      "noncommercial_net_z52": -1.0397540744447287,
+      "commercial_net_pct52": 0.8076923076923077,
+      "noncommercial_net_pct52": 0.21153846153846154
+    },
+    {
+      "as_of": "2025-01-03",
+      "open_interest": 151669,
+      "commercial_net": 15462,
+      "noncommercial_net": 14739,
+      "commercial_net_z52": 1.2049901757901205,
+      "noncommercial_net_z52": -1.2049901757901291,
+      "commercial_net_pct52": 0.8461538461538461,
+      "noncommercial_net_pct52": 0.17307692307692307
+    },
+    {
+      "as_of": "2025-01-10",
+      "open_interest": 151728,
+      "commercial_net": 15525,
+      "noncommercial_net": 14704,
+      "commercial_net_z52": 1.3593528239091461,
+      "noncommercial_net_z52": -1.3593528239091401,
+      "commercial_net_pct52": 0.8846153846153846,
+      "noncommercial_net_pct52": 0.1346153846153846
+    },
+    {
+      "as_of": "2025-01-17",
+      "open_interest": 151784,
+      "commercial_net": 15583,
+      "noncommercial_net": 14671,
+      "commercial_net_z52": 1.4980248196209698,
+      "noncommercial_net_z52": -1.4980248196209702,
+      "commercial_net_pct52": 0.9230769230769231,
+      "noncommercial_net_pct52": 0.09615384615384616
+    },
+    {
+      "as_of": "2025-01-24",
+      "open_interest": 151836,
+      "commercial_net": 15634,
+      "noncommercial_net": 14642,
+      "commercial_net_z52": 1.6163575147613194,
+      "noncommercial_net_z52": -1.6163575147612996,
+      "commercial_net_pct52": 0.9615384615384616,
+      "noncommercial_net_pct52": 0.057692307692307696
+    },
+    {
+      "as_of": "2025-01-31",
+      "open_interest": 151885,
+      "commercial_net": 15680,
+      "noncommercial_net": 14617,
+      "commercial_net_z52": 1.710468560773033,
+      "noncommercial_net_z52": -1.7104685607730479,
+      "commercial_net_pct52": 1.0,
+      "noncommercial_net_pct52": 0.019230769230769232
+    },
+    {
+      "as_of": "2025-02-07",
+      "open_interest": 151929,
+      "commercial_net": 15718,
+      "noncommercial_net": 14595,
+      "commercial_net_z52": 1.777772502081592,
+      "noncommercial_net_z52": -1.7777725020815955,
+      "commercial_net_pct52": 1.0,
+      "noncommercial_net_pct52": 0.019230769230769232
+    },
+    {
+      "as_of": "2025-02-14",
+      "open_interest": 151968,
+      "commercial_net": 15750,
+      "noncommercial_net": 14577,
+      "commercial_net_z52": 1.8172886653394416,
+      "noncommercial_net_z52": -1.8172886653394333,
+      "commercial_net_pct52": 1.0,
+      "noncommercial_net_pct52": 0.019230769230769232
+    },
+    {
+      "as_of": "2025-02-21",
+      "open_interest": 152003,
+      "commercial_net": 15774,
+      "noncommercial_net": 14564,
+      "commercial_net_z52": 1.8296415326556377,
+      "noncommercial_net_z52": -1.8296415326556434,
+      "commercial_net_pct52": 1.0,
+      "noncommercial_net_pct52": 0.019230769230769232
+    },
+    {
+      "as_of": "2025-02-28",
+      "open_interest": 152034,
+      "commercial_net": 15790,
+      "noncommercial_net": 14555,
+      "commercial_net_z52": 1.8167789682374085,
+      "noncommercial_net_z52": -1.816778968237399,
+      "commercial_net_pct52": 1.0,
+      "noncommercial_net_pct52": 0.019230769230769232
+    },
+    {
+      "as_of": "2025-03-07",
+      "open_interest": 152059,
+      "commercial_net": 15798,
+      "noncommercial_net": 14550,
+      "commercial_net_z52": 1.7815218144953202,
+      "noncommercial_net_z52": -1.7815218144953076,
+      "commercial_net_pct52": 1.0,
+      "noncommercial_net_pct52": 0.019230769230769232
+    },
+    {
+      "as_of": "2025-03-14",
+      "open_interest": 152079,
+      "commercial_net": 15799,
+      "noncommercial_net": 14550,
+      "commercial_net_z52": 1.727083831354248,
+      "noncommercial_net_z52": -1.7270838313542436,
+      "commercial_net_pct52": 1.0,
+      "noncommercial_net_pct52": 0.019230769230769232
+    },
+    {
+      "as_of": "2025-03-21",
+      "open_interest": 152094,
+      "commercial_net": 15791,
+      "noncommercial_net": 14554,
+      "commercial_net_z52": 1.6566683217968527,
+      "noncommercial_net_z52": -1.6566683217968692,
+      "commercial_net_pct52": 0.9615384615384616,
+      "noncommercial_net_pct52": 0.057692307692307696
+    },
+    {
+      "as_of": "2025-03-28",
+      "open_interest": 152104,
+      "commercial_net": 15775,
+      "noncommercial_net": 14563,
+      "commercial_net_z52": 1.5731908409998596,
+      "noncommercial_net_z52": -1.5731908409998614,
+      "commercial_net_pct52": 0.9230769230769231,
+      "noncommercial_net_pct52": 0.09615384615384616
+    },
+    {
+      "as_of": "2025-04-04",
+      "open_interest": 152110,
+      "commercial_net": 15752,
+      "noncommercial_net": 14576,
+      "commercial_net_z52": 1.4791282736383806,
+      "noncommercial_net_z52": -1.4791282736383795,
+      "commercial_net_pct52": 0.8846153846153846,
+      "noncommercial_net_pct52": 0.1346153846153846
+    },
+    {
+      "as_of": "2025-04-11",
+      "open_interest": 152111,
+      "commercial_net": 15721,
+      "noncommercial_net": 14594,
+      "commercial_net_z52": 1.3764673146821853,
+      "noncommercial_net_z52": -1.3764673146821809,
+      "commercial_net_pct52": 0.8461538461538461,
+      "noncommercial_net_pct52": 0.17307692307692307
+    },
+    {
+      "as_of": "2025-04-18",
+      "open_interest": 152107,
+      "commercial_net": 15683,
+      "noncommercial_net": 14615,
+      "commercial_net_z52": 1.2667181582869012,
+      "noncommercial_net_z52": -1.26671815828689,
+      "commercial_net_pct52": 0.8076923076923077,
+      "noncommercial_net_pct52": 0.21153846153846154
+    },
+    {
+      "as_of": "2025-04-25",
+      "open_interest": 152099,
+      "commercial_net": 15638,
+      "noncommercial_net": 14640,
+      "commercial_net_z52": 1.1509637486221993,
+      "noncommercial_net_z52": -1.1509637486221966,
+      "commercial_net_pct52": 0.7692307692307693,
+      "noncommercial_net_pct52": 0.25
+    },
+    {
+      "as_of": "2025-05-02",
+      "open_interest": 152087,
+      "commercial_net": 15587,
+      "noncommercial_net": 14669,
+      "commercial_net_z52": 1.0299237087393616,
+      "noncommercial_net_z52": -1.0299237087393487,
+      "commercial_net_pct52": 0.7307692307692307,
+      "noncommercial_net_pct52": 0.28846153846153844
+    },
+    {
+      "as_of": "2025-05-09",
+      "open_interest": 152071,
+      "commercial_net": 15530,
+      "noncommercial_net": 14701,
+      "commercial_net_z52": 0.9040205848704351,
+      "noncommercial_net_z52": -0.9040205848704432,
+      "commercial_net_pct52": 0.6923076923076923,
+      "noncommercial_net_pct52": 0.3269230769230769
+    },
+    {
+      "as_of": "2025-05-16",
+      "open_interest": 152052,
+      "commercial_net": 15467,
+      "noncommercial_net": 14736,
+      "commercial_net_z52": 0.7734426065697021,
+      "noncommercial_net_z52": -0.773442606569709,
+      "commercial_net_pct52": 0.6538461538461539,
+      "noncommercial_net_pct52": 0.36538461538461536
+    },
+    {
+      "as_of": "2025-05-23",
+      "open_interest": 152030,
+      "commercial_net": 15400,
+      "noncommercial_net": 14774,
+      "commercial_net_z52": 0.6382016250218872,
+      "noncommercial_net_z52": -0.6382016250218855,
+      "commercial_net_pct52": 0.6153846153846154,
+      "noncommercial_net_pct52": 0.40384615384615385
+    },
+    {
+      "as_of": "2025-05-30",
+      "open_interest": 152006,
+      "commercial_net": 15329,
+      "noncommercial_net": 14814,
+      "commercial_net_z52": 0.4981877346857165,
+      "noncommercial_net_z52": -0.49818773468572414,
+      "commercial_net_pct52": 0.5769230769230769,
+      "noncommercial_net_pct52": 0.4423076923076923
+    },
+    {
+      "as_of": "2025-06-06",
+      "open_interest": 151979,
+      "commercial_net": 15255,
+      "noncommercial_net": 14856,
+      "commercial_net_z52": 0.3532238794549305,
+      "noncommercial_net_z52": -0.3532238794549332,
+      "commercial_net_pct52": 0.5384615384615384,
+      "noncommercial_net_pct52": 0.4807692307692308
+    },
+    {
+      "as_of": "2025-06-13",
+      "open_interest": 151951,
+      "commercial_net": 15178,
+      "noncommercial_net": 14899,
+      "commercial_net_z52": 0.20312492150594313,
+      "noncommercial_net_z52": -0.20312492150593978,
+      "commercial_net_pct52": 0.5,
+      "noncommercial_net_pct52": 0.5192307692307693
+    },
+    {
+      "as_of": "2025-06-20",
+      "open_interest": 151922,
+      "commercial_net": 15099,
+      "noncommercial_net": 14943,
+      "commercial_net_z52": 0.04776640132514143,
+      "noncommercial_net_z52": -0.04776640132513424,
+      "commercial_net_pct52": 0.46153846153846156,
+      "noncommercial_net_pct52": 0.5576923076923077
+    },
+    {
+      "as_of": "2025-06-27",
+      "open_interest": 151892,
+      "commercial_net": 15019,
+      "noncommercial_net": 14988,
+      "commercial_net_z52": -0.11283155754198457,
+      "noncommercial_net_z52": 0.11283155754199296,
+      "commercial_net_pct52": 0.4230769230769231,
+      "noncommercial_net_pct52": 0.5961538461538461
+    },
+    {
+      "as_of": "2025-07-04",
+      "open_interest": 151862,
+      "commercial_net": 14939,
+      "noncommercial_net": 15033,
+      "commercial_net_z52": -0.2784005046664111,
+      "noncommercial_net_z52": 0.2784005046664162,
+      "commercial_net_pct52": 0.38461538461538464,
+      "noncommercial_net_pct52": 0.6346153846153846
+    },
+    {
+      "as_of": "2025-07-11",
+      "open_interest": 151832,
+      "commercial_net": 14860,
+      "noncommercial_net": 15078,
+      "commercial_net_z52": -0.44829801816033554,
+      "noncommercial_net_z52": 0.44829801816033493,
+      "commercial_net_pct52": 0.34615384615384615,
+      "noncommercial_net_pct52": 0.6730769230769231
+    },
+    {
+      "as_of": "2025-07-18",
+      "open_interest": 151804,
+      "commercial_net": 14782,
+      "noncommercial_net": 15122,
+      "commercial_net_z52": -0.6213638917052695,
+      "noncommercial_net_z52": 0.6213638917052572,
+      "commercial_net_pct52": 0.3076923076923077,
+      "noncommercial_net_pct52": 0.7115384615384616
+    },
+    {
+      "as_of": "2025-07-25",
+      "open_interest": 151776,
+      "commercial_net": 14706,
+      "noncommercial_net": 15164,
+      "commercial_net_z52": -0.7957721608876416,
+      "noncommercial_net_z52": 0.7957721608876677,
+      "commercial_net_pct52": 0.2692307692307692,
+      "noncommercial_net_pct52": 0.75
+    },
+    {
+      "as_of": "2025-08-01",
+      "open_interest": 151751,
+      "commercial_net": 14633,
+      "noncommercial_net": 15205,
+      "commercial_net_z52": -0.968908034240611,
+      "noncommercial_net_z52": 0.9689080342406085,
+      "commercial_net_pct52": 0.23076923076923078,
+      "noncommercial_net_pct52": 0.7884615384615384
+    },
+    {
+      "as_of": "2025-08-08",
+      "open_interest": 151727,
+      "commercial_net": 14564,
+      "noncommercial_net": 15244,
+      "commercial_net_z52": -1.137315965691654,
+      "noncommercial_net_z52": 1.137315965691647,
+      "commercial_net_pct52": 0.19230769230769232,
+      "noncommercial_net_pct52": 0.8269230769230769
+    },
+    {
+      "as_of": "2025-08-15",
+      "open_interest": 151707,
+      "commercial_net": 14499,
+      "noncommercial_net": 15281,
+      "commercial_net_z52": -1.296776526023484,
+      "noncommercial_net_z52": 1.296776526023472,
+      "commercial_net_pct52": 0.15384615384615385,
+      "noncommercial_net_pct52": 0.8653846153846154
+    },
+    {
+      "as_of": "2025-08-22",
+      "open_interest": 151690,
+      "commercial_net": 14440,
+      "noncommercial_net": 15314,
+      "commercial_net_z52": -1.4425622493554349,
+      "noncommercial_net_z52": 1.4425622493554398,
+      "commercial_net_pct52": 0.11538461538461539,
+      "noncommercial_net_pct52": 0.9038461538461539
+    },
+    {
+      "as_of": "2025-08-29",
+      "open_interest": 151676,
+      "commercial_net": 14385,
+      "noncommercial_net": 15345,
+      "commercial_net_z52": -1.5698836932063225,
+      "noncommercial_net_z52": 1.5698836932063316,
+      "commercial_net_pct52": 0.07692307692307693,
+      "noncommercial_net_pct52": 0.9423076923076923
+    },
+    {
+      "as_of": "2025-09-05",
+      "open_interest": 151666,
+      "commercial_net": 14337,
+      "noncommercial_net": 15372,
+      "commercial_net_z52": -1.674467626398534,
+      "noncommercial_net_z52": 1.6744676263985325,
+      "commercial_net_pct52": 0.038461538461538464,
+      "noncommercial_net_pct52": 0.9807692307692307
+    },
+    {
+      "as_of": "2025-09-12",
+      "open_interest": 151660,
+      "commercial_net": 14296,
+      "noncommercial_net": 15395,
+      "commercial_net_z52": -1.753135997641841,
+      "noncommercial_net_z52": 1.7531359976418497,
+      "commercial_net_pct52": 0.019230769230769232,
+      "noncommercial_net_pct52": 1.0
+    },
+    {
+      "as_of": "2025-09-19",
+      "open_interest": 151658,
+      "commercial_net": 14261,
+      "noncommercial_net": 15415,
+      "commercial_net_z52": -1.8042223143130394,
+      "noncommercial_net_z52": 1.8042223143130576,
+      "commercial_net_pct52": 0.019230769230769232,
+      "noncommercial_net_pct52": 1.0
+    },
+    {
+      "as_of": "2025-09-26",
+      "open_interest": 151661,
+      "commercial_net": 14234,
+      "noncommercial_net": 15430,
+      "commercial_net_z52": -1.8277033398778646,
+      "noncommercial_net_z52": 1.827703339877874,
+      "commercial_net_pct52": 0.019230769230769232,
+      "noncommercial_net_pct52": 1.0
+    },
+    {
+      "as_of": "2025-10-03",
+      "open_interest": 151669,
+      "commercial_net": 14215,
+      "noncommercial_net": 15441,
+      "commercial_net_z52": -1.8250247571607865,
+      "noncommercial_net_z52": 1.8250247571608045,
+      "commercial_net_pct52": 0.019230769230769232,
+      "noncommercial_net_pct52": 1.0
+    },
+    {
+      "as_of": "2025-10-10",
+      "open_interest": 151682,
+      "commercial_net": 14203,
+      "noncommercial_net": 15447,
+      "commercial_net_z52": -1.7987039023955744,
+      "noncommercial_net_z52": 1.7987039023955544,
+      "commercial_net_pct52": 0.019230769230769232,
+      "noncommercial_net_pct52": 1.0
+    },
+    {
+      "as_of": "2025-10-17",
+      "open_interest": 151700,
+      "commercial_net": 14200,
+      "noncommercial_net": 15449,
+      "commercial_net_z52": -1.7518462709019131,
+      "noncommercial_net_z52": 1.751846270901917,
+      "commercial_net_pct52": 0.019230769230769232,
+      "noncommercial_net_pct52": 1.0
+    },
+    {
+      "as_of": "2025-10-24",
+      "open_interest": 151722,
+      "commercial_net": 14204,
+      "noncommercial_net": 15447,
+      "commercial_net_z52": -1.6877008780665737,
+      "noncommercial_net_z52": 1.6877008780665548,
+      "commercial_net_pct52": 0.057692307692307696,
+      "noncommercial_net_pct52": 0.9615384615384616
+    },
+    {
+      "as_of": "2025-10-31",
+      "open_interest": 151750,
+      "commercial_net": 14216,
+      "noncommercial_net": 15440,
+      "commercial_net_z52": -1.609328113889847,
+      "noncommercial_net_z52": 1.609328113889851,
+      "commercial_net_pct52": 0.09615384615384616,
+      "noncommercial_net_pct52": 0.9230769230769231
+    },
+    {
+      "as_of": "2025-11-07",
+      "open_interest": 151782,
+      "commercial_net": 14236,
+      "noncommercial_net": 15429,
+      "commercial_net_z52": -1.5193985008699715,
+      "noncommercial_net_z52": 1.5193985008699542,
+      "commercial_net_pct52": 0.1346153846153846,
+      "noncommercial_net_pct52": 0.8846153846153846
+    },
+    {
+      "as_of": "2025-11-14",
+      "open_interest": 151820,
+      "commercial_net": 14264,
+      "noncommercial_net": 15413,
+      "commercial_net_z52": -1.42010393505659,
+      "noncommercial_net_z52": 1.4201039350565847,
+      "commercial_net_pct52": 0.17307692307692307,
+      "noncommercial_net_pct52": 0.8461538461538461
+    },
+    {
+      "as_of": "2025-11-21",
+      "open_interest": 151862,
+      "commercial_net": 14299,
+      "noncommercial_net": 15393,
+      "commercial_net_z52": -1.3131482803693133,
+      "noncommercial_net_z52": 1.313148280369323,
+      "commercial_net_pct52": 0.21153846153846154,
+      "noncommercial_net_pct52": 0.8076923076923077
+    },
+    {
+      "as_of": "2025-11-28",
+      "open_interest": 151908,
+      "commercial_net": 14341,
+      "noncommercial_net": 15370,
+      "commercial_net_z52": -1.199784895253842,
+      "noncommercial_net_z52": 1.1997848952538377,
+      "commercial_net_pct52": 0.25,
+      "noncommercial_net_pct52": 0.7692307692307693
+    },
+    {
+      "as_of": "2025-12-05",
+      "open_interest": 151959,
+      "commercial_net": 14390,
+      "noncommercial_net": 15342,
+      "commercial_net_z52": -1.0808764109359774,
+      "noncommercial_net_z52": 1.080876410935972,
+      "commercial_net_pct52": 0.28846153846153844,
+      "noncommercial_net_pct52": 0.7307692307692307
+    },
+    {
+      "as_of": "2025-12-12",
+      "open_interest": 152013,
+      "commercial_net": 14445,
+      "noncommercial_net": 15312,
+      "commercial_net_z52": -0.9569610425438296,
+      "noncommercial_net_z52": 0.9569610425438437,
+      "commercial_net_pct52": 0.3269230769230769,
+      "noncommercial_net_pct52": 0.6923076923076923
+    },
+    {
+      "as_of": "2025-12-19",
+      "open_interest": 152070,
+      "commercial_net": 14505,
+      "noncommercial_net": 15278,
+      "commercial_net_z52": -0.8283171733728228,
+      "noncommercial_net_z52": 0.8283171733728206,
+      "commercial_net_pct52": 0.36538461538461536,
+      "noncommercial_net_pct52": 0.6538461538461539
+    }
+  ]
+}

@@ -114,6 +114,12 @@
     .pill.neutral { background: rgba(255,255,255,0.08); color: var(--text); }
     .pill.low { background: rgba(96, 165, 250, 0.18); color: #93c5fd; }
     .pill.extreme-low { background: rgba(37, 99, 235, 0.18); color: #bfdbfe; }
+    .cot-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-top: 10px; }
+    .cot-row { background: #0d1424; border: 1px solid var(--border); border-radius: 10px; padding: 10px; }
+    .cot-label { font-weight: 700; margin-bottom: 4px; }
+    .cot-value { font-size: 18px; }
+    .cot-sub { font-size: 12px; }
+    .cot-foot { margin-top: 10px; display: grid; gap: 4px; }
     .heatmap-legend { display: flex; gap: 8px; align-items: center; margin-top: 8px; color: var(--muted); font-size: 12px; flex-wrap: wrap; }
     .legend-swatch { width: 14px; height: 14px; border-radius: 4px; display: inline-block; border: 1px solid var(--border); }
     .legend-item { display: inline-flex; align-items: center; gap: 6px; padding: 4px 6px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 10px; }
@@ -286,6 +292,10 @@
       <div id="contextItems" class="context-grid"></div>
       <div class="context-note" id="contextFooter" data-i18n="contextFooter">Context only; not a trade idea.</div>
     </div>
+
+    <div style="height:16px"></div>
+
+    <div class="card" id="cotCard"></div>
 
     <div style="height:16px"></div>
 
@@ -765,11 +775,13 @@
 import { buildFeatureRows, knnAnalogProbability } from "./src/lib/probability-engine.js";
 import { FetchAllCandidatesError } from "./src/lib/fetchJson.js";
 import { createDataHub } from "./src/lib/data-hub.js";
+import { injectCotIntoDaily } from "./src/lib/cot.js";
 import { renderActionRecommendation } from "./src/ui/render-action-recommendation.js";
 import { renderTradingSimulationCard } from "./src/ui/render-trading-simulation.js";
 import { backtestRuleset } from "./src/lib/rules/backtest-ruleset.js";
 import { renderRulesRecommendation, renderRulesExplain } from "./src/ui/render-rules-recommendation.js";
 import { renderRulesBacktest } from "./src/ui/render-rules-backtest.js";
+import { renderCotCard } from "./src/ui/render-cot.js";
 import { attachTooltips } from "./src/ui/tooltips.js";
 
 function setGlobalStatus(message, tone = "info") {
@@ -1687,6 +1699,8 @@ hub.subscribe((state) => {
       crossMarketCurrent: hub.getDataset("crossMarketCurrent"),
       crossMarketConditional: hub.getDataset("crossMarketConditional"),
       probabilityDaily: hub.getDataset("probabilityDaily"),
+      cotLatest: hub.getDataset("cotLatest"),
+      cotHistory: hub.getDataset("cotHistory"),
       backtestEquity: hub.getDataset("backtestEquity"),
       backtestFeesImpact: hub.getDataset("backtestFeesImpact"),
       backtestFeesSensitivity: hub.getDataset("backtestFeesSensitivity"),
@@ -1726,7 +1740,8 @@ hub.subscribe((state) => {
     buyHoldCurve = normalizeEquityFromPrices(prices.close || []);
     featureRows = buildFeatureRows(priceDateStrings, Array.isArray(prices?.close) ? prices.close : []);
     state.probabilityResult = featureRows.length ? knnAnalogProbability(featureRows, state.probabilityEngine) : null;
-    probabilityDaily = datasets.probabilityDaily || [];
+    probabilityDaily = injectCotIntoDaily(datasets.probabilityDaily || [], datasets.cotHistory);
+    renderCotCard(datasets.cotLatest, datasets.cotHistory, dataErrors.cotLatest || dataErrors.cotHistory);
     renderTradingSimulationCard(probabilityDaily);
     simpleRulesResult = backtestRuleset(probabilityDaily);
     renderRulesRecommendation(simpleRulesResult, dataErrors.probabilityDaily);

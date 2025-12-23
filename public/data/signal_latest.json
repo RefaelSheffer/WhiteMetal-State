@@ -6,15 +6,27 @@
   "scoreTotal": 50,
   "confidence": "HIGH",
   "scoreBreakdown": [
-    { "name": "Price action", "points": 50, "summary": "Price above 20/50/200-day averages; 1m momentum +16.1%." },
-    { "name": "COT", "points": 0, "summary": "COT data unavailable in latest refresh." },
-    { "name": "Events", "points": 0, "summary": "No EDGAR or event-driven signals detected." }
+    {
+      "name": "Price action",
+      "points": 50,
+      "summary": "Price above 20/50/200-day averages; 1m momentum +16.1%."
+    },
+    {
+      "name": "Events",
+      "points": 0,
+      "summary": "No EDGAR or event-driven signals detected."
+    },
+    {
+      "name": "COT",
+      "points": 0,
+      "summary": "COT balanced; neutral weight. Commercial net at 36.5th percentile (52w)."
+    }
   ],
   "explain": {
     "headline": "BUY / ADD – momentum-led setup with pending fundamentals",
     "bullets": [
       "Price strength vs moving averages with double-digit 1m gain.",
-      "COT and EDGAR data were unavailable; keeping weight neutral there."
+      "COT bias: neutral (no_extreme_detected)"
     ]
   },
   "disclaimer": "Not financial advice. For research/dashboard only."

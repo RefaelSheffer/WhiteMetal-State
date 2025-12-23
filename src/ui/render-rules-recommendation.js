@@ -34,6 +34,10 @@ function reasonCopy(reasonCode) {
       return "Existing position with strong, high-confidence setup → add on strength.";
     case "HOLD":
       return "No exit or add conditions met; hold position.";
+    case "COT_SUPPORT":
+      return "COT positioning is supportive (commercial washout / noncommercial fade).";
+    case "COT_HEADWIND":
+      return "COT positioning is a headwind; risk-off bias applied.";
     default:
       return "No trade rule met today.";
   }
@@ -77,6 +81,7 @@ export function renderRulesRecommendation(result, error) {
   const decision = result.latestDecision;
   const tone = toneClass(decision.action);
   const values = decision.values || {};
+  const cotBias = values.cotBias || "neutral";
 
   root.innerHTML = `
     <div class="section-title flex">
@@ -89,11 +94,12 @@ export function renderRulesRecommendation(result, error) {
       <div><span class="muted">Confidence</span> <span class="mono">${values.confidence || "—"}</span></div>
       <div><span class="muted">Similar states</span> <span class="mono">${fmtNum(values.similarCount, 0)}</span></div>
       <div><span class="muted">Vol20</span> <span class="mono">${fmtNum(values.vol20, 3)}</span></div>
+      <div><span class="muted">COT bias</span> <span class="mono">${cotBias}</span></div>
       <div><span class="muted">Return vs entry</span> <span class="mono">${fmtPct(values.returnSinceEntry, 1)}</span></div>
     </div>
     <details class="action-rationale" open>
       <summary>Today\'s checklist</summary>
-      ${renderChecks([...(decision.checks?.entry || []), ...(decision.checks?.exit || []), ...(decision.checks?.add || [])])}
+      ${renderChecks([...(decision.checks?.entry || []), ...(decision.checks?.exit || []), ...(decision.checks?.add || []), ...(decision.checks?.cot || [])])}
     </details>
     <div class="action-disclaimer">
       <span class="warning-icon" aria-hidden="true">⚠️</span>
@@ -127,6 +133,7 @@ export function renderRulesExplain(result) {
           <li>P(up) ≥ ${fmtPct(r.entryThreshold, 0)}</li>
           <li>Confidence ≥ ${r.minConfidence}</li>
           <li>Similar states ≥ ${r.minSimilarCount}</li>
+          <li>COT tailwind (commercial pct≤10% or bias bullish) lifts borderline entries.</li>
         </ul>
       </div>
       <div>
@@ -135,6 +142,7 @@ export function renderRulesExplain(result) {
           <li>Take profit: +${fmtPct(r.takeProfitPct, 0)}</li>
           <li>P(up) < ${fmtPct(r.exitThreshold, 0)}</li>
           <li>Vol spike ≥ ${fmtNum(r.volThreshold, 3)} (70th pct fallback)</li>
+          <li>COT headwind can force SELL when longs are crowded.</li>
         </ul>
       </div>
       <div>
@@ -143,6 +151,7 @@ export function renderRulesExplain(result) {
           <li>P(up) ≥ ${fmtPct(r.addThreshold, 0)} & confidence HIGH</li>
           <li>Similar states ≥ ${r.addMinSimilarCount}</li>
           <li>Cooldown ${r.addCooldownDays}d · Add size ${(r.sizing?.add ?? 0.25) * 100}%</li>
+          <li>COT support allows adds when commercials are stretched long.</li>
         </ul>
       </div>
     </div>
