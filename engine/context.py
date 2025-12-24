@@ -364,7 +364,12 @@ def build_context_payloads(
     return current_context, {"baseline": baseline, **conditional_stats}
 
 
-def fetch_context_assets(start_date: str, *, source: str | None = None) -> tuple[dict[str, list[dict]], dict]:
+def fetch_context_assets(
+    start_date: str,
+    *,
+    source: str | None = None,
+    refresh: bool = False,
+) -> tuple[dict[str, list[dict]], dict]:
     sources = (source,) if source else ("stooq", "yahoo")
 
     def fetch_with_fallback(symbols: list[str], cache_name: str) -> tuple[str, list[dict]]:
@@ -376,6 +381,7 @@ def fetch_context_assets(start_date: str, *, source: str | None = None) -> tuple
                     start_date=start_date,
                     cache_path=cache_name,
                     sources=sources,
+                    refresh=refresh,
                 )
                 return sym, rows
             except Exception as exc:  # noqa: PERF203
@@ -473,4 +479,3 @@ def write_context_outputs(
     # Legacy paths for backward compatibility
     write_json(BASE_CONTEXT_DIR / "current_context.json", current)
     write_json(BASE_CONTEXT_DIR / "conditional_stats.json", stats)
-

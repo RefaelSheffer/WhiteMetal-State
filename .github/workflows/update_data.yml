@@ -29,7 +29,7 @@ jobs:
       - name: Run pipeline
         run: |
           python tools/fetch_cot.py --start-year 2015
-          python -m engine.main
+          python -m engine.main --refresh
 
       - name: Commit & push if changed
         run: |

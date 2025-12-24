@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import datetime
 from pathlib import Path
 
@@ -54,7 +55,7 @@ from engine.events.cycles import (
     turning_points_to_records,
 )
 from engine.events.detector import detect_events
-from engine.fetchers.slv_real import fetch_slv_ohlcv
+from engine.fetchers.slv_real import fetch_slv_ohlcv_with_status
 from engine.heatmap import (
     compute_deviation_heatmap,
     compute_momentum_heatmap,
@@ -68,18 +69,31 @@ from engine.validation.sanity import validate_ohlcv
 BASE_PATH = Path("public/data")
 
 
-def run_pipeline() -> None:
+def _load_previous_snapshot(meta_path: Path) -> dict:
+    if not meta_path.exists():
+        return {}
+    try:
+        payload = json.loads(meta_path.read_text())
+    except Exception:
+        return {}
+    return payload.get("snapshot", {}) if isinstance(payload, dict) else {}
+
+
+def run_pipeline(*, refresh_data: bool = False) -> None:
     source = "stooq"
-    raw_data = fetch_slv_ohlcv(
+    meta_path = BASE_PATH / "meta.json"
+    previous_snapshot = _load_previous_snapshot(meta_path)
+    raw_data, snapshot_status = fetch_slv_ohlcv_with_status(
         start_date="2008-01-01",
         cache_path=str(BASE_PATH / "raw/slv_daily.json"),
         source=source,
+        refresh=refresh_data,
     )
-    aux_assets, context_meta = fetch_context_assets(start_date="2008-01-01", source=source)
+    aux_assets, context_meta = fetch_context_assets(start_date="2008-01-01", source=source, refresh=refresh_data)
     macro_assets: dict[str, list[dict]] | None = None
     macro_meta: dict | None = None
     try:
-        macro_assets, macro_meta = fetch_macro_assets(start_date="2008-01-01", source=source)
+        macro_assets, macro_meta = fetch_macro_assets(start_date="2008-01-01", source=source, refresh=refresh_data)
     except Exception as exc:  # noqa: PERF203
         print(f"[macro] Unable to fetch macro assets: {exc}")
     validate_ohlcv(raw_data)
@@ -267,8 +281,17 @@ def run_pipeline() -> None:
         "decompositionResidual": "diagnostics/decomposition_residual.json",
     }
 
+    snapshot_payload = {
+        "fetched_at_utc": snapshot_status.get("fetched_at_utc") or previous_snapshot.get("fetched_at_utc"),
+        "source_status": snapshot_status.get("source_status", "unknown"),
+        "error_reason": snapshot_status.get("error_reason") or previous_snapshot.get("error_reason"),
+        "source": snapshot_status.get("source") or source,
+    }
+    if snapshot_payload["source_status"] == "live":
+        snapshot_payload["error_reason"] = None
+
     write_json(
-        BASE_PATH / "meta.json",
+        meta_path,
         {
             "source": source,
             "symbol": "SLV",
@@ -276,6 +299,7 @@ def run_pipeline() -> None:
             "end": raw_data[-1]["date"],
             "rows": len(raw_data),
             "last_updated_utc": last_updated,
+            "snapshot": snapshot_payload,
             "files": files_map,
         },
     )
@@ -434,4 +458,10 @@ def json_dumps(record: dict) -> str:
 
 
 if __name__ == "__main__":
-    run_pipeline()
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Run the WhiteMetal data pipeline.")
+    parser.add_argument("--refresh", action="store_true", help="Refresh network data before falling back to cache.")
+    args = parser.parse_args()
+
+    run_pipeline(refresh_data=args.refresh)

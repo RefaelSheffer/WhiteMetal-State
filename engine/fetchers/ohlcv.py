@@ -9,6 +9,8 @@ from typing import Iterable
 import pandas as pd
 import requests
 
+from engine.utils.http import get_with_retry
+
 DEFAULT_CACHE_DIR = Path("public/data/raw")
 
 
@@ -53,8 +55,7 @@ def _stooq_url(symbol: str) -> str:
 def _fetch_stooq(symbol: str) -> pd.DataFrame:
     url = _stooq_url(symbol)
     headers = {"User-Agent": "WhiteMetalBot/1.0 (data-fetcher)"}
-    resp = requests.get(url, headers=headers, timeout=60)
-    resp.raise_for_status()
+    resp = get_with_retry(url, headers=headers, timeout=60, max_attempts=4)
     return pd.read_csv(io.StringIO(resp.text))
 
 
@@ -132,6 +133,72 @@ def fetch_ohlcv(
     if cache_file.exists():
         cached = _load_cache(cache_file)
         if cached:
-            return cached
+    return cached
+
+    raise OhlcvFetchError(f"Unable to fetch {symbol} OHLCV; last error: {last_error}")
+
+
+def _cache_mtime_iso(path: Path) -> str | None:
+    if not path.exists():
+        return None
+    return datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc).replace(microsecond=0).isoformat()
+
+
+def fetch_ohlcv_with_status(
+    *,
+    symbol: str,
+    start_date: str = "2008-01-01",
+    end_date: str | None = None,
+    cache_path: str | Path | None = None,
+    sources: Iterable[str] = ("stooq", "yahoo"),
+    refresh: bool = False,
+) -> tuple[list[dict], dict]:
+    cache_file = Path(cache_path) if cache_path else DEFAULT_CACHE_DIR / f"{symbol.lower()}_daily.json"
+
+    if not refresh:
+        cached = _load_cache(cache_file)
+        if cached:
+            return cached, {
+                "fetched_at_utc": _cache_mtime_iso(cache_file),
+                "source_status": "cached",
+                "error_reason": None,
+                "source": None,
+            }
+
+    last_error: Exception | None = None
+    for source in sources:
+        try:
+            if source == "stooq":
+                df = _fetch_stooq(symbol)
+            elif source == "yahoo":
+                df = _fetch_yahoo(symbol, start_date, end_date)
+            else:
+                raise ValueError(f"Unsupported source '{source}'")
+            df = _normalize(df)
+            df = df[df["date"] >= start_date]
+            if end_date:
+                df = df[df["date"] <= end_date]
+            records = df.to_dict(orient="records")
+            cache_file.parent.mkdir(parents=True, exist_ok=True)
+            cache_file.write_text(json.dumps(records, indent=2), encoding="utf-8")
+            return records, {
+                "fetched_at_utc": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
+                "source_status": "live",
+                "error_reason": None,
+                "source": source,
+            }
+        except Exception as exc:  # noqa: PERF203
+            last_error = exc
+            continue
+
+    if cache_file.exists():
+        cached = _load_cache(cache_file)
+        if cached:
+            return cached, {
+                "fetched_at_utc": _cache_mtime_iso(cache_file),
+                "source_status": "cached",
+                "error_reason": str(last_error) if last_error else None,
+                "source": None,
+            }
 
     raise OhlcvFetchError(f"Unable to fetch {symbol} OHLCV; last error: {last_error}")

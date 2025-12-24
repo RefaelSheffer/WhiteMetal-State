@@ -185,8 +185,11 @@
             <span class="badge"><span data-i18n="metaSourceLabel">Data source</span>: <span class="mono" id="metaSource">—</span></span>
             <span class="badge"><span data-i18n="metaCoverageLabel">Coverage</span>: <span class="mono" id="metaCoverage">—</span></span>
             <span class="badge"><span data-i18n="metaUpdatedLabel">Last updated</span>: <span class="mono" id="metaUpdated">—</span></span>
+            <span class="badge"><span data-i18n="metaSnapshotStatusLabel">Snapshot status</span>: <span class="mono" id="metaSnapshotStatus">—</span></span>
+            <span class="badge"><span data-i18n="metaSnapshotAgeLabel">Snapshot age</span>: <span class="mono" id="metaSnapshotAge">—</span></span>
             <span class="badge soft" id="eventContextBadge">—</span>
           </div>
+          <div class="context-warning" id="metaSnapshotNote" style="display:none;"></div>
         </div>
         <div class="header-actions">
           <button class="btn" id="howItWorksBtn" type="button" data-i18n="howItWorksLabel">ℹ️ איך זה עובד?</button>
@@ -1005,6 +1008,12 @@ const baseLanguageStrings = {
     metaSourceLabel: "מקור נתונים",
     metaCoverageLabel: "טווח כיסוי",
     metaUpdatedLabel: "עדכון אחרון",
+    metaSnapshotStatusLabel: "סטטוס סנאפשוט",
+    metaSnapshotAgeLabel: "גיל סנאפשוט",
+    snapshotStatusLive: "חי",
+    snapshotStatusCached: "שמורה",
+    snapshotStatusUnknown: "לא ידוע",
+    snapshotErrorPrefix: "שגיאת רענון נתונים",
     marketSnapshotTitle: "צילום מצב שוק",
     occurrencesLabel: "מספר מקרים",
     historicalRangeLabel: "טווח תוצאות נפוץ",
@@ -1262,6 +1271,12 @@ const baseLanguageStrings = {
     metaSourceLabel: "Data source",
     metaCoverageLabel: "Coverage",
     metaUpdatedLabel: "Last updated",
+    metaSnapshotStatusLabel: "Snapshot status",
+    metaSnapshotAgeLabel: "Snapshot age",
+    snapshotStatusLive: "Live",
+    snapshotStatusCached: "Cached",
+    snapshotStatusUnknown: "Unknown",
+    snapshotErrorPrefix: "Data refresh error",
     marketSnapshotTitle: "Market Snapshot",
     occurrencesLabel: "Occurrences",
     historicalRangeLabel: "Common range (5d)",
@@ -1592,6 +1607,22 @@ function applyCosts(equitySeries, costBps = 0.0) {
     out.push({ index: equitySeries[i].index, equity: out[i - 1].equity * (1 + netRet) });
   }
   return out;
+}
+
+function formatSnapshotAge(isoString) {
+  if (!isoString) return "—";
+  const parsed = new Date(isoString);
+  if (Number.isNaN(parsed.getTime())) return "—";
+  const diffMs = Date.now() - parsed.getTime();
+  if (diffMs < 0) return "—";
+  const minutes = Math.floor(diffMs / 60000);
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 48) return `${hours}h`;
+  const days = Math.floor(hours / 24);
+  if (days < 45) return `${days}d`;
+  const months = Math.floor(days / 30);
+  return `${months}mo`;
 }
 
 let meta = {};
@@ -2518,10 +2549,31 @@ hub.subscribe((state) => {
     const sourceText = meta?.source ? `${meta.source}${symbolText}` : "—";
     const coverageCore = meta?.start && meta?.end ? `${meta.start} → ${meta.end}` : "—";
     const rowsSuffix = Number.isFinite(meta?.rows) ? ` (${Number(meta.rows).toLocaleString()})` : "";
+    const snapshot = meta?.snapshot || {};
+    const snapshotStatus = snapshot?.source_status || "unknown";
+    const snapshotStatusLabel = snapshotStatus === "live"
+      ? t("snapshotStatusLive")
+      : snapshotStatus === "cached"
+        ? t("snapshotStatusCached")
+        : t("snapshotStatusUnknown");
+    const snapshotFetchedAt = snapshot?.fetched_at_utc || meta?.last_updated_utc;
 
     document.getElementById("metaSource").textContent = sourceText;
     document.getElementById("metaCoverage").textContent = coverageCore === "—" ? "—" : `${coverageCore}${rowsSuffix}`;
     document.getElementById("metaUpdated").textContent = meta?.last_updated_utc ?? "—";
+    document.getElementById("metaSnapshotStatus").textContent = snapshotFetchedAt ? snapshotStatusLabel : "—";
+    document.getElementById("metaSnapshotAge").textContent = formatSnapshotAge(snapshotFetchedAt);
+
+    const snapshotNote = document.getElementById("metaSnapshotNote");
+    if (snapshotNote) {
+      if (snapshot?.error_reason) {
+        snapshotNote.textContent = `${t("snapshotErrorPrefix")}: ${snapshot.error_reason}`;
+        snapshotNote.style.display = "block";
+      } else {
+        snapshotNote.textContent = "";
+        snapshotNote.style.display = "none";
+      }
+    }
   }
 
   function getRangeMask(months, startDate, endDate) {
