@@ -11,6 +11,7 @@ from dateutil.relativedelta import relativedelta
 import pandas as pd
 import requests
 
+from engine.utils.http import get_with_retry
 
 DATA_DIR = "data"
 BACKUP_DIR = os.path.join(DATA_DIR, "backups")
@@ -51,8 +52,7 @@ def safe_float(x):
 
 def fetch_prices_stooq() -> pd.DataFrame:
     headers = {"User-Agent": "WhiteMetalBot/1.0 (whitemetal@example.com)"}
-    resp = requests.get(STOOQ_URL, headers=headers, timeout=60)
-    resp.raise_for_status()
+    resp = get_with_retry(STOOQ_URL, headers=headers, timeout=60, max_attempts=4)
     df = pd.read_csv(io.BytesIO(resp.content))
     # Stooq columns: Date, Open, High, Low, Close, Volume
     df["Date"] = pd.to_datetime(df["Date"])

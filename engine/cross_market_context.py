@@ -11,6 +11,7 @@ from typing import Callable, Iterable
 import pandas as pd
 import requests
 
+from engine.utils.http import get_with_retry
 from engine.utils.io import sanitize_for_json, write_json
 
 STOOQ_BASE_URL = "https://stooq.com/q/d/l/"
@@ -69,8 +70,7 @@ class CrossMarketContextGenerator:
 
     def _fetch_stooq(self, symbol: str) -> list[dict]:
         url = f"{STOOQ_BASE_URL}?s={symbol}&i=d"
-        resp = requests.get(url, headers=HEADERS, timeout=60)
-        resp.raise_for_status()
+        resp = get_with_retry(url, headers=HEADERS, timeout=60, max_attempts=4)
         df = pd.read_csv(io.BytesIO(resp.content))
         df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
         df = df.dropna(subset=["Date", "Close"]).sort_values("Date")

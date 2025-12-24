@@ -61,7 +61,12 @@ def _filter_series(dates: Sequence[str], values: Sequence[float | None]) -> tupl
     return filtered_dates, filtered_values
 
 
-def fetch_macro_assets(start_date: str, *, source: str | None = None) -> tuple[dict[str, list[dict]], dict]:
+def fetch_macro_assets(
+    start_date: str,
+    *,
+    source: str | None = None,
+    refresh: bool = False,
+) -> tuple[dict[str, list[dict]], dict]:
     sources = (source,) if source else ("yahoo", "stooq")
 
     def fetch(symbols: list[str], cache_name: str) -> tuple[str, list[dict]]:
@@ -73,6 +78,7 @@ def fetch_macro_assets(start_date: str, *, source: str | None = None) -> tuple[d
                     start_date=start_date,
                     cache_path=cache_name,
                     sources=sources,
+                    refresh=refresh,
                 )
                 return sym, rows
             except Exception as exc:  # noqa: PERF203
