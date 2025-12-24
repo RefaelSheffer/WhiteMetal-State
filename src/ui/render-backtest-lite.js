@@ -86,8 +86,7 @@ function computeStats(values) {
   };
 }
 
-function renderTable(container, stats, horizon) {
-  const data = stats[horizon];
+function renderTable(container, data, horizon) {
   if (!data) {
     container.innerHTML = `<div class="muted">Data unavailable.</div>`;
     return;
@@ -101,6 +100,7 @@ function renderTable(container, stats, horizon) {
   container.innerHTML = `
     <table class="table compact">
       <tbody>
+        <tr><td class="muted">Horizon</td><td class="mono">${fmtNum(horizon, 0)} days</td></tr>
         <tr><td class="muted">Win rate</td><td class="mono">${fmtPct(data.winRate)}</td></tr>
         <tr><td class="muted">Avg return</td><td class="mono">${fmtPct(data.avg, 2)}</td></tr>
         <tr><td class="muted">Median</td><td class="mono">${fmtPct(data.median, 2)}</td></tr>
@@ -129,10 +129,13 @@ export async function renderBacktestLite(containerEl, {
   }
 
   const horizons = HORIZON_OPTIONS;
-  const stats = horizons.reduce((acc, h) => {
-    acc[h] = computeStats(forwardReturns(prices, h));
-    return acc;
-  }, {});
+  const statsByHorizon = new Map();
+  const getStatsForHorizon = (horizon) => {
+    if (!statsByHorizon.has(horizon)) {
+      statsByHorizon.set(horizon, computeStats(forwardReturns(prices, horizon)));
+    }
+    return statsByHorizon.get(horizon);
+  };
 
   const preferred = horizons.includes(horizonDaysDefault) ? horizonDaysDefault : horizons[0];
   const selectId = `backtestHorizon-${Math.random().toString(36).slice(2, 7)}`;
@@ -157,9 +160,11 @@ export async function renderBacktestLite(containerEl, {
 
   const update = () => {
     const h = Number(selectEl.value);
-    renderTable(tableEl, stats, horizons.includes(h) ? h : preferred);
+    const resolved = horizons.includes(h) ? h : preferred;
+    renderTable(tableEl, getStatsForHorizon(resolved), resolved);
   };
 
   selectEl.addEventListener("change", update);
+  selectEl.addEventListener("input", update);
   update();
 }
