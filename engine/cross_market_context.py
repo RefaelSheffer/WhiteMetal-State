@@ -25,6 +25,11 @@ STOOQ_SYMBOLS = {
     "silver": "SI.C",
 }
 
+YAHOO_SYMBOLS = {
+    "gold": "GC=F",
+    "silver": "SI=F",
+}
+
 FRED_SERIES = {
     "usd": "DTWEXBGS",
     "us10y": "DGS10",
@@ -63,6 +68,7 @@ class CrossMarketContextGenerator:
             "usd": self._fetch_usd,
             "us10y": self._fetch_us10y,
         }
+        self._warnings: list[str] = []
 
     @staticmethod
     def _utc_now_iso() -> str:
@@ -79,11 +85,43 @@ class CrossMarketContextGenerator:
             for _, row in df.iterrows()
         ]
 
+    def _history_start_date(self) -> str:
+        start_dt = datetime.now(timezone.utc).date() - timedelta(days=self.history_days + 30)
+        return start_dt.isoformat()
+
+    def _fetch_yahoo(self, symbol: str) -> list[dict]:
+        start_dt = datetime.fromisoformat(self._history_start_date()).replace(tzinfo=timezone.utc)
+        end_dt = datetime.now(timezone.utc)
+        period1 = int(start_dt.timestamp())
+        period2 = int(end_dt.timestamp())
+        url = (
+            f"https://query1.finance.yahoo.com/v7/finance/download/{symbol}"
+            f"?period1={period1}&period2={period2}&interval=1d&events=history&includeAdjustedClose=true"
+        )
+        resp = requests.get(url, headers=HEADERS, timeout=60)
+        resp.raise_for_status()
+        df = pd.read_csv(io.StringIO(resp.text))
+        df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+        df = df.dropna(subset=["Date", "Close"]).sort_values("Date")
+        return [
+            {"date": row["Date"].date().isoformat(), "value": float(row["Close"])}
+            for _, row in df.iterrows()
+        ]
+
+    def _fetch_metal(self, *, name: str) -> list[dict]:
+        stooq_symbol = STOOQ_SYMBOLS[name]
+        yahoo_symbol = YAHOO_SYMBOLS[name]
+        try:
+            return self._fetch_stooq(stooq_symbol)
+        except Exception as exc:  # noqa: PERF203
+            self._warnings.append(f"{name} stooq fetch failed: {exc}; using yahoo:{yahoo_symbol}")
+            return self._fetch_yahoo(yahoo_symbol)
+
     def _fetch_gold(self) -> list[dict]:
-        return self._fetch_stooq(STOOQ_SYMBOLS["gold"])
+        return self._fetch_metal(name="gold")
 
     def _fetch_silver(self) -> list[dict]:
-        return self._fetch_stooq(STOOQ_SYMBOLS["silver"])
+        return self._fetch_metal(name="silver")
 
     def _fetch_fred_series(self, series_id: str) -> list[dict]:
         if not self.fred_api_key:
@@ -161,6 +199,7 @@ class CrossMarketContextGenerator:
         existing = self._load_existing()
         existing_series = existing.get("series", {}) if isinstance(existing, dict) else {}
         warnings: list[str] = []
+        self._warnings = []
         series_payload: dict[str, dict] = {}
 
         for name, fetcher in self.fetchers.items():
@@ -175,6 +214,9 @@ class CrossMarketContextGenerator:
                 "last_value": series_result.last_value,
                 "history": series_result.history,
             }
+
+        if self._warnings:
+            warnings.extend(self._warnings)
 
         if existing_series:
             if all(
