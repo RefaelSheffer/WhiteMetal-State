@@ -1,5 +1,5 @@
 {
-  "as_of": "2025-12-19",
+  "as_of": "2025-12-26",
   "report_type": "legacy_futures_only",
   "market": "COMEX Silver",
   "open_interest": 152070,
@@ -31,7 +31,7 @@
     ]
   },
   "open_interest_change_4w": 208.6575312257046,
-  "last_updated_utc": "2025-12-23T08:32:53Z",
+  "last_updated_utc": "2025-12-26T19:26:10Z",
   "source": {
     "provider": "CFTC",
     "dataset": "COT",

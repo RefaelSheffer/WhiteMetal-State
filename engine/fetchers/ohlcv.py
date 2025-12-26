@@ -133,7 +133,7 @@ def fetch_ohlcv(
     if cache_file.exists():
         cached = _load_cache(cache_file)
         if cached:
-    return cached
+            return cached
 
     raise OhlcvFetchError(f"Unable to fetch {symbol} OHLCV; last error: {last_error}")
 
