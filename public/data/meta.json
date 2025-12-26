@@ -4,11 +4,11 @@
   "start": "2008-01-02",
   "end": "2025-12-12",
   "rows": 4516,
-  "last_updated_utc": "2025-12-23T11:55:00Z",
+  "last_updated_utc": "2025-12-26T19:27:44Z",
   "snapshot": {
-    "fetched_at_utc": "2025-12-23T11:55:00Z",
+    "fetched_at_utc": "2025-12-26T19:20:11+00:00",
     "source_status": "cached",
-    "error_reason": null,
+    "error_reason": "HTTPSConnectionPool(host='stooq.com', port=443): Max retries exceeded with url: /q/d/l/?s=slv.us&i=d (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))",
     "source": "stooq"
   },
   "files": {
@@ -40,9 +40,6 @@
     "decompositionMeta": "diagnostics/decomposition_meta.json",
     "decompositionTrend": "diagnostics/decomposition_trend.json",
     "decompositionSeasonal": "diagnostics/decomposition_seasonal.json",
-    "decompositionResidual": "diagnostics/decomposition_residual.json",
-    "cotLatest": "cot/silver_cot_latest.json",
-    "cotHistory": "cot/silver_cot_history.json",
-    "cotMetadata": "cot/metadata.json"
+    "decompositionResidual": "diagnostics/decomposition_residual.json"
   }
 }
