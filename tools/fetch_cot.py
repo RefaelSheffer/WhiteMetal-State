@@ -1,6 +1,7 @@
 import argparse
 import json
 import math
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable
@@ -14,10 +15,14 @@ OUTPUT_DIR = Path("public/data/cot")
 SAMPLE_FIXTURE = Path(__file__).with_name("sample_cot_silver.csv")
 
 
+def _normalize_key(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "", value.strip().lower())
+
+
 def normalize_col(df: pd.DataFrame, candidates: Iterable[str]) -> str | None:
-    cols = {c.strip().lower(): c for c in df.columns}
+    cols = {_normalize_key(c): c for c in df.columns}
     for cand in candidates:
-        key = cand.strip().lower()
+        key = _normalize_key(cand)
         if key in cols:
             return cols[key]
     return None
