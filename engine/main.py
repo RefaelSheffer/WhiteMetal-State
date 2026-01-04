@@ -80,20 +80,20 @@ def _load_previous_snapshot(meta_path: Path) -> dict:
 
 
 def run_pipeline(*, refresh_data: bool = False) -> None:
-    source = "stooq"
+    preferred_sources = "stooq/yahoo"
     meta_path = BASE_PATH / "meta.json"
     previous_snapshot = _load_previous_snapshot(meta_path)
     raw_data, snapshot_status = fetch_slv_ohlcv_with_status(
         start_date="2008-01-01",
         cache_path=str(BASE_PATH / "raw/slv_daily.json"),
-        source=source,
+        source=None,
         refresh=refresh_data,
     )
-    aux_assets, context_meta = fetch_context_assets(start_date="2008-01-01", source=source, refresh=refresh_data)
+    aux_assets, context_meta = fetch_context_assets(start_date="2008-01-01", source=None, refresh=refresh_data)
     macro_assets: dict[str, list[dict]] | None = None
     macro_meta: dict | None = None
     try:
-        macro_assets, macro_meta = fetch_macro_assets(start_date="2008-01-01", source=source, refresh=refresh_data)
+        macro_assets, macro_meta = fetch_macro_assets(start_date="2008-01-01", source=None, refresh=refresh_data)
     except Exception as exc:  # noqa: PERF203
         print(f"[macro] Unable to fetch macro assets: {exc}")
     validate_ohlcv(raw_data)
@@ -109,7 +109,7 @@ def run_pipeline(*, refresh_data: bool = False) -> None:
         gld_rows=aux_assets["GLD"],
         dxy_rows=aux_assets["DXY"],
         us10y_rows=aux_assets["US10Y"],
-        source=source,
+        source=preferred_sources,
         meta=context_meta,
     )
     if macro_assets:
@@ -119,7 +119,7 @@ def run_pipeline(*, refresh_data: bool = False) -> None:
                 vix_rows=macro_assets.get("VIX", []),
                 tip_rows=macro_assets.get("TIP", []),
             )
-            write_macro_outputs(macro_enrichment, macro_meta or {}, source=source)
+            write_macro_outputs(macro_enrichment, macro_meta or {}, source=preferred_sources)
         except Exception as exc:  # noqa: PERF203
             print(f"[macro] Unable to build macro enrichment: {exc}")
 
@@ -285,7 +285,7 @@ def run_pipeline(*, refresh_data: bool = False) -> None:
         "fetched_at_utc": snapshot_status.get("fetched_at_utc") or previous_snapshot.get("fetched_at_utc"),
         "source_status": snapshot_status.get("source_status", "unknown"),
         "error_reason": snapshot_status.get("error_reason") or previous_snapshot.get("error_reason"),
-        "source": snapshot_status.get("source") or source,
+        "source": snapshot_status.get("source") or preferred_sources,
     }
     if snapshot_payload["source_status"] == "live":
         snapshot_payload["error_reason"] = None
@@ -293,7 +293,7 @@ def run_pipeline(*, refresh_data: bool = False) -> None:
     write_json(
         meta_path,
         {
-            "source": source,
+            "source": snapshot_payload.get("source") or preferred_sources,
             "symbol": "SLV",
             "start": raw_data[0]["date"],
             "end": raw_data[-1]["date"],
